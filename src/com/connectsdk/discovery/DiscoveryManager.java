@@ -357,30 +357,21 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	 *   + AirPlayService
 	 */
 	@SuppressWarnings("unchecked")
-	public void registerDefaultDeviceTypes() {
+    public void registerDefaultDeviceTypes(
+            ) {
 		
-		HashMap<String, String> deviceServiceMap = new HashMap<String, String>();
-		DefaultPlatform dp = new DefaultPlatform();
-		deviceServiceMap = dp.getDeviceServiceMap();
+		final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
 		
-		for (Map.Entry<String, String> entry : deviceServiceMap.entrySet()) {
-			try {
-				registerDeviceService((Class<? extends DeviceService>)Class.forName(entry.getKey()), (Class<? extends DiscoveryProvider>)Class.forName(entry.getValue()));
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-//		registerDeviceService(WebOSTVService.class, SSDPDiscoveryProvider.class);
-//		registerDeviceService(NetcastTVService.class, SSDPDiscoveryProvider.class);
-//		registerDeviceService(DLNAService.class, SSDPDiscoveryProvider.class);
-//		registerDeviceService(DIALService.class, SSDPDiscoveryProvider.class);
-//		registerDeviceService(RokuService.class, SSDPDiscoveryProvider.class);
-//		registerDeviceService(CastService.class, CastDiscoveryProvider.class);
-//		registerDeviceService(AirPlayService.class, ZeroconfDiscoveryProvider.class);
-//		registerDeviceService(MultiScreenService.class, SSDPDiscoveryProvider.class);
-	}
+        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            try { 
+                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 	
 	
 	
