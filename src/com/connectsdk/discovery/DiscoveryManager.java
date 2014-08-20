@@ -360,8 +360,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	public void registerDefaultDeviceTypes() {
 		
 		HashMap<String, String> deviceServiceMap = new HashMap<String, String>();
-		DefaultPlatform dp = new DefaultPlatform();
-		deviceServiceMap = dp.getDeviceServiceMap();
+		deviceServiceMap = DefaultPlatform.getDeviceServiceMap();
 		
 		for (Map.Entry<String, String> entry : deviceServiceMap.entrySet()) {
 			try {
@@ -860,8 +859,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		}
 		
 		DeviceService deviceService = DeviceService.getService(deviceServiceClass, desc, serviceConfig);
-		deviceService.setServiceDescription(desc);
-		device.addService(deviceService);
+		if (deviceService!=null) {deviceService.setServiceDescription(desc);
+		 device.addService(deviceService);}
 	}
 	// @endcond
 }
