@@ -357,6 +357,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	 *   + AirPlayService
 	 */
 	@SuppressWarnings("unchecked")
+
     public void registerDefaultDeviceTypes(
             ) {
 		
@@ -372,6 +373,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             }
         }
     }
+
 	
 	
 	
@@ -851,8 +853,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		}
 		
 		DeviceService deviceService = DeviceService.getService(deviceServiceClass, desc, serviceConfig);
-		deviceService.setServiceDescription(desc);
-		device.addService(deviceService);
+		if (deviceService!=null) {deviceService.setServiceDescription(desc);
+		 device.addService(deviceService);}
 	}
 	// @endcond
 }
