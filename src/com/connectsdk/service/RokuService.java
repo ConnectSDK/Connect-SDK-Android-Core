@@ -710,58 +710,14 @@ public class RokuService extends DeviceService implements Launcher,
 				this, uri, null, responseListener);
 		request.send();
 	}
-	
+
 	private void displayMedia(MediaInfo mediaInfo,
 			final MediaPlayer.LaunchListener listener) {
-		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
-			@Override
-			public void onSuccess(Object response) {
-				Util.postSuccess(listener, new MediaLaunchObject(
-						new RokuLaunchSession(RokuService.this),
-						RokuService.this));
-			}
+		displayMedia(mediaInfo.getUrl(), mediaInfo.getMimeType(),
+				mediaInfo.getTitle(), mediaInfo.getDescription(), mediaInfo
+						.getImages().get(0).getUrl(), listener);
 
-			@Override
-			public void onError(ServiceCommandError error) {
-				Util.postError(listener, error);
-			}
-		};
-
-		String host = String.format("%s:%s", serviceDescription.getIpAddress(),
-				serviceDescription.getPort());
-
-		String action = "input";
-		String mediaFormat = mediaInfo.getMimeType();
-		if (mediaInfo.getMimeType().contains("/")) {
-			int index = mediaInfo.getMimeType().indexOf("/") + 1;
-			mediaFormat = mediaInfo.getMimeType().substring(index);
-		}
-
-		String param;
-		if (mediaInfo.getMimeType().contains("image")) {
-			param = String.format("15985?t=p&u=%s&h=%s&tr=crossfade",
-					HttpMessage.encode(mediaInfo.getUrl()), HttpMessage.encode(host));
-		} else if (mediaInfo.getMimeType().contains("video")) {
-			param = String.format(
-					"15985?t=v&u=%s&k=(null)&h=%s&videoName=%s&videoFormat=%s",
-					HttpMessage.encode(mediaInfo.getUrl()), HttpMessage.encode(host),
-					HttpMessage.encode(mediaInfo.getTitle()), HttpMessage.encode(mediaFormat));
-		} else { // if (mimeType.contains("audio")) {
-			param = String
-					.format("15985?t=a&u=%s&k=(null)&h=%s&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
-							HttpMessage.encode(mediaInfo.getUrl()), HttpMessage.encode(host),
-							HttpMessage.encode(mediaInfo.getTitle()),
-							HttpMessage.encode(mediaInfo.getDescription()),
-							HttpMessage.encode(mediaFormat),
-							HttpMessage.encode(mediaInfo.getImages().get(0).getUrl()));
-		}
-
-		String uri = requestURL(action, param);
-
-		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(
-				this, uri, null, responseListener);
-		request.send();
 	}
 
 	@Override
@@ -776,7 +732,7 @@ public class RokuService extends DeviceService implements Launcher,
 			MediaPlayer.LaunchListener listener) {
 		displayMedia(mediaInfo, listener);
 	}
-	
+
 	@Override
 	public void playMedia(String url, String mimeType, String title,
 			String description, String iconSrc, boolean shouldLoop,
@@ -789,7 +745,7 @@ public class RokuService extends DeviceService implements Launcher,
 			MediaPlayer.LaunchListener listener) {
 		displayMedia(mediaInfo, listener);
 	}
-	
+
 	@Override
 	public void closeMedia(LaunchSession launchSession,
 			ResponseListener<Object> listener) {
