@@ -52,19 +52,10 @@ import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
 import com.connectsdk.device.ConnectableDeviceStore;
 import com.connectsdk.device.DefaultConnectableDeviceStore;
-import com.connectsdk.discovery.provider.CastDiscoveryProvider;
-import com.connectsdk.discovery.provider.SSDPDiscoveryProvider;
-import com.connectsdk.discovery.provider.ZeroconfDiscoveryProvider;
-import com.connectsdk.service.AirPlayService;
-import com.connectsdk.service.CastService;
-import com.connectsdk.service.DIALService;
 import com.connectsdk.service.DLNAService;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.PairingType;
-import com.connectsdk.service.MultiScreenService;
 import com.connectsdk.service.NetcastTVService;
-import com.connectsdk.service.RokuService;
-import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
@@ -806,7 +797,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		} else if (deviceServiceClass == NetcastTVService.class) {
 	        if (!isNetcast(desc))
 	            return;
-	    } else if (deviceServiceClass == MultiScreenService.class){
+	    } else if (deviceServiceClass.toString().equals("com.connectsdk.samsungmultiscreen.MultiScreenService")){
 	    	if (!isSamsungMultiScreen(desc))
 	    		return;
 	    }
