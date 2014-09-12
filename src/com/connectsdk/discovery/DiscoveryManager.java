@@ -25,6 +25,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -45,6 +46,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
 
+import com.connectsdk.DefaultPlatform;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
@@ -363,16 +365,21 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	 * - ZeroconfDiscoveryProvider
 	 *   + AirPlayService
 	 */
-	public void registerDefaultDeviceTypes() {
-		registerDeviceService(WebOSTVService.class, SSDPDiscoveryProvider.class);
-		registerDeviceService(NetcastTVService.class, SSDPDiscoveryProvider.class);
-		registerDeviceService(DLNAService.class, SSDPDiscoveryProvider.class);
-		registerDeviceService(DIALService.class, SSDPDiscoveryProvider.class);
-		registerDeviceService(RokuService.class, SSDPDiscoveryProvider.class);
-		registerDeviceService(CastService.class, CastDiscoveryProvider.class);
-		registerDeviceService(AirPlayService.class, ZeroconfDiscoveryProvider.class);
-		registerDeviceService(MultiScreenService.class, SSDPDiscoveryProvider.class);
-	}
+	public void registerDefaultDeviceTypes(
+            ) {
+		
+		final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
+		
+        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            try { 
+                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 	
 	/**
 	 * Registers a DeviceService with DiscoveryManager and tells it which DiscoveryProvider to use to find it. Each DeviceService has a JSONObject of discovery parameters that its DiscoveryProvider will use to find it.
