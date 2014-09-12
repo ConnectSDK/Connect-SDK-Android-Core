@@ -25,7 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -46,16 +45,24 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
 
-import com.connectsdk.DefaultPlatform;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
 import com.connectsdk.device.ConnectableDeviceStore;
 import com.connectsdk.device.DefaultConnectableDeviceStore;
+import com.connectsdk.discovery.provider.CastDiscoveryProvider;
+import com.connectsdk.discovery.provider.SSDPDiscoveryProvider;
+import com.connectsdk.discovery.provider.ZeroconfDiscoveryProvider;
+import com.connectsdk.service.AirPlayService;
+import com.connectsdk.service.CastService;
+import com.connectsdk.service.DIALService;
 import com.connectsdk.service.DLNAService;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.PairingType;
+import com.connectsdk.service.MultiScreenService;
 import com.connectsdk.service.NetcastTVService;
+import com.connectsdk.service.RokuService;
+import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
@@ -356,26 +363,16 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	 * - ZeroconfDiscoveryProvider
 	 *   + AirPlayService
 	 */
-	@SuppressWarnings("unchecked")
-
-    public void registerDefaultDeviceTypes(
-            ) {
-		
-		final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
-		
-        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            try { 
-                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-	
-	
+	public void registerDefaultDeviceTypes() {
+		registerDeviceService(WebOSTVService.class, SSDPDiscoveryProvider.class);
+		registerDeviceService(NetcastTVService.class, SSDPDiscoveryProvider.class);
+		registerDeviceService(DLNAService.class, SSDPDiscoveryProvider.class);
+		registerDeviceService(DIALService.class, SSDPDiscoveryProvider.class);
+		registerDeviceService(RokuService.class, SSDPDiscoveryProvider.class);
+		registerDeviceService(CastService.class, CastDiscoveryProvider.class);
+		registerDeviceService(AirPlayService.class, ZeroconfDiscoveryProvider.class);
+		registerDeviceService(MultiScreenService.class, SSDPDiscoveryProvider.class);
+	}
 	
 	/**
 	 * Registers a DeviceService with DiscoveryManager and tells it which DiscoveryProvider to use to find it. Each DeviceService has a JSONObject of discovery parameters that its DiscoveryProvider will use to find it.
@@ -799,14 +796,10 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		if (deviceServiceClass == DLNAService.class) {
 			if (desc.getLocationXML() == null)
 	            return;
-			
-			// we only support LG DLNA devices, currently
-			if (!desc.getLocationXML().contains("LG"))
-				return;
 		} else if (deviceServiceClass == NetcastTVService.class) {
 	        if (!isNetcast(desc))
 	            return;
-	    } else if (deviceServiceClass.getSimpleName().equals("MultiScreenService")){
+	    } else if (deviceServiceClass == MultiScreenService.class){
 	    	if (!isSamsungMultiScreen(desc))
 	    		return;
 	    }
@@ -853,8 +846,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		}
 		
 		DeviceService deviceService = DeviceService.getService(deviceServiceClass, desc, serviceConfig);
-		if (deviceService!=null) {deviceService.setServiceDescription(desc);
-		 device.addService(deviceService);}
+
+        if (deviceService != null) {
+            deviceService.setServiceDescription(desc);
+		    device.addService(deviceService);
+        }
 	}
 	// @endcond
 }

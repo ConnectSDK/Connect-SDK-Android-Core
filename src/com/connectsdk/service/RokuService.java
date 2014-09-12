@@ -53,10 +53,10 @@ import org.xml.sax.SAXException;
 import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
+import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
-import com.connectsdk.device.roku.RokuApplicationListParser;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
@@ -73,6 +73,7 @@ import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.roku.RokuApplicationListParser;
 import com.connectsdk.service.sessions.LaunchSession;
 
 public class RokuService extends DeviceService implements Launcher,
@@ -204,10 +205,9 @@ public class RokuService extends DeviceService implements Launcher,
 	public void launchAppWithInfo(final AppInfo appInfo, Object params,
 			final Launcher.AppLaunchListener listener) {
 		if (appInfo == null || appInfo.getId() == null) {
-			if (listener != null)
-				Util.postError(listener, new ServiceCommandError(-1,
-						"Cannot launch app without valid AppInfo object",
-						appInfo));
+			Util.postError(listener, new ServiceCommandError(-1,
+					"Cannot launch app without valid AppInfo object",
+					appInfo));
 
 			return;
 		}
@@ -380,12 +380,10 @@ public class RokuService extends DeviceService implements Launcher,
 			getDIALService().getLauncher().launchYouTube(contentId, startTime,
 					listener);
 		} else {
-			if (listener != null) {
-				listener.onError(new ServiceCommandError(
-						0,
-						"Cannot reach DIAL service for launching with provided start time",
-						null));
-			}
+			Util.postError(listener, new ServiceCommandError(
+					0,
+					"Cannot reach DIAL service for launching with provided start time",
+					null));
 		}
 	}
 
@@ -475,7 +473,7 @@ public class RokuService extends DeviceService implements Launcher,
 
 	@Override
 	public CapabilityPriorityLevel getKeyControlCapabilityLevel() {
-		return CapabilityPriorityLevel.NORMAL;
+		return CapabilityPriorityLevel.HIGH;
 	}
 
 	@Override
@@ -569,7 +567,7 @@ public class RokuService extends DeviceService implements Launcher,
 
 	@Override
 	public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
-		return CapabilityPriorityLevel.NORMAL;
+		return CapabilityPriorityLevel.HIGH;
 	}
 
 	@Override
@@ -632,7 +630,17 @@ public class RokuService extends DeviceService implements Launcher,
 		request.send();
 	}
 
-	@Override
+    @Override
+    public void previous(ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void next(ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
 	public void getDuration(DurationListener listener) {
 		Util.postError(listener, ServiceCommandError.notSupported());
 	}
@@ -654,7 +662,7 @@ public class RokuService extends DeviceService implements Launcher,
 
 	@Override
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
-		return CapabilityPriorityLevel.NORMAL;
+		return CapabilityPriorityLevel.HIGH;
 	}
 
 	private void displayMedia(String url, String mimeType, String title,
@@ -710,16 +718,7 @@ public class RokuService extends DeviceService implements Launcher,
 				this, uri, null, responseListener);
 		request.send();
 	}
-
-	private void displayMedia(MediaInfo mediaInfo,
-			final MediaPlayer.LaunchListener listener) {
-
-		displayMedia(mediaInfo.getUrl(), mediaInfo.getMimeType(),
-				mediaInfo.getTitle(), mediaInfo.getDescription(), mediaInfo
-						.getImages().get(0).getUrl(), listener);
-
-	}
-
+	
 	@Override
 	public void displayImage(String url, String mimeType, String title,
 			String description, String iconSrc,
@@ -730,9 +729,12 @@ public class RokuService extends DeviceService implements Launcher,
 	@Override
 	public void displayImage(MediaInfo mediaInfo,
 			MediaPlayer.LaunchListener listener) {
-		displayMedia(mediaInfo, listener);
+    	ImageInfo imageInfo = mediaInfo.getImages().get(0);
+    	String iconSrc = imageInfo.getUrl();
+    	
+    	displayImage(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, listener);
 	}
-
+	
 	@Override
 	public void playMedia(String url, String mimeType, String title,
 			String description, String iconSrc, boolean shouldLoop,
@@ -743,9 +745,12 @@ public class RokuService extends DeviceService implements Launcher,
 	@Override
 	public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
 			MediaPlayer.LaunchListener listener) {
-		displayMedia(mediaInfo, listener);
+    	ImageInfo imageInfo = mediaInfo.getImages().get(0);
+    	String iconSrc = imageInfo.getUrl();
+    	
+    	playMedia(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, shouldLoop, listener);
 	}
-
+	
 	@Override
 	public void closeMedia(LaunchSession launchSession,
 			ResponseListener<Object> listener) {
@@ -759,7 +764,7 @@ public class RokuService extends DeviceService implements Launcher,
 
 	@Override
 	public CapabilityPriorityLevel getTextInputControlCapabilityLevel() {
-		return CapabilityPriorityLevel.NORMAL;
+		return CapabilityPriorityLevel.HIGH;
 	}
 
 	@Override

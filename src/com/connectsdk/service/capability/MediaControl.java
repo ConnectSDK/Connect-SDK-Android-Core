@@ -22,6 +22,7 @@ package com.connectsdk.service.capability;
 
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
+import com.google.android.gms.cast.MediaStatus;
 
 public interface MediaControl extends CapabilityMethods {
 	public final static String Any = "MediaControl.Any";
@@ -31,7 +32,9 @@ public interface MediaControl extends CapabilityMethods {
 	public final static String Stop = "MediaControl.Stop";
 	public final static String Rewind = "MediaControl.Rewind";
 	public final static String FastForward = "MediaControl.FastForward";
-	public final static String Seek = "MediaControl.Seek";
+    public final static String Seek = "MediaControl.Seek";
+    public final static String Previous = "MediaControl.Previous";
+    public final static String Next = "MediaControl.Next";
 	public final static String Duration = "MediaControl.Duration";
 	public final static String PlayState = "MediaControl.PlayState";
 	public final static String PlayState_Subscribe = "MediaControl.PlayState.Subscribe";
@@ -44,6 +47,8 @@ public interface MediaControl extends CapabilityMethods {
 	    Rewind,
 	    FastForward,
 	    Seek,
+        Previous,
+        Next,
 	    Duration,
 	    PlayState,
 	    PlayState_Subscribe,
@@ -56,7 +61,59 @@ public interface MediaControl extends CapabilityMethods {
 		Playing, 
 		Paused, 
 		Buffering, 
-		Finished
+		Finished;
+		
+	    public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
+			PlayStateStatus status = PlayStateStatus.Unknown;
+			
+			switch (playerState) {
+	    		case MediaStatus.PLAYER_STATE_BUFFERING:
+	    			status = PlayStateStatus.Buffering;
+	    			break;
+	    		case MediaStatus.PLAYER_STATE_IDLE:
+	    			status = PlayStateStatus.Finished;
+	    			break;
+	    		case MediaStatus.PLAYER_STATE_PAUSED:
+	    			status = PlayStateStatus.Paused;
+	    			break;
+	    		case MediaStatus.PLAYER_STATE_PLAYING:
+	    			status = PlayStateStatus.Playing;
+	    			break;
+	    		case MediaStatus.PLAYER_STATE_UNKNOWN:
+	    		default:
+	    			status = PlayStateStatus.Unknown;
+	    			break;
+			}
+			
+			return status;
+	    }
+		
+		public static PlayStateStatus convertTransportStateToPlayStateStatus(String transportState) {
+			PlayStateStatus status = PlayStateStatus.Unknown;
+				
+			if (transportState.equals("STOPPED")) {
+				status = PlayStateStatus.Finished;
+			}
+			else if (transportState.equals("PLAYING")) {
+				status = PlayStateStatus.Playing;
+			}
+			else if (transportState.equals("TRANSITIONING")) {
+				status = PlayStateStatus.Buffering;
+			}
+			else if (transportState.equals("PAUSED_PLAYBACK")) {
+				status = PlayStateStatus.Paused;	 
+			}
+			else if (transportState.equals("PAUSED_RECORDING")) {
+
+			}
+			else if (transportState.equals("RECORDING")) {
+
+			}
+			else if (transportState.equals("NO_MEDIA_PRESENT")) {
+
+			}
+			return status;
+		}
 	};
 	
 	public MediaControl getMediaControl();
@@ -67,6 +124,9 @@ public interface MediaControl extends CapabilityMethods {
 	public void stop(ResponseListener<Object> listener);
 	public void rewind(ResponseListener<Object> listener);
 	public void fastForward(ResponseListener<Object> listener);
+
+    public void previous(ResponseListener<Object> listener);
+    public void next(ResponseListener<Object> listener);
 
 	public void seek(long position, ResponseListener<Object> listener);	
 	public void getDuration(DurationListener listener);
