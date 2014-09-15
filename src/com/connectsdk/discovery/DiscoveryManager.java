@@ -797,7 +797,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		} else if (deviceServiceClass == NetcastTVService.class) {
 	        if (!isNetcast(desc))
 	            return;
-	    } else if (deviceServiceClass.toString().equals("com.connectsdk.samsungmultiscreen.MultiScreenService")){
+	    } else if (deviceServiceClass.toString().contains("com.connectsdk.samsungmultiscreen.MultiScreenService")){
 	    	if (!isSamsungMultiScreen(desc))
 	    		return;
 	    }
