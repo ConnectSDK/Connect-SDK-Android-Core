@@ -10,15 +10,13 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
-
-import android.text.Html;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
@@ -94,8 +92,6 @@ public class DLNAHttpServer {
 					if (body.endsWith("</e:propertyset>"))
 						break;
 				}
-
-				body = Html.fromHtml(body).toString();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
@@ -131,57 +127,21 @@ public class DLNAHttpServer {
 				ex.printStackTrace();
 			}
 			
-			JSONObject event;
+			JSONArray propertySet;
 			DLNANotifyParser parser = new DLNANotifyParser();
 			
 			try {
-				event = parser.parse(stream);
+				propertySet = parser.parse(stream);
 				
-				if (event.has("TransportState")) {
-					String transportState = event.getString("TransportState");
-					PlayStateStatus status = PlayStateStatus.convertTransportStateToPlayStateStatus(transportState);
+				for (int i = 0; i < propertySet.length(); i++) {
+					JSONObject property = propertySet.getJSONObject(i);
 					
-					for (URLServiceSubscription<?> sub: subscriptions) {
-						if (sub.getTarget().equalsIgnoreCase("playState")) {
-							for (int i = 0; i < sub.getListeners().size(); i++) {
-								@SuppressWarnings("unchecked")
-								ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(i);
-								Util.postSuccess(listener, status);
-							}
-						}
-					}
-				}
-				else if (event.has("Volume")) {
-					int intVolume = event.getInt("Volume");
-					float volume = (float) intVolume / 100;
-
-					for (URLServiceSubscription<?> sub : subscriptions) {
-						if (sub.getTarget().equalsIgnoreCase("volume")) {
-							for (int i = 0; i < sub.getListeners().size(); i++) {
-								@SuppressWarnings("unchecked")
-								ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(i);
-								Util.postSuccess(listener, volume);
-							}
-						}
-					}
-				}
-				else if (event.has("Mute")) {
-					String muteStatus = event.getString("Mute");
-					boolean mute;
-					
-					try {
-						mute = (Integer.parseInt(muteStatus) == 1) ? true : false;
-				    } catch(NumberFormatException e) {
-				    	mute = Boolean.parseBoolean(muteStatus);
-				    }
-
-					for (URLServiceSubscription<?> sub : subscriptions) {
-						if (sub.getTarget().equalsIgnoreCase("mute")) {
-							for (int i = 0; i < sub.getListeners().size(); i++) {
-								@SuppressWarnings("unchecked")
-								ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(i);
-								Util.postSuccess(listener, mute);
-							}
+					if (property.has("LastChange")) {
+						JSONObject lastChange = property.getJSONObject("LastChange");
+						
+						if (lastChange.has("Event")) {
+							JSONObject event = lastChange.getJSONObject("Event");
+							handleEvent(event);
 						}
 					}
 				}
@@ -193,6 +153,59 @@ public class DLNAHttpServer {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void handleEvent(JSONObject event) throws JSONException {
+		if (event.has("TransportState")) {
+			String transportState = event.getString("TransportState");
+			PlayStateStatus status = PlayStateStatus.convertTransportStateToPlayStateStatus(transportState);
+			
+			for (URLServiceSubscription<?> sub: subscriptions) {
+				if (sub.getTarget().equalsIgnoreCase("playState")) {
+					for (int j = 0; j < sub.getListeners().size(); j++) {
+						@SuppressWarnings("unchecked")
+						ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(j);
+						Util.postSuccess(listener, status);
+					}
+				}
+			}
+		}
+		
+		if (event.has("Volume")) {
+			int intVolume = event.getInt("Volume");
+			float volume = (float) intVolume / 100;
+
+			for (URLServiceSubscription<?> sub : subscriptions) {
+				if (sub.getTarget().equalsIgnoreCase("volume")) {
+					for (int j = 0; j < sub.getListeners().size(); j++) {
+						@SuppressWarnings("unchecked")
+						ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(j);
+						Util.postSuccess(listener, volume);
+					}
+				}
+			}
+		}
+		
+		if (event.has("Mute")) {
+			String muteStatus = event.getString("Mute");
+			boolean mute;
+			
+			try {
+				mute = (Integer.parseInt(muteStatus) == 1) ? true : false;
+		    } catch(NumberFormatException e) {
+		    	mute = Boolean.parseBoolean(muteStatus);
+		    }
+
+			for (URLServiceSubscription<?> sub : subscriptions) {
+				if (sub.getTarget().equalsIgnoreCase("mute")) {
+					for (int j = 0; j < sub.getListeners().size(); j++) {
+						@SuppressWarnings("unchecked")
+						ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(j);
+						Util.postSuccess(listener, mute);
+					}
+				}
+			}
+		}		
 	}
 	
 	public void stop() {
