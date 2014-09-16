@@ -3,6 +3,7 @@ package com.connectsdk.service.upnp;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
@@ -27,6 +28,9 @@ public class DLNAEventParser {
 	
 	private JSONObject readEvent(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
 		JSONObject event = new JSONObject();
+
+		JSONArray instanceIDs = new JSONArray();
+		JSONArray queueIDs = new JSONArray();
 		
 	    parser.require(XmlPullParser.START_TAG, ns, "Event");
 	    while (parser.next() != XmlPullParser.END_TAG) {
@@ -35,36 +39,71 @@ public class DLNAEventParser {
 	        }
 	        String name = parser.getName();
 	        if (name.equals("InstanceID")) {
-	        	event.put("Event", readInstanceId(parser));
+	        	instanceIDs.put(readInstanceID(parser));
+	        }
+	        else if (name.equals("QueueID")) {
+	        	queueIDs.put(readQueueID(parser));
 	        }
 	        else {
 	        	skip(parser);
 	        }
 	    }
+	    
+	    if (instanceIDs.length() > 0)
+	    	event.put("InstanceID", instanceIDs);
+	    if (queueIDs.length() > 0)
+	    	event.put("QueueID", queueIDs);
+
 	    return event;
 	}
 	
-	private JSONObject readInstanceId(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
-		JSONObject instanceId = new JSONObject();
+	private JSONArray readInstanceID(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
+		JSONArray instanceIDs = new JSONArray();
+		JSONObject data = new JSONObject();
 		
 	    parser.require(XmlPullParser.START_TAG, ns, "InstanceID");
+		data.put("value", parser.getAttributeValue(null, "val"));
+		instanceIDs.put(data);
+		
 	    while (parser.next() != XmlPullParser.END_TAG) {
 	        if (parser.getEventType() != XmlPullParser.START_TAG) {
 	            continue;
 	        }
 	        String name = parser.getName();
-
-	        instanceId.put(name, readAttributeValue(name, parser));
+	        instanceIDs.put(readEntry(name, parser));
 	    }
-	    return instanceId;
+	    
+	    return instanceIDs;
 	}
 	
-	private String readAttributeValue(String target, XmlPullParser parser) throws IOException, XmlPullParserException {
+	private JSONArray readQueueID(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
+		JSONArray queueIDs = new JSONArray();
+		JSONObject data = new JSONObject();
+
+	    parser.require(XmlPullParser.START_TAG, ns, "QueueID");
+		data.put("value", parser.getAttributeValue(null, "val"));
+		queueIDs.put(data);
+
+		while (parser.next() != XmlPullParser.END_TAG) {
+	        if (parser.getEventType() != XmlPullParser.START_TAG) {
+	            continue;
+	        }
+	        String name = parser.getName();
+			queueIDs.put(readEntry(name, parser));
+	    }
+		
+	    return queueIDs;
+	}
+	
+	private JSONObject readEntry(String target, XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
 		parser.require(XmlPullParser.START_TAG, ns, target);
 	    String value = parser.getAttributeValue(null, "val");
         parser.nextTag();
 	    parser.require(XmlPullParser.END_TAG, ns, target);
-	    return value;
+	    
+	    JSONObject data = new JSONObject();
+	    data.put(target, value);
+	    return data;
 	}
 	
 	private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {

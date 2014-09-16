@@ -138,11 +138,7 @@ public class DLNAHttpServer {
 					
 					if (property.has("LastChange")) {
 						JSONObject lastChange = property.getJSONObject("LastChange");
-						
-						if (lastChange.has("Event")) {
-							JSONObject event = lastChange.getJSONObject("Event");
-							handleEvent(event);
-						}
+						handleLastChange(lastChange);
 					}
 				}
 			} catch (XmlPullParserException e) {
@@ -155,9 +151,24 @@ public class DLNAHttpServer {
 		}
 	}
 	
-	private void handleEvent(JSONObject event) throws JSONException {
-		if (event.has("TransportState")) {
-			String transportState = event.getString("TransportState");
+	private void handleLastChange(JSONObject lastChange) throws JSONException {
+		if (lastChange.has("InstanceID")) {
+			JSONArray instanceIDs = lastChange.getJSONArray("InstanceID");
+
+			for (int i = 0; i < instanceIDs.length(); i++) {
+				JSONArray events = instanceIDs.getJSONArray(i);
+				
+				for (int j = 0; j < events.length(); j++) {
+					JSONObject entry = events.getJSONObject(j);
+					handleEntry(entry);
+				}
+			}
+		}
+	}
+	
+	private void handleEntry(JSONObject entry) throws JSONException {
+		if (entry.has("TransportState")) {
+			String transportState = entry.getString("TransportState");
 			PlayStateStatus status = PlayStateStatus.convertTransportStateToPlayStateStatus(transportState);
 			
 			for (URLServiceSubscription<?> sub: subscriptions) {
@@ -171,8 +182,8 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if (event.has("Volume")) {
-			int intVolume = event.getInt("Volume");
+		if (entry.has("Volume")) {
+			int intVolume = entry.getInt("Volume");
 			float volume = (float) intVolume / 100;
 
 			for (URLServiceSubscription<?> sub : subscriptions) {
@@ -186,8 +197,8 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if (event.has("Mute")) {
-			String muteStatus = event.getString("Mute");
+		if (entry.has("Mute")) {
+			String muteStatus = entry.getString("Mute");
 			boolean mute;
 			
 			try {
