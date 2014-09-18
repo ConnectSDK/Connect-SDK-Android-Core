@@ -72,16 +72,16 @@ import com.connectsdk.service.upnp.DLNAHttpServer;
 public class DLNAService extends DeviceService implements MediaControl, MediaPlayer, VolumeControl {
 	public static final String ID = "DLNA";
 
-	private static final String SUBSCRIBE = "SUBSCRIBE";
-	private static final String UNSUBSCRIBE = "UNSUBSCRIBE";
+	protected static final String SUBSCRIBE = "SUBSCRIBE";
+	protected static final String UNSUBSCRIBE = "UNSUBSCRIBE";
 	
-	private static final String AV_TRANSPORT_URN = "urn:schemas-upnp-org:service:AVTransport:1";
-    private static final String CONNECTION_MANAGER_URN = "urn:schemas-upnp-org:service:ConnectionManager:1";
-    private static final String RENDERING_CONTROL_URN = "urn:schemas-upnp-org:service:RenderingControl:1";
+	public static final String AV_TRANSPORT_URN = "urn:schemas-upnp-org:service:AVTransport:1";
+    public static final String CONNECTION_MANAGER_URN = "urn:schemas-upnp-org:service:ConnectionManager:1";
+    public static final String RENDERING_CONTROL_URN = "urn:schemas-upnp-org:service:RenderingControl:1";
 
-    private static final String AV_TRANSPORT = "AVTransport";
-	private static final String CONNECTION_MANAGER = "ConnectionManager";
-	private static final String RENDERING_CONTROL = "RenderingControl";
+    protected static final String AV_TRANSPORT = "AVTransport";
+	protected static final String CONNECTION_MANAGER = "ConnectionManager";
+	protected static final String RENDERING_CONTROL = "RenderingControl";
 
 	public final static String PLAY_STATE = "playState";
 	
