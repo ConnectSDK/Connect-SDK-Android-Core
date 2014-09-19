@@ -82,6 +82,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
     protected static final String AV_TRANSPORT = "AVTransport";
 	protected static final String CONNECTION_MANAGER = "ConnectionManager";
 	protected static final String RENDERING_CONTROL = "RenderingControl";
+	protected static final String GROUP_RENDERING_CONTROL = "GroupRenderingControl";
 
 	public final static String PLAY_STATE = "playState";
 	
@@ -145,7 +146,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 				if (serviceList.get(i).serviceType.contains(AV_TRANSPORT)) {
 					avTransportURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
 				}
-				else if (serviceList.get(i).serviceType.contains(RENDERING_CONTROL)) {
+				else if ((serviceList.get(i).serviceType.contains(RENDERING_CONTROL)) && !(serviceList.get(i).serviceType.contains(GROUP_RENDERING_CONTROL))) {
 					renderingControlURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
 				}
 			}
