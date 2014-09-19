@@ -98,11 +98,16 @@ public class DLNAEventParser {
 	private JSONObject readEntry(String target, XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
 		parser.require(XmlPullParser.START_TAG, ns, target);
 	    String value = parser.getAttributeValue(null, "val");
+	    String channel = parser.getAttributeValue(null, "channel");
         parser.nextTag();
 	    parser.require(XmlPullParser.END_TAG, ns, target);
 	    
 	    JSONObject data = new JSONObject();
 	    data.put(target, value);
+	    
+	    if (channel!=null)
+	    	data.put("channel", channel);
+	    
 	    return data;
 	}
 	

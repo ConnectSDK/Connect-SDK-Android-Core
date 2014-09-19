@@ -182,7 +182,7 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if (entry.has("Volume")) {
+		if ((entry.has("Volume"))&&(entry.getString("channel").equals("Master"))) {
 			int intVolume = entry.getInt("Volume");
 			float volume = (float) intVolume / 100;
 
@@ -197,7 +197,7 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if (entry.has("Mute")) {
+		if ((entry.has("Mute"))&&(entry.getString("channel").equals("Master"))) {
 			String muteStatus = entry.getString("Mute");
 			boolean mute;
 			
