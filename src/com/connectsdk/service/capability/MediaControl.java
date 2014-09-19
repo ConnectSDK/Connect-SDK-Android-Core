@@ -22,7 +22,6 @@ package com.connectsdk.service.capability;
 
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
-import com.google.android.gms.cast.MediaStatus;
 
 public interface MediaControl extends CapabilityMethods {
 	public final static String Any = "MediaControl.Any";
@@ -39,6 +38,13 @@ public interface MediaControl extends CapabilityMethods {
 	public final static String PlayState = "MediaControl.PlayState";
 	public final static String PlayState_Subscribe = "MediaControl.PlayState.Subscribe";
 	public final static String Position = "MediaControl.Position";
+	
+	public static final int PLAYER_STATE_UNKNOWN = 0;
+	public static final int PLAYER_STATE_IDLE = 1;  
+	public static final int PLAYER_STATE_PLAYING = 2;
+    public static final int PLAYER_STATE_PAUSED = 3;
+	public static final int PLAYER_STATE_BUFFERING = 4;
+	
 
 	public final static String[] Capabilities = {
 	    Play,
@@ -67,19 +73,19 @@ public interface MediaControl extends CapabilityMethods {
 			PlayStateStatus status = PlayStateStatus.Unknown;
 			
 			switch (playerState) {
-	    		case MediaStatus.PLAYER_STATE_BUFFERING:
+	    		case PLAYER_STATE_BUFFERING:
 	    			status = PlayStateStatus.Buffering;
 	    			break;
-	    		case MediaStatus.PLAYER_STATE_IDLE:
+	    		case PLAYER_STATE_IDLE:
 	    			status = PlayStateStatus.Finished;
 	    			break;
-	    		case MediaStatus.PLAYER_STATE_PAUSED:
+	    		case PLAYER_STATE_PAUSED:
 	    			status = PlayStateStatus.Paused;
 	    			break;
-	    		case MediaStatus.PLAYER_STATE_PLAYING:
+	    		case PLAYER_STATE_PLAYING:
 	    			status = PlayStateStatus.Playing;
 	    			break;
-	    		case MediaStatus.PLAYER_STATE_UNKNOWN:
+	    		case PLAYER_STATE_UNKNOWN:
 	    		default:
 	    			status = PlayStateStatus.Unknown;
 	    			break;
