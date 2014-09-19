@@ -80,21 +80,35 @@ public class SSDP {
     		String text = new String(dp.getData(), ASCII_CHARSET);
     		
     		int pos = 0;
-    		int eolPos = text.indexOf("\r\n");
+    		
+    		String CRLF = "\r\n";
+    		String LF = "\n";
+    		int eolPos;
+    		
+    		if ((eolPos = text.indexOf(CRLF)) != -1) {
+    			pos = eolPos + CRLF.length();
+    		}
+    		else if ((eolPos = text.indexOf(LF)) != -1) {
+    			pos = eolPos + LF.length();
+    		}
+    		else 
+    			return;
     		
     		// Get first line
     		type = text.substring(0, eolPos);
-    		pos = eolPos + 2;
     		
     		while (pos < text.length()) {
-    			eolPos = text.indexOf("\r\n", pos);
-    			
-    			if (eolPos < 0) {
-    				break;
-    			}
-    			
-    			String line = text.substring(pos, eolPos);
-    			pos = eolPos + 2;
+    			String line;
+        		if ((eolPos = text.indexOf(CRLF, pos)) != -1) {
+        			line = text.substring(pos, eolPos);
+        			pos = eolPos + CRLF.length();
+        		}
+        		else if ((eolPos = text.indexOf(LF, pos)) != -1) {
+        			line = text.substring(pos, eolPos);
+        			pos = eolPos + LF.length();
+        		}
+        		else 
+        			break;
     			
     			int index = line.indexOf(':');
     			if (index == -1) {
