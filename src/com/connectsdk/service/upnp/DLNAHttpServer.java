@@ -251,4 +251,8 @@ public class DLNAHttpServer {
 	public void setSubscriptions(List<URLServiceSubscription<?>> subscriptions) {
 		this.subscriptions = new CopyOnWriteArrayList<URLServiceSubscription<?>>(subscriptions);
 	}
+	
+	public boolean isRunning() {
+		return running;
+	}
 }

@@ -116,6 +116,8 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		SIDList = new HashMap<String, String>();
 
 		updateControlURL();
+		
+		httpServer = new DLNAHttpServer();
 	}
 	
 	public static JSONObject discoveryParameters() {
@@ -654,14 +656,28 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 	}
 	
 	private void addSubscription(URLServiceSubscription<?> subscription) {
-		if (httpServer != null)
-			httpServer.getSubscriptions().add(subscription);
+		if (httpServer.isRunning() == false) {
+			Util.runInBackground(new Runnable() {
+				
+				@Override
+				public void run() {
+					httpServer.start();
+				}
+			});
+			subscribeServices();
+		}
+		
+		httpServer.getSubscriptions().add(subscription);
 	}
 	
 	@Override
 	public void unsubscribe(URLServiceSubscription<?> subscription) {
-		if (httpServer != null)
-			httpServer.getSubscriptions().remove(subscription);
+		httpServer.getSubscriptions().remove(subscription);
+
+		if (httpServer.getSubscriptions().isEmpty()) {
+			unsubscribeServices();
+			httpServer.stop();
+		}
 	}
 	
 	@Override
@@ -682,17 +698,6 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		
 		connected = true;
 		
-		Util.runInBackground(new Runnable() {
-			
-			@Override
-			public void run() {
-				httpServer = new DLNAHttpServer();
-				httpServer.start();
-			}
-		});
-		
-		subscribeServices();
-		
 		reportConnected(true);
 	}
 	
@@ -711,13 +716,6 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 					listener.onDisconnect(DLNAService.this, null);
 			}
 		});
-		
-		unsubscribeServices();
-		
-		if (httpServer != null) {
-			httpServer.stop();
-			httpServer = null;
-		}
 	}
 	
 	@Override
