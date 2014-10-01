@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -261,7 +262,7 @@ public class DIALService extends DeviceService implements Launcher {
 			}
 			
 			String pairingCode = java.util.UUID.randomUUID().toString();
-			params = String.format("pairingCode=%s&v=%s&t=%.1f", pairingCode, contentId, startTime);
+			params = String.format(Locale.US, "pairingCode=%s&v=%s&t=%.1f", pairingCode, contentId, startTime);
 		}
 
 		launchAppWithInfo(appInfo, params, listener);

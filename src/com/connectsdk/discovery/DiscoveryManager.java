@@ -356,9 +356,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	 * - ZeroconfDiscoveryProvider
 	 *   + AirPlayService
 	 */
-	public void registerDefaultDeviceTypes(
-            ) {
-		
+	@SuppressWarnings("unchecked")
+	public void registerDefaultDeviceTypes() {
 		final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
 		
         for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
@@ -620,7 +619,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		String modelDescription = description.getModelDescription();
 
 		if (modelName != null && modelName.toUpperCase(Locale.US).equals("LG TV")) {
-			if (modelDescription != null && !(modelDescription.toUpperCase().contains("WEBOS"))) {
+			if (modelDescription != null && !(modelDescription.toUpperCase(Locale.US).contains("WEBOS"))) {
 				if (description.getServiceID().equals(NetcastTVService.ID)); {
 					isNetcastTV = true;
 				}
@@ -791,6 +790,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		
 		Class<? extends DeviceService> deviceServiceClass = (Class<DeviceService>) deviceClasses.get(desc.getServiceID());
 		
+		if (deviceServiceClass == null)
+			return;
+		
 		if (deviceServiceClass == DLNAService.class) {
 			if (desc.getLocationXML() == null)
 	            return;
@@ -801,9 +803,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	    	if (!isSamsungMultiScreen(desc))
 	    		return;
 	    }
-		
-		if (deviceServiceClass == null)
-			return;
 		
 		ServiceConfig serviceConfig = null;
 		

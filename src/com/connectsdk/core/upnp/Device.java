@@ -254,14 +254,17 @@ public class Device {
         	URL mURL = new URL(url);
         	URLConnection urlConnection = mURL.openConnection();
         	InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+        	Scanner s = null;
         	try {
-            	Scanner s = new Scanner(in).useDelimiter("\\A");
+            	s = new Scanner(in).useDelimiter("\\A");
             	device.locationXML = s.hasNext() ? s.next() : "";
 
             	parser = factory.newSAXParser();
             	parser.parse(new ByteArrayInputStream(device.locationXML.getBytes()), dh);
         	} finally {
         		in.close();
+        		if (s != null)
+        			s.close();
         	}
         	
         	device.headers = urlConnection.getHeaderFields();
