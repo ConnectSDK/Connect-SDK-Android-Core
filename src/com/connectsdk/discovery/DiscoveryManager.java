@@ -629,17 +629,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		return isNetcastTV;
 	}
 	
-	public boolean isSamsungMultiScreen(ServiceDescription description) {
-		boolean isSamsungMultiScreen = false;
-		
-		String locationXML = description.getLocationXML();
-
-		if (locationXML != null && (locationXML.contains("samsung:multiscreen:1"))) {
-			isSamsungMultiScreen = true;
-		}
-		
-		return isSamsungMultiScreen;
-	}
 	// @endcond
 
 	/**
@@ -799,10 +788,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		} else if (deviceServiceClass == NetcastTVService.class) {
 	        if (!isNetcast(desc))
 	            return;
-	    } else if (deviceServiceClass.toString().contains("com.connectsdk.service.MultiScreenService")){
-	    	if (!isSamsungMultiScreen(desc))
-	    		return;
-	    }
+	    } 
 		
 		ServiceConfig serviceConfig = null;
 		
