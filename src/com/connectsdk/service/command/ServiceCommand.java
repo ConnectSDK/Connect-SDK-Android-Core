@@ -23,6 +23,7 @@ package com.connectsdk.service.command;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.json.JSONObject;
 
@@ -37,11 +38,13 @@ public class ServiceCommand<T extends ResponseListener<? extends Object>> {
 	public static final String TYPE_GET = "GET";
 	public static final String TYPE_POST = "POST";
 	public static final String TYPE_DEL = "DELETE";
+	public static final String TYPE_PUT = "PUT";
 
 	protected ServiceCommandProcessor processor;
     protected String httpMethod; // WebOSTV: {request, subscribe}, NetcastTV: {GET, POST}
     protected Object payload;
     protected String target;
+
     int requestId;
 
     ResponseListener<Object> responseListener;
@@ -118,6 +121,8 @@ public class ServiceCommand<T extends ResponseListener<? extends Object>> {
 			return new HttpPost(target);
 		} else if (this.httpMethod.equalsIgnoreCase(TYPE_DEL)) {
 			return new HttpDelete(target);
+		} else if (this.httpMethod.equalsIgnoreCase(TYPE_PUT)) {
+			return new HttpPut(target);
 		} else {
 			return null;
 		}
