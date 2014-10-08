@@ -432,115 +432,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
 		stop(listener);
 	}
-	
-//	@Override
-//	public void sendCommand(final ServiceCommand<?> mCommand) {
-//		Util.runInBackground(new Runnable() {
-//			
-//			@SuppressWarnings("unchecked")
-//			@Override
-//			public void run() {
-//				String requestBody="";
-//				InputStream requestIs=null;
-//				String contentType=null;
-//				long contentLength=0;
-//				final ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
-//
-//				Object payload = command.getPayload();
-//				
-////				HttpRequestBase request = command.getRequest();
-////				request.addHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_APPLICATION_PLIST);
-////				HttpResponse response = null;
-//				
-//				if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)
-//						|| command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_PUT)) {
-//					HttpEntity entity = null;
-//					
-//					try {
-////						if (payload instanceof String) {
-////							entity = new StringEntity((String) payload);
-////						} else if (payload instanceof JSONObject) {
-////							entity = new StringEntity(((JSONObject) payload).toString());
-////						} else if (payload instanceof HttpEntity) {
-////							entity = (HttpEntity)payload;
-////						}
-//						if(payload instanceof StringEntity) {
-//							requestBody = EntityUtils.toString((StringEntity)payload, "UTF-8");
-//							contentType=HttpMessage.CONTENT_TYPE_APPLICATION_PLIST;
-//							contentLength=requestBody.length();
-////							requestBody=PersistentHttpClient.convertStreamToString(((HttpEntity)serviceCommand.getPayload()).getContent());
-//						} else if (payload instanceof ByteArrayEntity) {
-//							requestIs=((ByteArrayEntity)payload).getContent();
-//							contentLength=((ByteArrayEntity)payload).getContentLength();
-//						} else {
-//							throw new IllegalArgumentException("Unable to handle "+payload.getClass().getName());
-//						}
-//					} catch (UnsupportedEncodingException e) {
-//						e.printStackTrace();
-//					}
-//					
-//				}
-//				
-//				String httpVersion="HTTP/1.1";
-//			    String requestHeader = command.getHttpMethod()+" "+command.getTarget()+" "+httpVersion+"\n" +
-//			    	(contentType!=null?(HttpMessage.CONTENT_TYPE_HEADER + ": "+contentType +"\n"):"") +
-//			    	HTTP.USER_AGENT+": MediaControl/1.0\n"+
-//			    	HTTP.CONTENT_LEN+": "+contentLength+"\n" +
-//			    	"\n";			
-//				StringBuilder request=new StringBuilder();
-//				request.append(requestHeader);
-//				request.append(requestBody);
-//				String requestData=request.toString();
-//				
-//			    Log.d(ID, "#################################");
-//				Log.d(ID, requestData);
-//				
-//				class MyResponseReceiver implements ResponseReceiver {
-//					@Override
-//					public void receiveResponse(Response response) {
-//						Log.d(ID, "      ");
-//						Log.d(ID, "Response:");
-//						Log.d(ID, response.headers);
-//						Log.d(ID, "      ");
-//						Log.d(ID, response.content);		
-//						if (response.statusCode == 200) {
-//				            Util.postSuccess(serviceCommand.getResponseListener(), response.content);
-//						} else {
-//				        	Util.postError(serviceCommand.getResponseListener(), ServiceCommandError.getError(response.statusCode));
-//						}
-//						Log.d(ID, "------------------");
-//						Log.d(ID, "       ");
-//					}
-//				}
-//				persistentHttpClient.executeAsync(requestData, requestIs, new MyResponseReceiver());
-//				
-//				
-//				
-//				try {
-//					response = httpClient.execute(request);
-//					
-//					int code = response.getStatusLine().getStatusCode();
-//					
-//					if (code == 200) { 
-//			            HttpEntity entity = response.getEntity();
-//			            String message = EntityUtils.toString(entity, "UTF-8");
-//			            
-//			            Util.postSuccess(command.getResponseListener(), message);
-//					}
-//					else {
-//			        	Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
-//					}
-//		
-//					response.getEntity().consumeContent();
-//				} catch (ClientProtocolException e) {
-//					e.printStackTrace();
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//	}
-	
 	 
 	@Override
 	public void sendCommand(final ServiceCommand<?> serviceCommand) {
@@ -557,7 +448,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 					requestBody = EntityUtils.toString((StringEntity)payload, "UTF-8");
 					contentType=HttpMessage.CONTENT_TYPE_APPLICATION_PLIST;
 					contentLength=requestBody.length();
-//					requestBody=PersistentHttpClient.convertStreamToString(((HttpEntity)serviceCommand.getPayload()).getContent());
 				} else if (payload instanceof ByteArrayEntity) {
 					requestIs=((ByteArrayEntity)payload).getContent();
 					contentLength=((ByteArrayEntity)payload).getContentLength();
