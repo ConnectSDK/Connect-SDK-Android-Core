@@ -306,6 +306,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 //		});
         // End Debugging stuff
         
+        if (pd == null || pd.data.size() == 0 || pd.type == null)
+        	return;
+
         String serviceFilter = pd.data.get(pd.type.equals(SSDP.SL_NOTIFY) ? SSDP.NT : SSDP.ST);
 
     	if (serviceFilter == null || SSDP.SL_MSEARCH.equals(pd.type) || !isSearchingForFilter(serviceFilter))
