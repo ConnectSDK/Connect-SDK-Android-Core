@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
@@ -45,11 +44,10 @@ import org.json.JSONObject;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
-import android.util.Log;
-
 import com.connectsdk.core.Util;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
@@ -78,9 +76,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		void onGetPlaybackPositionSuccess(long duration, long position);
 		void onGetPlaybackPositionFailed(ServiceCommandError error);
 	}
-	
-	HttpClient httpClient;
-
 	
 	public AirPlayService(ServiceDescription serviceDescription,
 			ServiceConfig serviceConfig) throws IOException {
