@@ -28,6 +28,7 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,7 +81,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	public AirPlayService(ServiceDescription serviceDescription,
 			ServiceConfig serviceConfig) throws IOException {
 		super(serviceDescription, serviceConfig);
-		persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
 	}
 
 	public static JSONObject discoveryParameters() {
@@ -136,6 +136,8 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		// TODO This is temp fix for issue https://github.com/ConnectSDK/Connect-SDK-Android/issues/66
 		request.send();
 		request.send();
+		
+		disConnectHttpClient();
 	}
 
 	@Override
@@ -424,7 +426,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	@Override
 	public void closeMedia(LaunchSession launchSession,
 			ResponseListener<Object> listener) {
-
 		stop(listener);
 	}
 	 
@@ -482,6 +483,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 					Log.d(ID, "       ");
 				}
 			}
+			connectHttpClient();
 			persistentHttpClient.executeAsync(requestData, requestIs, new MyResponseReceiver());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -527,6 +529,19 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		return sb.toString();
 	}
 	
+	private void disConnectHttpClient() {
+		if(persistentHttpClient!=null) {
+			persistentHttpClient.close();
+			persistentHttpClient=null;
+		}		
+	}
+	
+	private void connectHttpClient() throws UnknownHostException, IOException {
+		if(persistentHttpClient==null) {
+			persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
+		}		
+	}
+	
 	@Override
 	public boolean isConnectable() {
 		return true;
@@ -546,7 +561,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	@Override
 	public void disconnect() {
 		connected=false;
-		persistentHttpClient.close();
+		disConnectHttpClient();
 		
 		if (mServiceReachability != null)
 			mServiceReachability.stop();

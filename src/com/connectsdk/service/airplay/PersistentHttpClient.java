@@ -12,22 +12,28 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.http.protocol.HTTP;
 
 public class PersistentHttpClient {
+	private final static byte maxQueuedRequests=10;
+	private final static String CHARSET="UTF-8";
+	private final static int bufferLength=1024;
+	private final static String HTTP_PREFIX="HTTP/1";
+	private final static String HTTP_STATUS="__HTTP_STATUS__";
+
 	private Socket socket;
 	private BufferedReader reader;
 	private BufferedOutputStream bos;
 	private final InetAddress inetAddress;
 	private final int port;
 	
-	private final String CHARSET="UTF-8";
-	private final static int bufferLength=1024;
 	private final byte [] byteBuffer=new byte[bufferLength];
 	private final char [] charBuffer=new char[bufferLength];
-	private final String HTTP_PREFIX="HTTP/1";
-	private final String HTTP_STATUS="__HTTP_STATUS__";
+	
+	private final RequestWorker requestWorker;
 	
 	public class Response {
 		public final String headers;
@@ -49,29 +55,42 @@ public class PersistentHttpClient {
 	public PersistentHttpClient(InetAddress inetAddress, int port) throws UnknownHostException, IOException {
 		this.inetAddress=inetAddress;
 		this.port=port;
-		connect();
+		requestWorker=new RequestWorker(maxQueuedRequests);
+		requestWorker.start();
 	}
 
 	public void close() {
-		try {
-			if(!socket.isClosed()) {
-				reader.close();
-				bos.close();
-				socket.close();	
+		if(socket!=null) {
+			try {
+				requestWorker.terminate();
+				requestWorker.join();
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-		} catch(Exception e) {
-			e.printStackTrace();
+			try {
+				if(!socket.isClosed()) {
+					reader.close();
+					bos.close();
+					socket.close();	
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			socket=null;
 		}
 	}
 	
 	private void connect() throws IOException {
-		socket = new Socket(inetAddress, port);
-		reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		bos = new BufferedOutputStream(socket.getOutputStream());		
+		if(socket==null) {
+			socket = new Socket(inetAddress, port);
+			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			bos = new BufferedOutputStream(socket.getOutputStream());
+		}
 	}
 	
-	public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) {
-		new Thread() {
+	public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
+		requestWorker.add(reqestData, requestPayload, responseReceiver);
+		/*new Thread() {
 			public void run() {
 				try {
 					Response response=executeSync(reqestData, requestPayload);
@@ -80,10 +99,11 @@ public class PersistentHttpClient {
 					e.printStackTrace();
 				}
 			}
-		}.start();
+		}.start();*/
 	}
 	
 	private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
+		connect();
 		bos.write(reqestData.getBytes(CHARSET));
 		if(requestPayload!=null) {
 			copyData(requestPayload, bos);
@@ -161,5 +181,48 @@ public class PersistentHttpClient {
 		    os.write(byteBuffer, 0, len);
 		}
 		is.close();
+	}
+	
+	private class RequestWorker extends Thread {
+		private class Request {
+			public Request(String reqestData, InputStream requestPayload,
+					ResponseReceiver responseReceiver) {
+				this.reqestData = reqestData;
+				this.requestPayload = requestPayload;
+				this.responseReceiver = responseReceiver;
+			}
+			private final String reqestData;
+			private final InputStream requestPayload;
+			private final ResponseReceiver responseReceiver;
+		}
+		
+		private final BlockingQueue<Request> requestQueue;
+		private final Request terminationRequest=new Request(null, null, null);
+		public RequestWorker(int maxQueuedRequests) {
+			requestQueue=new ArrayBlockingQueue<>(maxQueuedRequests);
+		}
+		public void add(String reqestData, InputStream requestPayload,
+				ResponseReceiver responseReceiver) throws InterruptedException {
+			requestQueue.put(new Request(reqestData, requestPayload, responseReceiver));
+		}
+		public void terminate() throws InterruptedException {
+			requestQueue.put(terminationRequest);
+		}
+		public void run() {
+			while(true) {
+				try {
+					Request request=requestQueue.take();
+					if(request==terminationRequest) {
+						break;
+					}
+					Response response=executeSync(request.reqestData, request.requestPayload);
+					request.responseReceiver.receiveResponse(response);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}		
 	}
 }
