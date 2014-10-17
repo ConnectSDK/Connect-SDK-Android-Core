@@ -90,16 +90,6 @@ public class PersistentHttpClient {
 	
 	public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
 		requestWorker.add(reqestData, requestPayload, responseReceiver);
-		/*new Thread() {
-			public void run() {
-				try {
-					Response response=executeSync(reqestData, requestPayload);
-					responseReceiver.receiveResponse(response);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}.start();*/
 	}
 	
 	private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
@@ -206,6 +196,7 @@ public class PersistentHttpClient {
 			requestQueue.put(new Request(reqestData, requestPayload, responseReceiver));
 		}
 		public void terminate() throws InterruptedException {
+			requestQueue.clear();
 			requestQueue.put(terminationRequest);
 		}
 		public void run() {
