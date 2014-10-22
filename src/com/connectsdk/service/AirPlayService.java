@@ -28,7 +28,6 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -136,8 +135,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		// TODO This is temp fix for issue https://github.com/ConnectSDK/Connect-SDK-Android/issues/66
 		request.send();
 		request.send();
-		
-		disConnectHttpClient();
+//		persistentHttpClient.disconnect();
 	}
 
 	@Override
@@ -483,7 +481,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 					Log.d(ID, "       ");
 				}
 			}
-			connectHttpClient();
+
 			persistentHttpClient.executeAsync(requestData, requestIs, new MyResponseReceiver());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -529,19 +527,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		return sb.toString();
 	}
 	
-	private void disConnectHttpClient() {
-		if(persistentHttpClient!=null) {
-			persistentHttpClient.close();
-			persistentHttpClient=null;
-		}		
-	}
-	
-	private void connectHttpClient() throws UnknownHostException, IOException {
-		if(persistentHttpClient==null) {
-			persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
-		}		
-	}
-	
 	@Override
 	public boolean isConnectable() {
 		return true;
@@ -552,22 +537,41 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		return connected;
 	}
 	
+	private void connectPersistentHttpClient() {
+		try {
+			if(persistentHttpClient!=null) {
+				throw new IllegalThreadStateException("Cannot connect twice. You must first disconnect.");
+			}
+			persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+
+	private void disconnectPersistentHttpClient() {
+		if(persistentHttpClient!=null) {
+			persistentHttpClient.disconnect();
+			persistentHttpClient=null;
+		}
+	}
+
 	@Override
 	public void connect() {
-		connected = true;	
+		connected = true;
+		connectPersistentHttpClient();
 		reportConnected(true);
 	}
 	
 	@Override
 	public void disconnect() {
 		connected=false;
-		disConnectHttpClient();
+				
+		disconnectPersistentHttpClient();
 		
 		if (mServiceReachability != null)
 			mServiceReachability.stop();
 		
-		Util.runOnUI(new Runnable() {
-			
+		Util.runOnUI(new Runnable() {	
 			@Override
 			public void run() {
 				if (listener != null)

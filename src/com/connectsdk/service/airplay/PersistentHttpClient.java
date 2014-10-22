@@ -33,7 +33,7 @@ public class PersistentHttpClient {
 	private final byte [] byteBuffer=new byte[bufferLength];
 	private final char [] charBuffer=new char[bufferLength];
 	
-	private final RequestWorker requestWorker;
+	private RequestWorker requestWorker;
 	
 	public class Response {
 		public final String headers;
@@ -58,15 +58,21 @@ public class PersistentHttpClient {
 		requestWorker=new RequestWorker(maxQueuedRequests);
 		requestWorker.start();
 	}
+	
+	public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
+		requestWorker.add(reqestData, requestPayload, responseReceiver);
+	}
 
-	public void close() {
-		if(socket!=null) {
+	public void disconnect() {
+		if(requestWorker!=null) {
 			try {
 				requestWorker.terminate();
-				requestWorker.join();
-			} catch(Exception e) {
+				requestWorker=null;
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+		if(socket!=null) {
 			try {
 				if(!socket.isClosed()) {
 					reader.close();
@@ -81,15 +87,11 @@ public class PersistentHttpClient {
 	}
 	
 	private void connect() throws IOException {
-		if(socket==null) {
+		if(socket==null || socket.isClosed()) {
 			socket = new Socket(inetAddress, port);
 			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			bos = new BufferedOutputStream(socket.getOutputStream());
 		}
-	}
-	
-	public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
-		requestWorker.add(reqestData, requestPayload, responseReceiver);
 	}
 	
 	private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
@@ -189,6 +191,7 @@ public class PersistentHttpClient {
 		private final BlockingQueue<Request> requestQueue;
 		private final Request terminationRequest=new Request(null, null, null);
 		public RequestWorker(int maxQueuedRequests) {
+			this.setDaemon(true);
 			requestQueue=new ArrayBlockingQueue<>(maxQueuedRequests);
 		}
 		public void add(String reqestData, InputStream requestPayload,
@@ -198,6 +201,7 @@ public class PersistentHttpClient {
 		public void terminate() throws InterruptedException {
 			requestQueue.clear();
 			requestQueue.put(terminationRequest);
+			join();
 		}
 		public void run() {
 			while(true) {
