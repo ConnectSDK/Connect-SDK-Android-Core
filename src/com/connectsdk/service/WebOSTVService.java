@@ -942,9 +942,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 	public void setVolume(float volume, ResponseListener<Object> listener) {
 		String uri = "ssap://audio/setVolume";
 		JSONObject payload = new JSONObject();
+		int intVolume = (int) Math.round(volume*100.0f);
 		
 		try {
-			payload.put("volume", (volume * 100.0f));
+			payload.put("volume", intVolume);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
