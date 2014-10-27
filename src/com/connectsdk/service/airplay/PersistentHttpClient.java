@@ -192,7 +192,7 @@ public class PersistentHttpClient {
 		private final Request terminationRequest=new Request(null, null, null);
 		public RequestWorker(int maxQueuedRequests) {
 			this.setDaemon(true);
-			requestQueue=new ArrayBlockingQueue<>(maxQueuedRequests);
+			requestQueue=new ArrayBlockingQueue<Request>(maxQueuedRequests);
 		}
 		public void add(String reqestData, InputStream requestPayload,
 				ResponseReceiver responseReceiver) throws InterruptedException {
