@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
@@ -45,11 +44,10 @@ import org.json.JSONObject;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
-import android.util.Log;
-
 import com.connectsdk.core.Util;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
@@ -79,13 +77,9 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		void onGetPlaybackPositionFailed(ServiceCommandError error);
 	}
 	
-	HttpClient httpClient;
-
-	
 	public AirPlayService(ServiceDescription serviceDescription,
 			ServiceConfig serviceConfig) throws IOException {
 		super(serviceDescription, serviceConfig);
-		persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
 	}
 
 	public static JSONObject discoveryParameters() {
@@ -141,6 +135,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		// TODO This is temp fix for issue https://github.com/ConnectSDK/Connect-SDK-Android/issues/66
 		request.send();
 		request.send();
+//		persistentHttpClient.disconnect();
 	}
 
 	@Override
@@ -429,7 +424,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	@Override
 	public void closeMedia(LaunchSession launchSession,
 			ResponseListener<Object> listener) {
-
 		stop(listener);
 	}
 	 
@@ -487,6 +481,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 					Log.d(ID, "       ");
 				}
 			}
+
 			persistentHttpClient.executeAsync(requestData, requestIs, new MyResponseReceiver());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -542,22 +537,41 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		return connected;
 	}
 	
+	private void connectPersistentHttpClient() {
+		try {
+			if(persistentHttpClient!=null) {
+				throw new IllegalThreadStateException("Cannot connect twice. You must first disconnect.");
+			}
+			persistentHttpClient=new PersistentHttpClient(InetAddress.getByName(serviceDescription.getIpAddress()), serviceDescription.getPort());
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+	}
+
+	private void disconnectPersistentHttpClient() {
+		if(persistentHttpClient!=null) {
+			persistentHttpClient.disconnect();
+			persistentHttpClient=null;
+		}
+	}
+
 	@Override
 	public void connect() {
-		connected = true;	
+		connected = true;
+		connectPersistentHttpClient();
 		reportConnected(true);
 	}
 	
 	@Override
 	public void disconnect() {
 		connected=false;
-		persistentHttpClient.close();
+				
+		disconnectPersistentHttpClient();
 		
 		if (mServiceReachability != null)
 			mServiceReachability.stop();
 		
-		Util.runOnUI(new Runnable() {
-			
+		Util.runOnUI(new Runnable() {	
 			@Override
 			public void run() {
 				if (listener != null)
