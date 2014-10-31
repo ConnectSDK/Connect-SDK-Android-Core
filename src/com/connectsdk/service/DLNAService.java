@@ -68,6 +68,7 @@ import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.upnp.DLNAHttpServer;
+import com.connectsdk.service.upnp.DLNAMediaInfoParser;
 
 public class DLNAService extends DeviceService implements MediaControl, MediaPlayer, VolumeControl {
 	public static final String ID = "DLNA";
@@ -166,6 +167,43 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 	@Override
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
 		return CapabilityPriorityLevel.NORMAL;
+	}
+	
+	@Override
+	public void getMediaInfo(final MediaInfoListener listener) {
+		getPositionInfo(new PositionInfoListener() {
+			
+			@Override
+			public void onGetPositionInfoSuccess(String positionInfoXml) {
+
+				String trackMetaData = parseData(positionInfoXml, "TrackMetaData");
+				
+				MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
+				
+				Util.postSuccess(listener, info);
+				
+			}
+			
+			@Override
+			public void onGetPositionInfoFailed(ServiceCommandError error) {
+				Util.postError(listener, error);
+				
+			}
+		});
+	}
+	
+	@Override
+	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
+		return CapabilityPriorityLevel.NORMAL;
+	}
+	
+	@Override
+	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(MediaInfoListener listener) {
+		URLServiceSubscription<MediaInfoListener> request = new URLServiceSubscription<MediaInfoListener>(this, "info", null, null);
+		request.addListener(listener);
+		addSubscription(request);
+		return request;	
+		
 	}
 	
 	public void displayMedia(String url, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
@@ -405,6 +443,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 				long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
 				
 				Util.postSuccess(listener, milliTimes);
+				
 			}
 			
 			@Override
@@ -581,6 +620,8 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		capabilities.add(Mute_Get);
 		capabilities.add(Mute_Set);
 		capabilities.add(Mute_Subscribe);
+		
+		capabilities.add(MediaInfo);
 		
 		setCapabilities(capabilities);
 	}
@@ -1039,4 +1080,5 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		addSubscription(request);
 		return request;
 	}
+
 }

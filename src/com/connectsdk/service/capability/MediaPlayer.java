@@ -22,6 +22,7 @@ package com.connectsdk.service.capability;
 
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.sessions.LaunchSession;
 
 public interface MediaPlayer extends CapabilityMethods {
@@ -35,6 +36,8 @@ public interface MediaPlayer extends CapabilityMethods {
 	public final static String MetaData_Description = "MediaControl.MetaData.Description";
 	public final static String MetaData_Thumbnail = "MediaControl.MetaData.Thumbnail";
 	public final static String MetaData_MimeType = "MediaControl.MetaData.MimeType";
+	
+	public final static String MediaInfo = "MediaPlayer.MediaInfo";
 
 	public final static String[] Capabilities = {
 	    Display_Image,
@@ -44,11 +47,17 @@ public interface MediaPlayer extends CapabilityMethods {
 	    MetaData_Title,
 	    MetaData_Description,
 	    MetaData_Thumbnail,
-	    MetaData_MimeType
+	    MetaData_MimeType,
+	    MediaInfo
 	};
 
 	public MediaPlayer getMediaPlayer();
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel();
+	
+	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel();
+	public void getMediaInfo(MediaInfoListener listener);
+	
+	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(MediaInfoListener listener);
 
 	public void displayImage(String url, String mimeType, String title, String description, String iconSrc, LaunchListener listener);
 	public void playMedia(String url, String mimeType, String title, String description, String iconSrc, boolean shouldLoop, LaunchListener listener);
@@ -82,5 +91,7 @@ public interface MediaPlayer extends CapabilityMethods {
 
 	public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
 			LaunchListener listener);
+	
+	public static interface MediaInfoListener extends ResponseListener<com.connectsdk.core.MediaInfo> { }
 
 }

@@ -182,6 +182,25 @@ public class WebAppSession implements MediaControl, MediaPlayer {
 	public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
 		return CapabilityPriorityLevel.VERY_LOW;
 	}
+	
+	
+
+	@Override
+	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
+		return CapabilityPriorityLevel.VERY_LOW;
+	}
+
+	@Override
+	public void getMediaInfo(MediaInfoListener listener) {
+		Util.postError(listener, ServiceCommandError.notSupported());
+	}
+
+	@Override
+	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(
+			MediaInfoListener listener) {
+		listener.onError(ServiceCommandError.notSupported());
+		return null;
+	}
 
 	@Override
 	public void play(ResponseListener<Object> listener) {

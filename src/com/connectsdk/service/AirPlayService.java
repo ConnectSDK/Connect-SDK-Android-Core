@@ -301,6 +301,25 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
 		return CapabilityPriorityLevel.HIGH;
 	}
+	
+	
+
+	@Override
+	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
+		return CapabilityPriorityLevel.VERY_LOW;
+	}
+
+	@Override
+	public void getMediaInfo(MediaInfoListener listener) {
+		Util.postError(listener, ServiceCommandError.notSupported());	
+	}
+
+	@Override
+	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(
+			MediaInfoListener listener) {
+		listener.onError(ServiceCommandError.notSupported());
+		return null;
+	}
 
 	@Override
 	public void displayImage(final String url, String mimeType, String title,
