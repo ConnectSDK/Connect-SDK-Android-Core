@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParserException;
 
+import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
 import com.connectsdk.service.capability.listeners.ResponseListener;
@@ -216,7 +217,26 @@ public class DLNAHttpServer {
 					}
 				}
 			}
-		}		
+		}
+		
+		if (entry.has("CurrentTrackMetaData")) {
+			
+			String trackMetaData = entry.getString("CurrentTrackMetaData");
+			
+			MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
+			
+			for (URLServiceSubscription<?> sub : subscriptions) {
+				if (sub.getTarget().equalsIgnoreCase("info")) {
+					for (int j = 0; j < sub.getListeners().size(); j++) {
+						@SuppressWarnings("unchecked")
+						ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(j);
+						Util.postSuccess(listener, info);
+					}
+				}
+			}
+			
+		}
+		
 	}
 	
 	public void stop() {
