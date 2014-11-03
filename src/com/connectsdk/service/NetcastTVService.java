@@ -1441,19 +1441,32 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 	
 	@Override
 	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.VERY_LOW;
+		return CapabilityPriorityLevel.NORMAL;
 	}
 
 	@Override
-	public void getMediaInfo(MediaInfoListener listener) {
-		Util.postError(listener, ServiceCommandError.notSupported());	
+	public void getMediaInfo(final MediaInfoListener listener) {
+		
+		if (getDLNAService() != null) {
+			getDLNAService().getMediaInfo(listener);
+		}
+		else {
+			if (listener != null)
+				Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+		}	
 	}
 
 	@Override
 	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(
 			MediaInfoListener listener) {
-		listener.onError(ServiceCommandError.notSupported());
-		return null;
+		if (getDLNAService() != null) {
+			return getDLNAService().subscribeMediaInfo(listener);
+		}
+		else {
+			if (listener != null)
+				Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+				return null;
+		}
 	}
 
 	@Override
