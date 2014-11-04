@@ -306,7 +306,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
 	@Override
 	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.VERY_LOW;
+		return CapabilityPriorityLevel.HIGH;
 	}
 
 	@Override
