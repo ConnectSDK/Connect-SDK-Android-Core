@@ -193,11 +193,6 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 	}
 	
 	@Override
-	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.NORMAL;
-	}
-	
-	@Override
 	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(MediaInfoListener listener) {
 		URLServiceSubscription<MediaInfoListener> request = new URLServiceSubscription<MediaInfoListener>(this, "info", null, null);
 		request.addListener(listener);

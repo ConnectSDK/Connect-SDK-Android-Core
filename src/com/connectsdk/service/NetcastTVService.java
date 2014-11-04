@@ -1438,11 +1438,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
 		return CapabilityPriorityLevel.HIGH;
 	}
-	
-	@Override
-	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.HIGH;
-	}
 
 	@Override
 	public void getMediaInfo(final MediaInfoListener listener) {

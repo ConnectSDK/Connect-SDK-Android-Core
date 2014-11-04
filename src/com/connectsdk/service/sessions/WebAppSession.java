@@ -182,13 +182,6 @@ public class WebAppSession implements MediaControl, MediaPlayer {
 	public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
 		return CapabilityPriorityLevel.VERY_LOW;
 	}
-	
-	
-
-	@Override
-	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.VERY_LOW;
-	}
 
 	@Override
 	public void getMediaInfo(MediaInfoListener listener) {

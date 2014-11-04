@@ -54,7 +54,6 @@ public interface MediaPlayer extends CapabilityMethods {
 	public MediaPlayer getMediaPlayer();
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel();
 	
-	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel();
 	public void getMediaInfo(MediaInfoListener listener);
 	
 	public ServiceSubscription<MediaInfoListener> subscribeMediaInfo(MediaInfoListener listener);

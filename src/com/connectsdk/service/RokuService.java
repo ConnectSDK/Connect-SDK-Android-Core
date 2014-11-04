@@ -665,11 +665,6 @@ public class RokuService extends DeviceService implements Launcher,
 	public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
 		return CapabilityPriorityLevel.HIGH;
 	}
-	
-	@Override
-	public CapabilityPriorityLevel getMediaInfoCapabilityPriorityLevel() {
-		return CapabilityPriorityLevel.HIGH;
-	}
 
 	@Override
 	public void getMediaInfo(MediaInfoListener listener) {
