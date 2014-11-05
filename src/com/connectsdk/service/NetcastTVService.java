@@ -2290,8 +2290,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 			capabilities.add(Duration); 
 			capabilities.add(Position); 
 			capabilities.add(Seek); 
-			capabilities.add(MetaData_Title); 
-			capabilities.add(MetaData_MimeType); 
 
 			capabilities.add(Application); 
 			capabilities.add(Application_Close); 

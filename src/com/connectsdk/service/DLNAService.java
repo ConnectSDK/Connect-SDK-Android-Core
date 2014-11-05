@@ -598,6 +598,8 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		
 		capabilities.add(MetaData_Title);
 		capabilities.add(MetaData_MimeType);
+		capabilities.add(MediaInfo_Get);
+		capabilities.add(MediaInfo_Subscribe);
 
 		capabilities.add(Play);
 		capabilities.add(Pause);
@@ -615,8 +617,6 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		capabilities.add(Mute_Get);
 		capabilities.add(Mute_Set);
 		capabilities.add(Mute_Subscribe);
-		
-		capabilities.add(MediaInfo);
 		
 		setCapabilities(capabilities);
 	}
