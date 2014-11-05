@@ -32,12 +32,14 @@ public interface MediaPlayer extends CapabilityMethods {
 	public final static String Display_Video = "MediaPlayer.Display.Video";
 	public final static String Display_Audio = "MediaPlayer.Display.Audio";
 	public final static String Close = "MediaPlayer.Close";
-	public final static String MetaData_Title = "MediaControl.MetaData.Title";
-	public final static String MetaData_Description = "MediaControl.MetaData.Description";
-	public final static String MetaData_Thumbnail = "MediaControl.MetaData.Thumbnail";
-	public final static String MetaData_MimeType = "MediaControl.MetaData.MimeType";
 	
-	public final static String MediaInfo = "MediaPlayer.MediaInfo";
+	public final static String MetaData_Title = "MediaPlayer.MetaData.Title";
+	public final static String MetaData_Description = "MediaPlayer.MetaData.Description";
+	public final static String MetaData_Thumbnail = "MediaPlayer.MetaData.Thumbnail";
+	public final static String MetaData_MimeType = "MediaPlayer.MetaData.MimeType";
+	
+	public final static String MediaInfo_Get = "MediaPlayer.MediaInfo.Get";
+	public final static String MediaInfo_Subscribe = "MediaPlayer.MediaInfo.Subscribe";
 
 	public final static String[] Capabilities = {
 	    Display_Image,
@@ -48,7 +50,8 @@ public interface MediaPlayer extends CapabilityMethods {
 	    MetaData_Description,
 	    MetaData_Thumbnail,
 	    MetaData_MimeType,
-	    MediaInfo
+	    MediaInfo_Get,
+	    MediaInfo_Subscribe
 	};
 
 	public MediaPlayer getMediaPlayer();
