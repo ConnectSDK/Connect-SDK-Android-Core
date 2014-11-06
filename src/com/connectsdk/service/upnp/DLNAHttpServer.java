@@ -197,7 +197,7 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if ((entry.has("Mute")&&!entry.has("channel"))||(entry.has("Volume")&&entry.getString("channel").equals("Master"))) {
+		if ((entry.has("Mute")&&!entry.has("channel"))||(entry.has("Mute")&&entry.getString("channel").equals("Master"))) {
 			String muteStatus = entry.getString("Mute");
 			boolean mute;
 			
