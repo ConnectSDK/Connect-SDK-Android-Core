@@ -83,7 +83,6 @@ public class DLNAHttpServer {
 					if (sb.toString().endsWith("\r\n\r\n"))
 						break;
 				}
-				
 				sb = new StringBuilder();
 				
 				while ((c = inFromClient.read()) != -1) {
@@ -183,7 +182,7 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if ((entry.has("Volume"))&&(entry.getString("channel").equals("Master"))) {
+		if ((entry.has("Volume")&&!entry.has("channel"))||(entry.has("Volume")&&entry.getString("channel").equals("Master"))) {
 			int intVolume = entry.getInt("Volume");
 			float volume = (float) intVolume / 100;
 
@@ -198,7 +197,7 @@ public class DLNAHttpServer {
 			}
 		}
 		
-		if ((entry.has("Mute"))&&(entry.getString("channel").equals("Master"))) {
+		if ((entry.has("Mute")&&!entry.has("channel"))||(entry.has("Mute")&&entry.getString("channel").equals("Master"))) {
 			String muteStatus = entry.getString("Mute");
 			boolean mute;
 			
