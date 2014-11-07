@@ -100,8 +100,6 @@ public class DLNAMediaInfoParser {
 	public static String getThumbnail(String str) {
 		String res = getData(str, THUMBNAIL);
 		res = java.net.URLDecoder.decode(res);
-		if (!res.equals(""))
-			return res.substring("/getaa?u=".length());
 		return res;
 	}
 
