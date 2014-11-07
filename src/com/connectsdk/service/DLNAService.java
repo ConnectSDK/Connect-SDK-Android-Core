@@ -253,7 +253,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		};
 
 		String method = "SetAVTransportURI";
-		String metadata = getMetadata(url, mMimeType, title);
+		String metadata = getMetadata(url, mMimeType, title, description, iconSrc);
 		
     	Map<String, String> params = new HashMap<String, String>();
     	params.put("CurrentURI", url);
@@ -494,7 +494,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
         return sb.toString();
 	}
 
-    protected String getMetadata(String mediaURL, String mime, String title) {
+    protected String getMetadata(String mediaURL, String mime, String title, String description, String iconUrl) {
 		String id = "1000";
 		String parentID = "0";
 		String restricted = "0";
@@ -508,6 +508,8 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		sb.append("&lt;item id=&quot;" + id + "&quot; parentID=&quot;" + parentID + "&quot; restricted=&quot;" + restricted + "&quot;&gt;");
 		sb.append("&lt;dc:title&gt;" + title + "&lt;/dc:title&gt;");
 		
+		sb.append("&lt;dc:description&gt;" + description + "&lt;/dc:description&gt;");
+		
 		if (mime.startsWith("image")) {
 			objectClass = "object.item.imageItem";
 		}
@@ -518,6 +520,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 			objectClass = "object.item.audioItem";
 		}
 		sb.append("&lt;res protocolInfo=&quot;http-get:*:" + mime + ":DLNA.ORG_OP=01&quot;&gt;" + mediaURL + "&lt;/res&gt;");
+		sb.append("&lt;upnp:albumArtURI&gt;" + iconUrl + "&lt;/upnp:albumArtURI&gt;");
 		sb.append("&lt;upnp:class&gt;" + objectClass + "&lt;/upnp:class&gt;");
 
 		sb.append("&lt;/item&gt;");
@@ -785,9 +788,11 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 						request.setHeader("CALLBACK", "<http://" + myIpAddress + ":" + httpServer.getPort() + serviceList.get(i).eventSubURL + ">");
 						request.setHeader("NT", "upnp:event");
 						request.setHeader("TIMEOUT", "Second-" + TIMEOUT);
+						request.setHeader("Connection", "close");
+						request.setHeader("Content-length", "0");
+						request.setHeader("USER-AGENT", "Android UPnp/1.1 ConnectSDK");
 						
 						HttpResponse response = null;
-						
 						try {
 							response = httpClient.execute(host, request);
 							
