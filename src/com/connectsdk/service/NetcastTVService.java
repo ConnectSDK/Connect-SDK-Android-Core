@@ -1259,73 +1259,63 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 	@Override
 	public void setVolume(float volume, ResponseListener<Object> listener) {
 		// Do nothing - not supported
-		Util.postError(listener, ServiceCommandError.notSupported());
+		if (getDLNAService() != null) {
+			getDLNAService().setVolume(volume, listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
 	}
 
 	@Override
 	public void getVolume(final VolumeListener listener) {
-		getVolumeStatus(new VolumeStatusListener() {
-
-			@Override
-			public void onSuccess(VolumeStatus status) {
-				Util.postSuccess(listener, status.volume);
-			}
-			
-			@Override
-			public void onError(ServiceCommandError error) {
-				Util.postError(listener, error);
-			}
-		});
+		if (getDLNAService() != null) {
+			getDLNAService().getVolume(listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
+		
 	}
 
 	@Override
 	public void setMute(final boolean isMute, final ResponseListener<Object> listener) {
-		getVolumeStatus(new VolumeStatusListener() {
-			
-			@Override
-			public void onSuccess(VolumeStatus status) {
-				if (isMute != status.isMute) {
-					sendKeyCode(VirtualKeycodes.MUTE.getCode(), listener);
-				}
-			}
-			
-			@Override
-			public void onError(ServiceCommandError error) {
-				Util.postError(listener, error);
-			}
-		});		
+		if (getDLNAService() != null) {
+			getDLNAService().setMute(isMute, listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
+		
 	}
 
 	@Override
 	public void getMute(final MuteListener listener) {
-		getVolumeStatus(new VolumeStatusListener() {
-			
-			@Override
-			public void onSuccess(VolumeStatus status) {
-				Util.postSuccess(listener, status.isMute);
-			}
-			
-			@Override
-			public void onError(ServiceCommandError error) {
-				Util.postError(listener, error);
-			}
-		});
+		if (getDLNAService() != null) {
+			getDLNAService().getMute(listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
+		
 	}
 
 	@Override
 	public ServiceSubscription<VolumeListener> subscribeVolume(VolumeListener listener) {
-		// Do nothing - not supported
-		Util.postError(listener, ServiceCommandError.notSupported());
-		
+		if (getDLNAService() != null) {
+			return getDLNAService().subscribeVolume(listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
 		return null;
+		
 	}
 
 	@Override
 	public ServiceSubscription<MuteListener> subscribeMute(MuteListener listener) {
-		// Do nothing - not supported
-		Util.postError(listener, ServiceCommandError.notSupported());
-		
+		if (getDLNAService() != null) {
+			return getDLNAService().subscribeMute(listener);
+		}
+		else 
+			Util.postError(listener, ServiceCommandError.notSupported());
 		return null;
+		
 	}
 	
 	private void getVolumeStatus(final VolumeStatusListener listener) {
@@ -1633,13 +1623,24 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
 	@Override
 	public void getPlayState(PlayStateListener listener) {
-			Util.postError(listener, ServiceCommandError.notSupported());
+			if (getDLNAService() != null) {
+				getDLNAService().getPlayState(listener);
+			}
+			else {
+				if (listener != null)
+					Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+			}
+		
 	}
 
 	@Override
 	public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener) {
-			Util.postError(listener, ServiceCommandError.notSupported());
+		if (getDLNAService() != null) {
+			return getDLNAService().subscribePlayState(listener);
+		}
+		else Util.postError(listener, ServiceCommandError.notSupported());
 		return null;
+		
 	}
 	
     /**************
@@ -2324,7 +2325,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 			}
 		} else {
 			for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
-
 			capabilities.add(Play); 
 			capabilities.add(Pause); 
 			capabilities.add(Stop); 
