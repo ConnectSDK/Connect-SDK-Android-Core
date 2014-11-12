@@ -431,22 +431,36 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		getPositionInfo(new PositionInfoListener() {
 			
 			@Override
-			public void onGetPositionInfoSuccess(String positionInfoXml) {
-				String strDuration = parseData(positionInfoXml, "TrackDuration");
-
-				// Check if duration we get not equals 0 , otherwise wait 1 second and try again
-				if (!strDuration.equals("0:00:00")) {
-				long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
-				
-				Util.postSuccess(listener, milliTimes);}
-				else new Timer().schedule(new TimerTask() {
+			public void onGetPositionInfoSuccess(final String positionInfoXml) {
+				getPlayState(new PlayStateListener() {
 					
 					@Override
-					public void run() {
-						getDuration(listener);
+					public void onSuccess(PlayStateStatus object) {
+						String strDuration = parseData(positionInfoXml, "TrackDuration");
 						
+						String trackMetaData = parseData(positionInfoXml, "TrackMetaData");
+						MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
+						
+						// Check if duration we get not equals 0 , or play state is paused, or media type is image,
+						//otherwise wait 1 second and try again
+						if (!strDuration.equals("0:00:00") || (object == PlayStateStatus.Paused) || (info.getMimeType().contains("image"))) {
+							long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
+							Util.postSuccess(listener, milliTimes);
+							}
+						else  new Timer().schedule(new TimerTask() {
+							@Override
+							public void run() {
+								getDuration(listener);
+							}
+						}, 1000); 
 					}
-				}, 1000); 
+					
+					@Override
+					public void onError(ServiceCommandError error) {
+						Util.postError(listener, error);
+					}
+					
+				});
 				
 			}
 			
