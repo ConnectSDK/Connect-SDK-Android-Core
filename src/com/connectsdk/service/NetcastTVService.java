@@ -1258,7 +1258,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
 	@Override
 	public void setVolume(float volume, ResponseListener<Object> listener) {
-		// Do nothing - not supported
 		if (getDLNAService() != null) {
 			getDLNAService().setVolume(volume, listener);
 		}
@@ -1268,31 +1267,57 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
 	@Override
 	public void getVolume(final VolumeListener listener) {
-		if (getDLNAService() != null) {
-			getDLNAService().getVolume(listener);
-		}
-		else 
-			Util.postError(listener, ServiceCommandError.notSupported());
+		
+		getVolumeStatus(new VolumeStatusListener() {
+
+			@Override
+			public void onSuccess(VolumeStatus status) {
+				Util.postSuccess(listener, status.volume);
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+				Util.postError(listener, error);
+			}
+		});
 		
 	}
 
 	@Override
 	public void setMute(final boolean isMute, final ResponseListener<Object> listener) {
-		if (getDLNAService() != null) {
-			getDLNAService().setMute(isMute, listener);
-		}
-		else 
-			Util.postError(listener, ServiceCommandError.notSupported());
+		
+		getVolumeStatus(new VolumeStatusListener() {
+			
+			@Override
+			public void onSuccess(VolumeStatus status) {
+				if (isMute != status.isMute) {
+					sendKeyCode(VirtualKeycodes.MUTE.getCode(), listener);
+				}
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+				Util.postError(listener, error);
+			}
+		});
 		
 	}
 
 	@Override
 	public void getMute(final MuteListener listener) {
-		if (getDLNAService() != null) {
-			getDLNAService().getMute(listener);
-		}
-		else 
-			Util.postError(listener, ServiceCommandError.notSupported());
+		
+		getVolumeStatus(new VolumeStatusListener() {
+			
+			@Override
+			public void onSuccess(VolumeStatus status) {
+				Util.postSuccess(listener, status.isMute);
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+				Util.postError(listener, error);
+			}
+		});
 		
 	}
 
