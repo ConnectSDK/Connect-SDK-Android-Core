@@ -433,9 +433,11 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 			@Override
 			public void onGetPositionInfoSuccess(String positionInfoXml) {
 				String strDuration = parseData(positionInfoXml, "TrackDuration");
-
-				// Check if duration we get not equals 0 , otherwise wait 1 second and try again
-				if (!strDuration.equals("0:00:00")) {
+				
+				String trackMetaData = parseData(positionInfoXml, "TrackMetaData");
+				MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
+				// Check if duration we get not equals 0 or media is image, otherwise wait 1 second and try again
+				if ((!strDuration.equals("0:00:00")) || (info.getMimeType().contains("image"))) {
 				long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
 				
 				Util.postSuccess(listener, milliTimes);}
