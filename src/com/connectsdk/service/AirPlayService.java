@@ -347,7 +347,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		            connection.setDoInput(true);
 		            connection.connect();
 		            InputStream input = connection.getInputStream();
-		            Bitmap  myBitmap = BitmapFactory.decodeStream(input);
+		            Bitmap myBitmap = BitmapFactory.decodeStream(input);
 
 		            ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		            myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
@@ -356,6 +356,8 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				
