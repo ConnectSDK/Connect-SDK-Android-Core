@@ -344,8 +344,24 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 				try {
 				    URL imagePath = new URL(url);
 		            HttpURLConnection connection = (HttpURLConnection) imagePath.openConnection();
+		            connection.setInstanceFollowRedirects(true);
 		            connection.setDoInput(true);
 		            connection.connect();
+		            
+		            int responseCode = connection.getResponseCode();
+                    boolean redirect = (responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                            || responseCode == HttpURLConnection.HTTP_MOVED_PERM
+                            || responseCode == HttpURLConnection.HTTP_SEE_OTHER);
+
+                    if(redirect) {
+                        String newPath = connection.getHeaderField("Location");
+                        URL newImagePath = new URL(newPath);
+                        connection = (HttpURLConnection) newImagePath.openConnection();
+                        connection.setInstanceFollowRedirects(true);
+                        connection.setDoInput(true);
+                        connection.connect();
+                    }
+		            
 		            InputStream input = connection.getInputStream();
 		            Bitmap myBitmap = BitmapFactory.decodeStream(input);
 
