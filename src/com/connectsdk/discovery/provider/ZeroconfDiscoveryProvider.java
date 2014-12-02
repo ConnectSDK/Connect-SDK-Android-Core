@@ -60,8 +60,8 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
     List<JSONObject> serviceFilters;
     
-    private ConcurrentHashMap<String, ServiceDescription> foundServices;
-    private CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
+    ConcurrentHashMap<String, ServiceDescription> foundServices;
+    CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
     
 	ServiceListener jmdnsListener = new ServiceListener() {
 		
@@ -162,6 +162,10 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 		dataTimer.schedule(sendSearch, 100, RESCAN_INTERVAL);
 	}
 	
+	protected JmDNS createJmDNS() throws IOException {
+		return JmDNS.create(srcAddress, HOSTNAME);
+	}
+	
 	private class MDNSSearchTask extends TimerTask {
 
 		@Override
@@ -201,7 +205,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 					if (jmdns != null) {
 						jmdns.close();
 					}
-					jmdns = JmDNS.create(srcAddress, HOSTNAME);
+					jmdns = createJmDNS();
 					
 			        for (JSONObject searchTarget : serviceFilters) {
 						try {
@@ -216,6 +220,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 				}
 			}
 		}
+
 	}
 
 	@Override
