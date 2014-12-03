@@ -72,9 +72,9 @@ public class SSDPDiscoveryProviderTest{
 			dp.serviceFilters.add(parameters);
 			SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
 			String msg = search.toString();
-			dp.sendSearch();			
+			//dp.sendSearch();			
 			
-			Thread.sleep(10);
+			Thread.sleep(500);
 			ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
 			verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
 			Assert.assertEquals(msg, new String(argument.getValue()));
@@ -85,7 +85,7 @@ public class SSDPDiscoveryProviderTest{
 	public void testStart() throws JSONException, InterruptedException, IOException{
 		//Test Desc. : Test to verify if the socket is created and is not null also sendSearch().
 				
-		dp.start();
+		
 		//assert that after start() SSDPSocket was created.
 		Assert.assertTrue(ssdpSocket != null);
 				
@@ -97,11 +97,12 @@ public class SSDPDiscoveryProviderTest{
 		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
 		String msg = search.toString();
 		
-		Thread.sleep(1000);
+		dp.start();
+		Thread.sleep(500);
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
 		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
-						
+					
 	}
 	
 	@Test
@@ -109,70 +110,13 @@ public class SSDPDiscoveryProviderTest{
 		//Test Desc. : Test to verify if the sendSearch is stopped then the dataGramSocket is disconnected and closed.
 		
 		dp.start();
-		
-		//assert that after start() SSDPSocket was created.
-		Assert.assertTrue(ssdpSocket != null);
-				
-		//verify after socket create , sendSearch() is successful.
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);
-		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-		String msg = search.toString();
-		
-		Thread.sleep(1000);
-		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
-		Assert.assertEquals(msg, new String(argument.getValue()));
-							
+		Thread.sleep(300);
 		dp.stop();		
 		verify(ssdpSocket, Mockito.times(1)).close();
 				
 	}
 	
-	@Test
-	public void testStopDatagram() throws JSONException, InterruptedException, IOException{
-		//Test Desc. : Test to verify if the sendSearch is stopped then the dataGram Socket is disconnected and closed.
-				
-		dp.start();
 		
-		//assert that after start() SSDPSocket was created.
-		Assert.assertTrue(ssdpSocket != null);
-				
-		//verify after socket create , sendSearch() is successful.
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);
-		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-		String msg = search.toString();
-		
-		Thread.sleep(1000);
-		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
-		Assert.assertEquals(msg, new String(argument.getValue()));
-				
-		/*dp.getmSSDPSocket().setWildSocket(testSocket);
-		
-		
-		SSDPSocket ssdpSocket = new SSDPSocket(localAddress);
-		mLocalSocket = new MulticastSocket();
-		
-		testSocket.connect(localAddress, 1903);
-		mLocalSocket.connect(localAddress, 1904);
-		assertFalse(ssdpSocket.isConnected());*/
-		
-		dp.stop();		
-		verify(ssdpSocket, Mockito.times(1)).close();
-		
-		/*verify(testSocket, Mockito.times(1)).disconnect();
-		verify(testSocket, Mockito.times(1)).close();
-		assertFalse(ssdpSocket.isConnected());*/
-		
-	}
-	
-	
 	@Test
 	public void testAddDeviceFilter() throws JSONException {
 		//Test Desc. : Test to verify if the deviceFilter is added properly.
