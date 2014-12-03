@@ -4,12 +4,15 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 
 import java.io.IOException;
 import java.net.InetAddress;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
+import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.JmDNSImpl;
 
@@ -25,7 +28,10 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
+import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.discovery.DiscoveryProvider;
+import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.shadow.WifiInfoShadow;
 
@@ -55,12 +61,13 @@ public class ZeroConfDiscoveryPrividerTest {
 			super(eventSource);
 		}
 	}
+	
+	abstract class StubServiceInfo extends javax.jmdns.ServiceInfo {}
 
 	class StubZeroConfDiscoveryProvider extends ZeroconfDiscoveryProvider {
 
 		public StubZeroConfDiscoveryProvider(Context context) {
 			super(context);
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override
@@ -71,17 +78,36 @@ public class ZeroConfDiscoveryPrividerTest {
 
 	@Before
 	public void setUp() {
-		dp = new ZeroconfDiscoveryProvider(Robolectric.application);
+		dp = new StubZeroConfDiscoveryProvider(Robolectric.application);
 		mDNS = mock(StubJmDNS.class);
 		eventMock = mock(StubServiceEvent.class);
 
 		dp.jmdns = mDNS;
-		dp.jmdnsListener.serviceAdded(eventMock);
 	}
 
 	@Test
-	public void testStart() {
-
+	public void testStartShouldAddDeviceFilter() throws Exception {
+		JSONObject parameters = new JSONObject();
+		parameters.put("serviceId", "Apple TV");
+		parameters.put("filter", "_testservicetype._tcp.local.");
+		
+		dp.addDeviceFilter(parameters);
+		dp.start();
+	
+		Thread.sleep(300);
+		verify(mDNS).addServiceListener(parameters.getString("filter"), dp.jmdnsListener);
+	}
+	
+	@Test
+	public void testStartShouldCancelPreviousSearch() throws Exception {
+		JSONObject parameters = new JSONObject();
+		parameters.put("serviceId", "Apple TV");
+		parameters.put("filter", "_testservicetype._tcp.local.");
+		
+		dp.addDeviceFilter(parameters);
+		dp.stop();
+	
+		verify(mDNS).removeServiceListener(parameters.getString("filter"), dp.jmdnsListener);
 	}
 
 	@Test
@@ -90,6 +116,7 @@ public class ZeroConfDiscoveryPrividerTest {
 		// then "service information is queried from registry with injected
 		// event mock object.
 
+		dp.jmdnsListener.serviceAdded(eventMock);
 		dp.start();
 
 		verify(eventMock, atLeastOnce()).getType();
@@ -114,7 +141,6 @@ public class ZeroConfDiscoveryPrividerTest {
 
 	@Test
 	public void testRemoveListener() throws Exception {
-
 		// Test Desc.: Verify ZeroConfDiscoveryProvider RemoveListener - Removes
 		// a DiscoveryProviderListener instance which is the DiscoveryManager
 		// Impl from ServiceListeners List.
@@ -229,4 +255,20 @@ public class ZeroConfDiscoveryPrividerTest {
 		Assert.assertEquals("Test TV", serviceId);
 	}
 
+	@Test
+	public void testServiceResolveEvent() throws Exception {
+		ServiceEvent event = mock(StubServiceEvent.class);
+		ServiceInfo info = mock(StubServiceInfo.class);
+		when(event.getInfo()).thenReturn(info);
+		when(info.getHostAddress()).thenReturn(InetAddress.getLocalHost().getHostAddress());
+		when(info.getPort()).thenReturn(7000);
+		when(info.getName()).thenReturn("Test TV");
+		
+		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+		
+		dp.addListener(listener );
+		dp.jmdnsListener.serviceResolved(event);
+		
+		verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+	}
 }

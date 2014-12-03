@@ -27,8 +27,8 @@
 	    <file name="mockito-all-1.9.5.jar"/>
 	    <file name="powermock-mockito-1.5.6-full.jar"/>
 	    <file name="robolectric-2.4-jar-with-dependencies.jar"/>
-	    <file name="../../../libs/java_websocket.jar"/>
-	    <file name="../../../libs/javax.jmdns_3.4.1-patch2.jar"/>
+	    <file name="../../libs/java_websocket-patch.jar"/>
+	    <file name="../../libs/javax.jmdns_3.4.1-patch2.jar"/>
 	</filelist>
 	
 	
