@@ -1,11 +1,12 @@
 package com.connectsdk.discovery.provider;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.any;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -28,7 +29,6 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
-import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
@@ -255,20 +255,77 @@ public class ZeroConfDiscoveryPrividerTest {
 		Assert.assertEquals("Test TV", serviceId);
 	}
 
-	@Test
-	public void testServiceResolveEvent() throws Exception {
+	private ServiceEvent createMockedServiceEvent(String ip, String name) {
 		ServiceEvent event = mock(StubServiceEvent.class);
 		ServiceInfo info = mock(StubServiceInfo.class);
 		when(event.getInfo()).thenReturn(info);
-		when(info.getHostAddress()).thenReturn(InetAddress.getLocalHost().getHostAddress());
+		when(info.getHostAddress()).thenReturn(ip);
 		when(info.getPort()).thenReturn(7000);
-		when(info.getName()).thenReturn("Test TV");
-		
+		when(info.getName()).thenReturn(name);
+		return event;
+	}
+	
+	@Test
+	public void testServiceResolveEvent() throws Exception {
+		// given
+		ServiceEvent event = createMockedServiceEvent("192.168.0.1", "Test TV");
 		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+		dp.addListener(listener);
 		
-		dp.addListener(listener );
+		// when
 		dp.jmdnsListener.serviceResolved(event);
 		
+		// then
 		verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+	}
+
+	@Test
+	public void testServiceResolveEventWhenThereIsFoundService() throws Exception {
+		// given
+		String uuid = "192.168.0.1";
+		String name = "Test TV";
+		ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
+		serviceDescription.setFriendlyName(name);
+		ServiceEvent event = createMockedServiceEvent(uuid, name);
+		dp.foundServices.put(uuid, serviceDescription);
+		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+		dp.addListener(listener);
+		
+		// when
+		dp.jmdnsListener.serviceResolved(event);
+		
+		// then
+		verify(listener, never()).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+	}
+	
+	@Test
+	public void testServiceRemoveEvent() throws Exception {
+		// given
+		String uuid = "192.168.0.1";
+		String name = "Test TV";
+		ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
+		serviceDescription.setFriendlyName(name);
+		ServiceEvent event = createMockedServiceEvent(uuid, name);
+		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+		dp.addListener(listener);
+		dp.foundServices.put(uuid, serviceDescription);
+		
+		// when
+		dp.jmdnsListener.serviceRemoved(event);
+		Robolectric.runUiThreadTasksIncludingDelayedTasks();
+		
+		// then
+		verify(listener).onServiceRemoved(any(DiscoveryProvider.class), any(ServiceDescription.class));
+	}
+	
+	@Test
+	public void testStateAfterConstruction() {
+		Assert.assertNotNull(dp.foundServices);
+		Assert.assertNotNull(dp.serviceFilters);
+		Assert.assertNotNull(dp.serviceListeners);
+		Assert.assertTrue(dp.foundServices.isEmpty());
+		Assert.assertTrue(dp.serviceFilters.isEmpty());
+		Assert.assertTrue(dp.serviceListeners.isEmpty());
+		Assert.assertNotNull(dp.srcAddress);
 	}
 }
