@@ -56,6 +56,22 @@ public class SSDPSocket {
     	wildSocket.bind(new InetSocketAddress(localInAddress, SSDP.SOURCE_PORT));
     }
 
+    //Its a package level constructor added just for unit test case in SSDPSocketTest just to inject custom socket instances.
+    SSDPSocket(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket ) throws IOException {
+        localInAddress = source;
+
+        mSSDPMulticastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+
+        mLocalSocket = mcSocket;
+
+        mNetIf = NetworkInterface.getByInetAddress(localInAddress);
+        mLocalSocket.joinGroup(mSSDPMulticastGroup, mNetIf);
+        
+    	wildSocket = dgSocket;
+    	wildSocket.setReuseAddress(true);
+    	wildSocket.bind(new InetSocketAddress(localInAddress, SSDP.SOURCE_PORT));
+    }
+    
     /** Used to send SSDP packet */
     public void send(String data) throws IOException {
         DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), mSSDPMulticastGroup);
