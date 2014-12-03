@@ -66,7 +66,6 @@ public class SSDPDiscoveryProviderTest{
 		
 		dp.start();
 			
-		try {
 			JSONObject parameters =new JSONObject();
 			parameters.put("serviceId", "DLNA");
 			parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
@@ -79,9 +78,7 @@ public class SSDPDiscoveryProviderTest{
 			ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
 			verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
 			Assert.assertEquals(msg, new String(argument.getValue()));
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		
 	}
 	
 	@Test
