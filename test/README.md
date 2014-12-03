@@ -13,7 +13,7 @@ For more information about Connect SDK, visit the [main repository](https://gith
 6. Run as Eclipse JUnit Test
 
 ##Run from command line
-1. Add system variable ANDROID_HOME which contains a path to Android SDK
+1. Add a system variable ANDROID_HOME which contains a path to Android SDK
 2. Go to Connect-SDK-Core project folder and build it: ant clean debug
 3. Go to test folder and execute: ant
 
