@@ -2,9 +2,10 @@ package com.connectsdk.discovery.provider;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
+import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
@@ -52,7 +53,9 @@ public class SSDPDiscoveryProviderTest{
 	};
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
+		byte[] data = new byte[1];
+		when(ssdpSocket.responseReceive()).thenReturn(new DatagramPacket(data, 1));
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}

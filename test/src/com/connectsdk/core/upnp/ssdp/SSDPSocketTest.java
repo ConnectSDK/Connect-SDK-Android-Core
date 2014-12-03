@@ -42,13 +42,6 @@ public class SSDPSocketTest {
 		localAddress = Util.getIpAddress(Robolectric.application); 			
 		ssdpSocket = new SSDPSocket(localAddress, mLocalSocket, wildSocket );		
 	}	
-	@After
-	public void tearDown() throws Exception {
-		wildSocket.disconnect();
-		wildSocket.close();
-		mLocalSocket.close();
-		
-	}	
 	
 	@Test
 	public void testSend() throws Exception {

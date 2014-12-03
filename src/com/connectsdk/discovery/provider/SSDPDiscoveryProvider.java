@@ -275,6 +275,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 } catch (IOException e) {
                 	e.printStackTrace();
                 	break;
+                } catch (RuntimeException e) {
+                	e.printStackTrace();
+                	break;
                 }
             }
         }
@@ -287,6 +290,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 try {
                     handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.notifyReceive()));
                 } catch (IOException e) {
+                	e.printStackTrace();
+                	break;
+                } catch (RuntimeException e) {
                 	e.printStackTrace();
                 	break;
                 }
