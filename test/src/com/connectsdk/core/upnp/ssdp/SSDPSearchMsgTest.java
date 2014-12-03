@@ -30,6 +30,7 @@ public class SSDPSearchMsgTest {
 	@Before
 	public void setUp(){
 		msg = new SSDPSearchMsg(st);	
+		
 	}
 	
 	@Test
@@ -42,7 +43,7 @@ public class SSDPSearchMsgTest {
 	@Test
 	public void testToStringMsgFormat2() {
 		
-		SSDPSearchMsg msg = new SSDPSearchMsg(st);
+		
 		msg.setmST(st2);
 		Assert.assertEquals(expectedResult2, msg.toString());
 		
