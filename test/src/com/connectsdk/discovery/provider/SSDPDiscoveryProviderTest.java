@@ -104,9 +104,9 @@ public class SSDPDiscoveryProviderTest{
 		String msg = search.toString();
 		
 		dp.start();
-		Thread.sleep(1000);
+		
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.atLeastOnce()).send(argument.capture());
+		verify(ssdpSocket, Mockito.timeout(500)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
 					
 	}
