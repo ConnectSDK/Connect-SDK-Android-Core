@@ -12,6 +12,7 @@ import java.util.ArrayList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +60,11 @@ public class SSDPDiscoveryProviderTest{
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}
+	@After
+	public void tearDown() throws Exception {
+		
+		dp.stop();
+	}
 	
 	@Test
 	public void testSendSearch() throws JSONException, InterruptedException, IOException {
@@ -98,9 +104,9 @@ public class SSDPDiscoveryProviderTest{
 		String msg = search.toString();
 		
 		dp.start();
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
+		verify(ssdpSocket, Mockito.atLeastOnce()).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
 					
 	}
