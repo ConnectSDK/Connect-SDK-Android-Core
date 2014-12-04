@@ -14,6 +14,7 @@ import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,8 +63,12 @@ public class SSDPDiscoveryProviderTest{
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}
+	@After
+	public void tearDown() throws Exception {		
+		dp.stop();
+	}
 	
-	
+
 	@Test
 	public void testStart() throws JSONException, InterruptedException, IOException{
 		//Test Desc. : Test to verify if the socket is created and is not null also sendSearch().
@@ -85,7 +90,7 @@ public class SSDPDiscoveryProviderTest{
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
 		verify(ssdpSocket, Mockito.times(3)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
-						
+					
 	}
 	
 	@Test
