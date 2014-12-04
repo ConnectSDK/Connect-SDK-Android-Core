@@ -9,6 +9,8 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,30 +58,11 @@ public class SSDPDiscoveryProviderTest{
 	public void setUp() throws Exception {
 		byte[] data = new byte[1];
 		when(ssdpSocket.responseReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpSocket.notifyReceive()).thenReturn(new DatagramPacket(data, 1));
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}
 	
-//	@Test
-//	public void testSendSearch() throws JSONException, InterruptedException, IOException {
-//		//Test Desc. : Test to verify if the sendSearch scheduled properly and correct message is being passed for search.
-//		
-//		dp.start();
-//			
-//		JSONObject parameters =new JSONObject();
-//		parameters.put("serviceId", "DLNA");
-//		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-//		dp.serviceFilters.add(parameters);
-//		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-//		String msg = search.toString();
-//		dp.sendSearch();			
-//		
-//		Thread.sleep(10);
-//		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-//		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
-//		Assert.assertEquals(msg, new String(argument.getValue()));
-//		
-//	}
 	
 	@Test
 	public void testStart() throws JSONException, InterruptedException, IOException{
@@ -97,67 +80,22 @@ public class SSDPDiscoveryProviderTest{
 		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
 		String msg = search.toString();
 		
-		Thread.sleep(200);
+		Thread.sleep(3000);
+		dp.stop();
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
+		verify(ssdpSocket, Mockito.times(3)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
 						
 	}
 	
-//	@Test
-//	public void testStop() throws JSONException, InterruptedException, IOException{
-//		//Test Desc. : Test to verify if the sendSearch is stopped then the dataGramSocket is disconnected and closed.
-//		
-//		dp.start();
-//		
-//		//assert that after start() SSDPSocket was created.
-//		Assert.assertTrue(ssdpSocket != null);
-//				
-//		//verify after socket create , sendSearch() is successful.
-//		JSONObject parameters =new JSONObject();
-//		parameters.put("serviceId", "DLNA");
-//		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-//		dp.serviceFilters.add(parameters);
-//		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-//		String msg = search.toString();
-//		
-//		Thread.sleep(1000);
-//		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-//		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
-//		Assert.assertEquals(msg, new String(argument.getValue()));
-//							
-//		dp.stop();		
-//		verify(ssdpSocket, Mockito.times(1)).close();
-//				
-//	}
-//	
-//	@Test
-//	public void testStopDatagram() throws JSONException, InterruptedException, IOException{
-//		//Test Desc. : Test to verify if the sendSearch is stopped then the dataGram Socket is disconnected and closed.
-//				
-//		dp.start();
-//		
-//		//assert that after start() SSDPSocket was created.
-//		Assert.assertTrue(ssdpSocket != null);
-//				
-//		//verify after socket create , sendSearch() is successful.
-//		JSONObject parameters =new JSONObject();
-//		parameters.put("serviceId", "DLNA");
-//		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-//		dp.serviceFilters.add(parameters);
-//		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-//		String msg = search.toString();
-//		
-//		Thread.sleep(1000);
-//		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-//		verify(ssdpSocket, Mockito.times(1)).send(argument.capture());
-//		Assert.assertEquals(msg, new String(argument.getValue()));
-//				
-//		
-//		dp.stop();		
-//		verify(ssdpSocket, Mockito.times(1)).close();	
-//	}
-	
+	@Test
+	public void testStop() throws JSONException, InterruptedException, IOException{
+		//Test Desc. : Test to verify if the sendSearch is stopped then the dataGramSocket is disconnected and closed.
+		
+		dp.start();
+		dp.stop();		
+		verify(ssdpSocket, Mockito.times(1)).close();
+	}
 	
 	@Test
 	public void testAddDeviceFilter() throws JSONException {
