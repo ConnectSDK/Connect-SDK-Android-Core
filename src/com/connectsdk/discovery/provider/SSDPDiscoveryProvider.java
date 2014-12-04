@@ -60,7 +60,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     private CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
     
-    private ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
+    protected ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
     private ConcurrentHashMap<String, ServiceDescription> discoveredServices = new ConcurrentHashMap<String, ServiceDescription>();
     
     List<JSONObject> serviceFilters;
@@ -92,12 +92,16 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 			if (source == null) 
 				return;
 			
-			mSSDPSocket = new SSDPSocket(source);
+			mSSDPSocket = createSocket(source);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	protected SSDPSocket createSocket(InetAddress source) throws IOException {
+		return new SSDPSocket(source);
 	}
 	
 	@Override
@@ -271,6 +275,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 } catch (IOException e) {
                 	e.printStackTrace();
                 	break;
+                } catch (RuntimeException e) {
+                	e.printStackTrace();
+                	break;
                 }
             }
         }
@@ -283,6 +290,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 try {
                     handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.notifyReceive()));
                 } catch (IOException e) {
+                	e.printStackTrace();
+                	break;
+                } catch (RuntimeException e) {
                 	e.printStackTrace();
                 	break;
                 }
