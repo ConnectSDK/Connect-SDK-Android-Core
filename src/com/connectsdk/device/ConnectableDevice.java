@@ -409,7 +409,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 		boolean hasCap = false;
 
 		for (DeviceService service: services.values()) {
-			if ( service.hasCapability(capability) ) {
+			if ( service.hasCapability(capability) && service.isConnected() ) {
 				hasCap = true;
 				break;
 			}
@@ -947,7 +947,11 @@ public class ConnectableDevice implements DeviceServiceListener {
 		DiscoveryManager.getInstance().onCapabilityUpdated(this, added, removed);
 	}
 
-	@Override public void onConnectionFailure(DeviceService service, Error error) {
+
+	@Override
+	public void onConnectionFailure(DeviceService service, Error error) {
+		// disconnect device if all services are not connected
+		onDisconnect(service, error);
 	} 
 
 	@Override public void onConnectionRequired(DeviceService service) {
@@ -956,7 +960,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 	@Override
 	public void onConnectionSuccess(DeviceService service) {
 		//  TODO: iOS is passing to a function for when each service is ready on a device.  This is not implemented on Android.
-		
+
 		if (isConnected()) {
 			ConnectableDeviceStore deviceStore = DiscoveryManager.getInstance().getConnectableDeviceStore();
 			if (deviceStore != null) {
