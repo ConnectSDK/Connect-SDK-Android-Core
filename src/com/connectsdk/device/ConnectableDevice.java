@@ -409,7 +409,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 		boolean hasCap = false;
 
 		for (DeviceService service: services.values()) {
-			if ( service.hasCapability(capability) && service.isConnected() ) {
+			if ( service.hasCapability(capability) ) {
 				hasCap = true;
 				break;
 			}
