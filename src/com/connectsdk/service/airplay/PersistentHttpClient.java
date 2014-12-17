@@ -64,44 +64,68 @@ public class PersistentHttpClient {
 	}
 
 	public void disconnect() {
-		if(requestWorker!=null) {
+		if(requestWorker != null) {
 			try {
 				requestWorker.terminate();
-				requestWorker=null;
+				requestWorker = null;
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		if(socket!=null) {
-			try {
-				if(!socket.isClosed()) {
-					reader.close();
-					bos.close();
-					socket.close();	
-				}
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-			socket=null;
+		if(socket != null) {
+			closeSocket();
 		}
 	}
 	
-	private void connect() throws IOException {
-		if(socket==null || socket.isClosed()) {
-			socket = new Socket(inetAddress, port);
-			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			bos = new BufferedOutputStream(socket.getOutputStream());
+	private void initSocket() {
+		if (socket == null) {
+			try {
+				socket = new Socket(inetAddress, port);
+				reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				bos = new BufferedOutputStream(socket.getOutputStream());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
+	}
+	
+	private void closeSocket() {
+		if (socket != null && !socket.isClosed()) {
+			try {
+				reader.close();
+				bos.close();
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		socket = null;
 	}
 	
 	private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
-		connect();
+		if (socket == null)
+			initSocket();
+		
 		bos.write(reqestData.getBytes(CHARSET));
 		if(requestPayload!=null) {
 			copyData(requestPayload, bos);
 		}
 		bos.flush();
 		String headerData=readHeaders(reader);
+		
+		if (headerData.length() == 0) {		// remote socket maybe closed
+			closeSocket();		// force close socket
+			initSocket();		// reinitialize socket
+
+			// re-do its task
+			bos.write(reqestData.getBytes(CHARSET));
+			if(requestPayload!=null) {
+				copyData(requestPayload, bos);
+			}
+			bos.flush();
+			headerData = readHeaders(reader);
+		}
+		
 		Map<String, String> headers=parseHeaders(headerData);
 		int statusCode=0;
 		int contentLength=-1;
@@ -114,7 +138,7 @@ public class PersistentHttpClient {
 		}
 
 		if(contentLength<0) {
-			throw new IOException("Invalid content length in responsem header: "+headerData);
+			throw new IOException("Invalid content length in response header: " + headerData);
 		}
 		return new Response(headerData, headers, readContent(reader, contentLength).toString(), statusCode);
 	}
