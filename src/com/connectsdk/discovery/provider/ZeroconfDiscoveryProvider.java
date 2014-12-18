@@ -52,8 +52,8 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 	JmDNS jmdns;
 	InetAddress srcAddress;
 	
-	private final static int RESCAN_INTERVAL = 15000;
-	private final static int RESCAN_ATTEMPTS = 5;
+	private final static int RESCAN_INTERVAL = 10000;
+	private final static int RESCAN_ATTEMPTS = 3;
 	private final static int TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
 
 	private Timer dataTimer;
