@@ -417,6 +417,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 				launchSession.setSessionType(LaunchSessionType.Media);
 				
 				Util.postSuccess(listener, new MediaLaunchObject(launchSession, AirPlayService.this));
+				startTimer();
 			}
 			
 			@Override
@@ -440,7 +441,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		
 		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, entity, responseListener);
 		request.send();	
-		startTimer();
 	}
 	
 	@Override
@@ -648,10 +648,20 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 			
 			@Override
 			public void run() {
-				String uri = getRequestURL("0");
-				ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(AirPlayService.this, uri, null, null);
-				request.setHttpMethod(ServiceCommand.TYPE_GET);
-				request.send();
+				Log.d("Timer", "Timer");
+				getPlaybackPosition(new PlaybackPositionListener() {
+					
+					@Override
+					public void onGetPlaybackPositionSuccess(long duration, long position) {
+						if (position >= duration) {
+							stopTimer();
+						}
+					}
+					
+					@Override
+					public void onGetPlaybackPositionFailed(ServiceCommandError error) {
+					}
+				});
 			}
 		}, KEEP_ALIVE_PERIOD, KEEP_ALIVE_PERIOD);
 	}
