@@ -33,6 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
@@ -68,9 +71,17 @@ import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
 
+	public static final String X_APPLE_SESSION_ID = "X-Apple-Session-ID";
+
 	public static final String ID = "AirPlay";
+
+	private static final long KEEP_ALIVE_PERIOD = 15000;
 	
 	private PersistentHttpClient persistentHttpClient;
+
+	private String mSessionId;
+
+	private Timer timer;
 
 	interface PlaybackPositionListener {
 		void onGetPlaybackPositionSuccess(long duration, long position);
@@ -136,6 +147,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		request.send();
 		request.send();
 //		persistentHttpClient.disconnect();
+		stopTimer();
 	}
 
 	@Override
@@ -428,6 +440,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		
 		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, entity, responseListener);
 		request.send();	
+		startTimer();
 	}
 	
 	@Override
@@ -479,13 +492,15 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 					throw new IllegalArgumentException("Unable to handle "+payload.getClass().getName());
 				}
 			}
-					
+			
 			String httpVersion="HTTP/1.1";
 		    String requestHeader = serviceCommand.getHttpMethod()+" "+serviceCommand.getTarget()+" "+httpVersion+"\n" +
 		    	(contentType!=null?(HttpMessage.CONTENT_TYPE_HEADER + ": "+contentType +"\n"):"") +
-		    	HTTP.USER_AGENT+": MediaControl/1.0\n"+
-		    	HTTP.CONTENT_LEN+": "+contentLength+"\n" +
+		    	HTTP.USER_AGENT + ": MediaControl/1.0\n" +
+		    	HTTP.CONTENT_LEN + ": " + contentLength + "\n" +
+		    	X_APPLE_SESSION_ID + ": " + mSessionId + "\n" +
 		    	"\n";			
+		    
 			StringBuilder request=new StringBuilder();
 			request.append(requestHeader);
 			request.append(requestBody);
@@ -587,6 +602,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
 	@Override
 	public void connect() {
+		mSessionId = UUID.randomUUID().toString();
 		connected = true;
 		connectPersistentHttpClient();
 		reportConnected(true);
@@ -594,8 +610,8 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 	
 	@Override
 	public void disconnect() {
+		stopTimer();
 		connected=false;
-				
 		disconnectPersistentHttpClient();
 		
 		if (mServiceReachability != null)
@@ -618,5 +634,34 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 			mServiceReachability.stop();
 		}
 	}
+	
+	/**
+	 * We send periodically a command to keep connection alive and for avoiding 
+	 * stopping media session
+	 * 
+	 * Fix for https://github.com/ConnectSDK/Connect-SDK-Cordova-Plugin/issues/5
+	 */
+	private void startTimer() {
+		stopTimer();
+		timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			
+			@Override
+			public void run() {
+				String uri = getRequestURL("0");
+				ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(AirPlayService.this, uri, null, null);
+				request.setHttpMethod(ServiceCommand.TYPE_GET);
+				request.send();
+			}
+		}, KEEP_ALIVE_PERIOD, KEEP_ALIVE_PERIOD);
+	}
+	
+	private void stopTimer() {
+		if (timer != null) {
+			timer.cancel();
+		}
+		timer = null;
+	}
+	
 	
 }
