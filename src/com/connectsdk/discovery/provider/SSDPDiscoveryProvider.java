@@ -53,7 +53,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	Context context;
 	
 	private final static int RESCAN_INTERVAL = 10000;
-	private final static int RESCAN_ATTEMPTS = 3;
+	private final static int RESCAN_ATTEMPTS = 6;
 	private final static int SSDP_TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
 	
     boolean needToStartSearch = false;
