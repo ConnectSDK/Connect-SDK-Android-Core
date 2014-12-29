@@ -119,6 +119,9 @@ public class DLNAHttpServer {
 				}
 			}
 			
+			if (body == null)
+				continue;
+			
 			InputStream stream = null;
 			
 			try {
