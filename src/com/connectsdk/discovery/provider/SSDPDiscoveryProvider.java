@@ -288,7 +288,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         public void run() {
             while (mSSDPSocket != null) {
                 try {
-                    handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.notifyReceive()));
+                    handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.multicastReceive()));
                 } catch (IOException e) {
                 	e.printStackTrace();
                 	break;

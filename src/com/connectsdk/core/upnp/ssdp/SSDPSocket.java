@@ -31,12 +31,11 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 
 public class SSDPSocket {
-    SocketAddress mSSDPMulticastGroup;
-
-    DatagramSocket wildSocket;
-    MulticastSocket mLocalSocket;
+    DatagramSocket datagramSocket;
+    MulticastSocket multicastSocket;
     
-    NetworkInterface mNetIf;
+    SocketAddress multicastGroup;
+    NetworkInterface networkInterface;
     InetAddress localInAddress;
 
     int timeout = 0;
@@ -44,39 +43,37 @@ public class SSDPSocket {
     public SSDPSocket(InetAddress source) throws IOException {
         localInAddress = source;
 
-        mSSDPMulticastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        multicastSocket = new MulticastSocket(SSDP.PORT);
 
-        mLocalSocket = new MulticastSocket(SSDP.PORT);
-
-        mNetIf = NetworkInterface.getByInetAddress(localInAddress);
-        mLocalSocket.joinGroup(mSSDPMulticastGroup, mNetIf);
+        multicastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        networkInterface = NetworkInterface.getByInetAddress(localInAddress);
+        multicastSocket.joinGroup(multicastGroup, networkInterface);
         
-    	wildSocket = new DatagramSocket(null);
-    	wildSocket.setReuseAddress(true);
-    	wildSocket.bind(new InetSocketAddress(localInAddress, 0));
+        datagramSocket = new DatagramSocket(null);
+        datagramSocket.setReuseAddress(true);
+        datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
 
     //Its a package level constructor added just for unit test case in SSDPSocketTest just to inject custom socket instances.
     SSDPSocket(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket ) throws IOException {
         localInAddress = source;
 
-        mSSDPMulticastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        multicastSocket = mcSocket;
 
-        mLocalSocket = mcSocket;
-
-        mNetIf = NetworkInterface.getByInetAddress(localInAddress);
-        mLocalSocket.joinGroup(mSSDPMulticastGroup, mNetIf);
+        multicastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        networkInterface = NetworkInterface.getByInetAddress(localInAddress);
+        multicastSocket.joinGroup(multicastGroup, networkInterface);
         
-    	wildSocket = dgSocket;
-    	wildSocket.setReuseAddress(true);
-    	wildSocket.bind(new InetSocketAddress(localInAddress, 0));
+        datagramSocket = new DatagramSocket(null);
+        datagramSocket.setReuseAddress(true);
+        datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
     
     /** Used to send SSDP packet */
     public void send(String data) throws IOException {
-        DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), mSSDPMulticastGroup);
+        DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), multicastGroup);
 
-        wildSocket.send(dp);
+        datagramSocket.send(dp);
     }
 
 
@@ -85,17 +82,17 @@ public class SSDPSocket {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
 
-        wildSocket.receive(dp);
+        datagramSocket.receive(dp);
 
         return dp;
     }
     
-    /** Used to receive SSDP Notify packet */
-    public DatagramPacket notifyReceive() throws IOException {
+    /** Used to receive SSDP Multicast packet */
+    public DatagramPacket multicastReceive() throws IOException {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
 
-        mLocalSocket.receive(dp);
+        multicastSocket.receive(dp);
 
         return dp;
     }
@@ -104,30 +101,30 @@ public class SSDPSocket {
 //    public void start() {
 //    	
 //    }
-    
-    public boolean isConnected() {
-    	return wildSocket != null && mLocalSocket != null && wildSocket.isConnected() && mLocalSocket.isConnected();
-    }
 
+    public boolean isConnected() {
+    	return datagramSocket != null && multicastSocket != null && datagramSocket.isConnected() && multicastSocket.isConnected();
+    }
+    
     /** Close the socket */
     public void close() {
-        if (mLocalSocket != null) {
+        if (multicastSocket != null) {
             try {
-                mLocalSocket.leaveGroup(mSSDPMulticastGroup, mNetIf);
+                multicastSocket.leaveGroup(multicastGroup, networkInterface);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            mLocalSocket.close();
+            multicastSocket.close();
         }
         
-        if (wildSocket != null) {
-            wildSocket.disconnect();
-            wildSocket.close();
+        if (datagramSocket != null) {
+            datagramSocket.disconnect();
+            datagramSocket.close();
         }
     }
     
     public void setTimeout(int timeout) throws SocketException {
     	this.timeout = timeout;
-    	wildSocket.setSoTimeout(this.timeout);
+    	datagramSocket.setSoTimeout(this.timeout);
     }
 }

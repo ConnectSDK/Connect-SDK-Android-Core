@@ -9,8 +9,6 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -59,7 +57,7 @@ public class SSDPDiscoveryProviderTest{
 	public void setUp() throws Exception {
 		byte[] data = new byte[1];
 		when(ssdpSocket.responseReceive()).thenReturn(new DatagramPacket(data, 1));
-		when(ssdpSocket.notifyReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpSocket.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}

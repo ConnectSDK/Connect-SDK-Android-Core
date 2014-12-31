@@ -9,7 +9,6 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,7 +80,7 @@ public class SSDPSocketTest {
 		
 		byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
-        ssdpSocket.notifyReceive();
+        ssdpSocket.multicastReceive();
         
         ArgumentCaptor<DatagramPacket> argument = ArgumentCaptor.forClass(DatagramPacket.class);
 		Mockito.verify(mLocalSocket).receive(argument.capture());
