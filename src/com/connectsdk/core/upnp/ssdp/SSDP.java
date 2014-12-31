@@ -31,7 +31,6 @@ public class SSDP {
     
     public static final String ADDRESS = "239.255.255.250";
     public static final int PORT = 1900;
-    public static final int SOURCE_PORT = 1901;
     
     public static final String ST = "ST";
     public static final String LOCATION = "LOCATION";

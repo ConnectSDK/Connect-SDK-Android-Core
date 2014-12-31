@@ -53,7 +53,7 @@ public class SSDPSocket {
         
     	wildSocket = new DatagramSocket(null);
     	wildSocket.setReuseAddress(true);
-    	wildSocket.bind(new InetSocketAddress(localInAddress, SSDP.SOURCE_PORT));
+    	wildSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
 
     //Its a package level constructor added just for unit test case in SSDPSocketTest just to inject custom socket instances.
@@ -69,7 +69,7 @@ public class SSDPSocket {
         
     	wildSocket = dgSocket;
     	wildSocket.setReuseAddress(true);
-    	wildSocket.bind(new InetSocketAddress(localInAddress, SSDP.SOURCE_PORT));
+    	wildSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
     
     /** Used to send SSDP packet */
