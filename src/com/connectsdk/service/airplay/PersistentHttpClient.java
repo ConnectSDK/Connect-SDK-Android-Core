@@ -77,15 +77,11 @@ public class PersistentHttpClient {
 		}
 	}
 	
-	private void initSocket() {
+	private void initSocket() throws IOException {
 		if (socket == null) {
-			try {
-				socket = new Socket(inetAddress, port);
-				reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				bos = new BufferedOutputStream(socket.getOutputStream());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			socket = new Socket(inetAddress, port);
+			reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			bos = new BufferedOutputStream(socket.getOutputStream());
 		}
 	}
 	
@@ -103,8 +99,9 @@ public class PersistentHttpClient {
 	}
 	
 	private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
-		if (socket == null)
+		if (socket == null) {
 			initSocket();
+		}
 		
 		bos.write(reqestData.getBytes(CHARSET));
 		if(requestPayload!=null) {
