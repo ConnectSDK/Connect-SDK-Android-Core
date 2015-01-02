@@ -52,6 +52,7 @@ import com.connectsdk.core.ProgramList;
 import com.connectsdk.core.Util;
 import com.connectsdk.core.upnp.Device;
 import com.connectsdk.device.ConnectableDevice;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
@@ -251,17 +252,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		return service;
 	}
 	
-	public static JSONObject discoveryParameters() {
-		JSONObject params = new JSONObject();
-		
-		try {
-			params.put("serviceId", ID);
-			params.put("filter", "urn:lge-com:service:webos-second-screen:1");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return params;
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "urn:lge-com:service:webos-second-screen:1");
 	}
 	
 	@Override

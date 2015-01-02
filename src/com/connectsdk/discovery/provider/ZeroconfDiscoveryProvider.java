@@ -35,13 +35,11 @@ import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.util.Log;
 
 import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.service.config.ServiceDescription;
@@ -58,7 +56,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
 	private Timer dataTimer;
 
-    List<JSONObject> serviceFilters;
+    List<DiscoveryFilter> serviceFilters;
     
     ConcurrentHashMap<String, ServiceDescription> foundServices;
     CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
@@ -144,7 +142,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 		foundServices = new ConcurrentHashMap<String, ServiceDescription>(8, 0.75f, 2);
 
 		serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
-		serviceFilters = new CopyOnWriteArrayList<JSONObject>();
+		serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 		
 		try {
 			srcAddress = Util.getIpAddress(context);
@@ -207,13 +205,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 					}
 					jmdns = createJmDNS();
 					
-			        for (JSONObject searchTarget : serviceFilters) {
-						try {
-				        	String filter = searchTarget.getString("filter");
-							jmdns.addServiceListener(filter, jmdnsListener);
-						} catch (JSONException e) {
-							e.printStackTrace();
-						}
+			        for (DiscoveryFilter searchTarget : serviceFilters) {
+			        	String filter = searchTarget.getServiceFilter();
+						jmdns.addServiceListener(filter, jmdnsListener);
 			        };
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -230,13 +224,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 		}
 		
 		if (jmdns != null) {
-	        for (JSONObject searchTarget : serviceFilters) {
-				try {
-		        	String filter = searchTarget.getString("filter");
-					jmdns.removeServiceListener(filter, jmdnsListener);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+	        for (DiscoveryFilter searchTarget : serviceFilters) {
+	        	String filter = searchTarget.getServiceFilter();
+				jmdns.removeServiceListener(filter, jmdnsListener);
 	        };
 		}
 	}
@@ -257,35 +247,31 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 	}
 
 	@Override
-	public void addDeviceFilter(JSONObject parameters) {
-		if (!parameters.has("filter")) {
+	public void addDeviceFilter(DiscoveryFilter filter) {
+		if (filter.getServiceFilter() == null) {
 			Log.e("Connect SDK", "This device filter does not have zeroconf filter info");
 		} else {
-			serviceFilters.add(parameters);
+			serviceFilters.add(filter);
 		}		
 	}
 
 	@Override
-	public void removeDeviceFilter(JSONObject parameters) {
+	public void removeDeviceFilter(DiscoveryFilter filter) {
 		String removalServiceId;
 		boolean shouldRemove = false;
 		int removalIndex = -1;
 		
-		try {
-			removalServiceId = parameters.getString("serviceId");
+		removalServiceId = filter.getServiceId();
+		
+		for (int i = 0; i < serviceFilters.size(); i++) {
+			DiscoveryFilter serviceFilter = serviceFilters.get(i);
+			String serviceId = serviceFilter.getServiceId();
 			
-			for (int i = 0; i < serviceFilters.size(); i++) {
-				JSONObject serviceFilter = serviceFilters.get(i);
-				String serviceId = (String) serviceFilter.get("serviceId");
-				
-				if ( serviceId.equals(removalServiceId) ) {
-					shouldRemove = true;
-					removalIndex = i;
-					break;
-				}
+			if (serviceId.equals(removalServiceId)) {
+				shouldRemove = true;
+				removalIndex = i;
+				break;
 			}
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
 		
 		if (shouldRemove) {
@@ -301,17 +287,11 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 	public String serviceIdForFilter(String filter) {
     	String serviceId = "";
     	
-    	for (JSONObject serviceFilter : serviceFilters) {
-    		String ssdpFilter;
-    		try {
-    			ssdpFilter = serviceFilter.getString("filter");
-    			if (ssdpFilter.equals(filter)) {
-    				return serviceFilter.getString("serviceId");
-    			}
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    			continue;
-    		}
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+    		String ssdpFilter = serviceFilter.getServiceFilter();
+			if (ssdpFilter.equals(filter)) {
+				return serviceFilter.getServiceId();
+			}
     	}
     	
     	return serviceId;

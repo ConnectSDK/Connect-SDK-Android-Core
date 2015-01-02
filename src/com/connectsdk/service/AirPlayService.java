@@ -42,8 +42,6 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -52,6 +50,7 @@ import android.util.Log;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.airplay.PListBuilder;
@@ -93,17 +92,8 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 		super(serviceDescription, serviceConfig);
 	}
 
-	public static JSONObject discoveryParameters() {
-		JSONObject params = new JSONObject();
-		
-		try {
-			params.put("serviceId", ID);
-			params.put("filter",  "_airplay._tcp.local.");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return params;
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "_airplay._tcp.local.");
 	}
 	
 	@Override

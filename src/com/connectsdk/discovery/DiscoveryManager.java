@@ -20,6 +20,19 @@
 
 package com.connectsdk.discovery;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -44,22 +57,6 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
 import com.connectsdk.service.config.ServiceDescription;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ###Overview
@@ -402,14 +399,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 				discoveryProvider.addListener(this);
 				discoveryProviders.add(discoveryProvider);
 			}
-			Method m = deviceClass.getMethod("discoveryParameters");
+			Method m = deviceClass.getMethod("discoveryFilter");
 			Object result = m.invoke(null);
-			JSONObject discoveryParameters = (JSONObject) result;
-			String serviceFilter = (String) discoveryParameters.get("serviceId");
+			DiscoveryFilter discoveryFilter = (DiscoveryFilter) result;
+			String serviceId = discoveryFilter.getServiceId();
 			
-			deviceClasses.put(serviceFilter, deviceClass);
+			deviceClasses.put(serviceId, deviceClass);
 			
-			discoveryProvider.addDeviceFilter(discoveryParameters);
+			discoveryProvider.addDeviceFilter(discoveryFilter);
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
@@ -421,8 +418,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}
@@ -455,14 +450,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 			if (discoveryProvider == null) 
 				return;
 			
-			Method m = deviceClass.getMethod("discoveryParameters");
+			Method m = deviceClass.getMethod("discoveryFilter");
 			Object result = m.invoke(null);
-			JSONObject discoveryParameters = (JSONObject) result;
-			String serviceFilter = (String) discoveryParameters.get("serviceId");
+			DiscoveryFilter discoveryFilter = (DiscoveryFilter) result;
+			String serviceId = discoveryFilter.getServiceId();
 
-			deviceClasses.remove(serviceFilter);
+			deviceClasses.remove(serviceId);
 			
-			discoveryProvider.removeDeviceFilter(discoveryParameters);
+			discoveryProvider.removeDeviceFilter(discoveryFilter);
 			
 			if (discoveryProvider.isEmpty()) {
 				discoveryProvider.stop();
@@ -477,8 +472,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 	}

@@ -53,6 +53,7 @@ import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.core.upnp.service.Service;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.service.capability.MediaControl;
@@ -121,17 +122,8 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		httpServer = new DLNAHttpServer();
 	}
 	
-	public static JSONObject discoveryParameters() {
-		JSONObject params = new JSONObject();
-		
-		try {
-			params.put("serviceId", ID);
-			params.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return params;
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
 	}
 	
 	@Override

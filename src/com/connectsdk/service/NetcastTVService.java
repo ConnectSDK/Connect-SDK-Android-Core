@@ -61,6 +61,7 @@ import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
@@ -165,18 +166,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 		inputPickerSession = null;
 	}
 	
-	public static JSONObject discoveryParameters() {
-		JSONObject params = new JSONObject();
-		
-		try {
-			params.put("serviceId", ID);
-//			params.put("filter", "udap:rootservice");
-			params.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return params;
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
 	}
 	
 	@Override

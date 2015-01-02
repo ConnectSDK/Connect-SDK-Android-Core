@@ -17,7 +17,6 @@ import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 import javax.jmdns.impl.JmDNSImpl;
 
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,6 +28,7 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
@@ -87,27 +87,23 @@ public class ZeroConfDiscoveryPrividerTest {
 
 	@Test
 	public void testStartShouldAddDeviceFilter() throws Exception {
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Apple TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
+		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
 		
-		dp.addDeviceFilter(parameters);
+		dp.addDeviceFilter(filter);
 		dp.start();
 	
 		Thread.sleep(300);
-		verify(mDNS).addServiceListener(parameters.getString("filter"), dp.jmdnsListener);
+		verify(mDNS).addServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
 	}
 	
 	@Test
 	public void testStartShouldCancelPreviousSearch() throws Exception {
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Apple TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
+		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
 		
-		dp.addDeviceFilter(parameters);
+		dp.addDeviceFilter(filter);
 		dp.stop();
 	
-		verify(mDNS).removeServiceListener(parameters.getString("filter"), dp.jmdnsListener);
+		verify(mDNS).removeServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
 	}
 
 	@Test
@@ -162,12 +158,10 @@ public class ZeroConfDiscoveryPrividerTest {
 		// the scheduled timer task start() which adds the searchTarget as
 		// filter into the ServiceFilters.
 
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Apple TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
+		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
 		Assert.assertTrue(dp.isEmpty());
 
-		dp.serviceFilters.add(parameters);
+		dp.serviceFilters.add(filter);
 
 		Assert.assertFalse(dp.isEmpty());
 	}
@@ -178,18 +172,16 @@ public class ZeroConfDiscoveryPrividerTest {
 		// Service, implicitly invoke the removeServiceListener() on JmDns
 		// instance,
 
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Test TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
-		dp.serviceFilters.add(parameters);
+		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
+		dp.serviceFilters.add(filter);
 
 		ServiceListener listener = dp.jmdnsListener;
 
 		verify(mDNS, Mockito.never()).removeServiceListener(
-				parameters.getString("filter"), listener);
+				filter.getServiceFilter(), listener);
 		dp.stop();
 		verify(mDNS, Mockito.times(1)).removeServiceListener(
-				parameters.getString("filter"), listener);
+				filter.getServiceFilter(), listener);
 	}
 
 	@Test
@@ -210,14 +202,12 @@ public class ZeroConfDiscoveryPrividerTest {
 		// Test Desc. : Verify if ZeroConfDiscoveryProvider. AddDeviceFilter
 		// adds the specified device filter to serviceFilters list.
 
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Test TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
+		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
 
-		Assert.assertFalse(dp.serviceFilters.contains(parameters));
-		dp.addDeviceFilter(parameters);
+		Assert.assertFalse(dp.serviceFilters.contains(filter));
+		dp.addDeviceFilter(filter);
 
-		Assert.assertTrue(dp.serviceFilters.contains(parameters));
+		Assert.assertTrue(dp.serviceFilters.contains(filter));
 	}
 
 	@Test
@@ -226,14 +216,12 @@ public class ZeroConfDiscoveryPrividerTest {
 		// removes the entry specified device filter from to serviceFilters
 		// list.
 
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Test TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
+		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
 
-		dp.serviceFilters.add(parameters);
+		dp.serviceFilters.add(filter);
 		Assert.assertFalse(dp.serviceFilters.isEmpty());
 
-		dp.removeDeviceFilter(parameters);
+		dp.removeDeviceFilter(filter);
 
 		Assert.assertTrue(dp.serviceFilters.isEmpty());
 	}
@@ -244,13 +232,10 @@ public class ZeroConfDiscoveryPrividerTest {
 		// returns the serviceId for the specified filter added in
 		// ServiceFilters list.
 
-		JSONObject parameters = new JSONObject();
-		parameters.put("serviceId", "Test TV");
-		parameters.put("filter", "_testservicetype._tcp.local.");
-		dp.serviceFilters.add(parameters);
+		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
+		dp.serviceFilters.add(filter);
 
-		String filter = parameters.getString("filter");
-		String serviceId = dp.serviceIdForFilter(filter);
+		String serviceId = dp.serviceIdForFilter(filter.getServiceFilter());
 
 		Assert.assertEquals("Test TV", serviceId);
 	}

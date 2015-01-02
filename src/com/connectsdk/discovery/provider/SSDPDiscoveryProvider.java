@@ -33,9 +33,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.util.Log;
 
@@ -45,6 +42,7 @@ import com.connectsdk.core.upnp.ssdp.SSDP;
 import com.connectsdk.core.upnp.ssdp.SSDP.ParsedDatagram;
 import com.connectsdk.core.upnp.ssdp.SSDPSearchMsg;
 import com.connectsdk.core.upnp.ssdp.SSDPSocket;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.service.config.ServiceDescription;
@@ -63,7 +61,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     protected ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
     private ConcurrentHashMap<String, ServiceDescription> discoveredServices = new ConcurrentHashMap<String, ServiceDescription>();
     
-    List<JSONObject> serviceFilters;
+    List<DiscoveryFilter> serviceFilters;
 
     private SSDPSocket mSSDPSocket;
     
@@ -80,7 +78,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 		uuidReg = Pattern.compile("(?<=uuid:)(.+?)(?=(::)|$)");
 
 		serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
-		serviceFilters = new CopyOnWriteArrayList<JSONObject>();
+		serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 	}
 	
 	private void openSocket() {
@@ -149,15 +147,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 				foundServices.remove(key);
 		}
 
-        for (JSONObject searchTarget : serviceFilters) {
-        	SSDPSearchMsg search = null;
-        	try {
-        		search = new SSDPSearchMsg(searchTarget.getString("filter"));
-        	} catch (JSONException e) {
-        		e.printStackTrace();
-        		return;
-        	}
-        	
+        for (DiscoveryFilter searchTarget : serviceFilters) {
+        	SSDPSearchMsg search = new SSDPSearchMsg(searchTarget.getServiceFilter());
         	final String message = search.toString();
 	        
         	Timer timer = new Timer();
@@ -209,8 +200,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	}
 
 	@Override
-	public void addDeviceFilter(JSONObject parameters) {
-		if ( !parameters.has("filter") ) {
+	public void addDeviceFilter(DiscoveryFilter filter) {
+		if (filter.getServiceFilter() == null) {
 			Log.e("Connect SDK", "This device filter does not have ssdp filter info");
 		} else {
 //			String newFilter = null;
@@ -226,7 +217,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 //				e.printStackTrace();
 //			}
 			
-			serviceFilters.add(parameters);
+			serviceFilters.add(filter);
 			
 //			if ( newFilter != null )
 //			controlPoint.addFilter(newFilter);
@@ -234,29 +225,25 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	}
 	
 	@Override
-	public void removeDeviceFilter(JSONObject parameters) {
+	public void removeDeviceFilter(DiscoveryFilter filter) {
 		String removalServiceId;
 		boolean shouldRemove = false;
 		int removalIndex = -1;
 		
-		try {
-			removalServiceId = parameters.getString("serviceId");
+		removalServiceId = filter.getServiceId();
+		
+		for (int i = 0; i < serviceFilters.size(); i++) {
+			DiscoveryFilter serviceFilter = serviceFilters.get(i);
+			String serviceId = serviceFilter.getServiceId();
 			
-			for (int i = 0; i < serviceFilters.size(); i++) {
-				JSONObject serviceFilter = serviceFilters.get(i);
-				String serviceId = (String) serviceFilter.get("serviceId");
-				
-				if ( serviceId.equals(removalServiceId) ) {
-					shouldRemove = true;
-					removalIndex = i;
-					break;
-				}
+			if (serviceId.equals(removalServiceId)) {
+				shouldRemove = true;
+				removalIndex = i;
+				break;
 			}
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
 		
-		if ( shouldRemove ) {
+		if (shouldRemove) {
 			serviceFilters.remove(removalIndex);
 		}
 	}
@@ -482,37 +469,26 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     public List<String> serviceIdsForFilter(String filter) {
     	ArrayList<String> serviceIds = new ArrayList<String>();
     	
-    	for (JSONObject serviceFilter : serviceFilters) {
-    		String ssdpFilter;
-    		try {
-    			ssdpFilter = serviceFilter.getString("filter");
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+    		String ssdpFilter = serviceFilter.getServiceFilter();
 
-    			if (ssdpFilter.equals(filter)) {
-    				String serviceId = serviceFilter.getString("serviceId");
-    				
-    				if (serviceId != null)
-    					serviceIds.add(serviceId);
-    			}
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    			continue;
-    		}
+			if (ssdpFilter.equals(filter)) {
+				String serviceId = serviceFilter.getServiceId();
+				
+				if (serviceId != null)
+					serviceIds.add(serviceId);
+			}
     	}
     	
     	return serviceIds;
     }
     
     public boolean isSearchingForFilter(String filter) {
-    	for (JSONObject serviceFilter : serviceFilters) {
-    		try {
-    			String ssdpFilter = serviceFilter.getString("filter");
-    			
-    			if (ssdpFilter.equals(filter))
-    				return true;
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    			continue;
-    		}
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+			String ssdpFilter = serviceFilter.getServiceFilter();
+			
+			if (ssdpFilter.equals(filter))
+				return true;
     	}
     	
     	return false;
