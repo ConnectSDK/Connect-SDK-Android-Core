@@ -15,11 +15,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.xml.sax.SAXException;
 
 public class SSDPDevice {
@@ -76,9 +71,6 @@ public class SSDPDevice {
     	
     	serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
 
-    	if (ST.equalsIgnoreCase("urn:dial-multiscreen-org:service:dial:1"))
-    		applicationURL = getApplicationURL(url);
-    	
     	parse(urlObject);
     }
     
@@ -89,6 +81,12 @@ public class SSDPDevice {
         SSDPDeviceDescriptionParser parser = new SSDPDeviceDescriptionParser(this);
         
     	URLConnection urlConnection = url.openConnection();
+    	
+    	applicationURL = urlConnection.getHeaderField("Application-URL");
+		if (applicationURL != null && !applicationURL.substring(applicationURL.length() - 1).equals("/")) {
+			applicationURL = applicationURL.concat("/");
+		}
+    	
     	InputStream in = new BufferedInputStream(urlConnection.getInputStream());
     	Scanner s = null;
     	try {
@@ -109,34 +107,5 @@ public class SSDPDevice {
     @Override
     public String toString() {
         return friendlyName;
-    }
-    
-    private String getApplicationURL(String url) {
-    	HttpClient client = new DefaultHttpClient();
-
-    	HttpGet get = new HttpGet(url);
-    	
-    	String applicationURL = null;
-
-		try {
-			HttpResponse response = client.execute(get);
-			
-			int code = response.getStatusLine().getStatusCode();
-			
-			if (code == 200) {
-				if (response.getFirstHeader("Application-URL") != null) {
-					applicationURL =  response.getFirstHeader("Application-URL").getValue();
-
-					if (!applicationURL.substring(applicationURL.length() - 1).equals("/")) {
-						applicationURL = applicationURL.concat("/");
-					}
-				}
-			}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}    	
-    	return applicationURL;
     }
 }
