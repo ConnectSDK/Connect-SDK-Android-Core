@@ -50,7 +50,6 @@ import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.ProgramList;
 import com.connectsdk.core.Util;
-import com.connectsdk.core.upnp.Device;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -227,7 +226,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		
 		if (this.serviceDescription.getVersion() == null && this.serviceDescription.getResponseHeaders() != null)
 		{
-			String serverInfo = serviceDescription.getResponseHeaders().get(Device.HEADER_SERVER).get(0);
+			String serverInfo = serviceDescription.getResponseHeaders().get("Server").get(0);
 			String systemOS = serverInfo.split(" ")[0];
 			String[] versionComponents = systemOS.split("/");
 			String systemVersion = versionComponents[versionComponents.length - 1];

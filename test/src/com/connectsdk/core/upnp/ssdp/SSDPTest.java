@@ -9,8 +9,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import com.connectsdk.core.upnp.ssdp.SSDP.ParsedDatagram;
-//import android.util.Log;
+import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE)
@@ -29,21 +28,17 @@ public class SSDPTest{
 	DatagramPacket mDatagramPacket;
 	String testDatagramData = "NOTIFY * HTTP/1.1\nCONNECTSDK: positive test\n"
 			+ "SDK: negative test\n";
-	ParsedDatagram pd;
+	SSDPPacket ssdpPacket;
 	
 	@Test
 	public void testParseDatagramPositiveresult() {		 
-		 pd = new ParsedDatagram(mDatagramPacket);
-		Assert.assertEquals("positive test", pd.data.get("CONNECTSDK").toString());
-				
+		ssdpPacket = new SSDPPacket(mDatagramPacket);
+		Assert.assertEquals("positive test", ssdpPacket.getData().get("CONNECTSDK").toString());
 	}
 	
 	@Test
 	public void testParseDatagramNegativeResult() {
-		 pd = new ParsedDatagram(mDatagramPacket);
-		Assert.assertFalse("negative test".equals(pd.data.get("CONNECTSDK").toString()));
-		
+		ssdpPacket = new SSDPPacket(mDatagramPacket);
+		Assert.assertFalse("negative test".equals(ssdpPacket.getData().get("CONNECTSDK").toString()));
 	}
-
-	
 }

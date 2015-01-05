@@ -24,9 +24,8 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
-import com.connectsdk.core.upnp.ssdp.SSDPSearchMsg;
-import com.connectsdk.core.upnp.ssdp.SSDPSocket;
 import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.shadow.WifiInfoShadow;
 
 @RunWith(RobolectricTestRunner.class)
@@ -37,7 +36,7 @@ public class SSDPDiscoveryProviderTest{
 	InetAddress localAddress;
 	SSDPDiscoveryProvider dp;
 	MulticastSocket mLocalSocket;
-	private SSDPSocket ssdpSocket = Mockito.mock(SSDPSocket.class);
+	private SSDPClient ssdpClient = Mockito.mock(SSDPClient.class);
 	
 	class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
 
@@ -47,8 +46,8 @@ public class SSDPDiscoveryProviderTest{
 		}
 		
 		@Override
-		protected SSDPSocket createSocket(InetAddress source) throws IOException {
-			return ssdpSocket;
+		protected SSDPClient createSocket(InetAddress source) throws IOException {
+			return ssdpClient;
 		}
 
 	};
@@ -56,8 +55,8 @@ public class SSDPDiscoveryProviderTest{
 	@Before
 	public void setUp() throws Exception {
 		byte[] data = new byte[1];
-		when(ssdpSocket.responseReceive()).thenReturn(new DatagramPacket(data, 1));
-		when(ssdpSocket.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpClient.responseReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpClient.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}
@@ -72,19 +71,18 @@ public class SSDPDiscoveryProviderTest{
 		//Test Desc. : Test to verify if the socket is created and is not null also sendSearch().
 				
 		dp.start();
-		//assert that after start() SSDPSocket was created.
-		Assert.assertTrue(ssdpSocket != null);
+		//assert that after start() SSDPClient was created.
+		Assert.assertTrue(ssdpClient != null);
 
 		//verify after socket create , sendSearch() is successful.
 		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
 		dp.serviceFilters.add(filter);
-		SSDPSearchMsg search = new SSDPSearchMsg(filter.getServiceFilter());
-		String msg = search.toString();
+		String msg = SSDPClient.getSSDPSearchMessage(filter.getServiceFilter());
 		
 		Thread.sleep(3000);
 		dp.stop();
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(3)).send(argument.capture());
+		verify(ssdpClient, Mockito.times(3)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
 					
 	}
@@ -95,7 +93,7 @@ public class SSDPDiscoveryProviderTest{
 		
 		dp.start();
 		dp.stop();		
-		verify(ssdpSocket, Mockito.times(1)).close();
+		verify(ssdpClient, Mockito.times(1)).close();
 	}
 	
 	@Test

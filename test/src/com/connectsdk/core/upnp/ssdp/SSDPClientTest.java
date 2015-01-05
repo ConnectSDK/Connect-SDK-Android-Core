@@ -20,36 +20,37 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import com.connectsdk.core.Util;
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.shadow.WifiInfoShadow;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE ,shadows = { WifiInfoShadow.class })
-public class SSDPSocketTest {
+public class SSDPClientTest {
 
 	InetAddress localAddress;
-	SSDPSocket ssdpSocket;
+	SSDPClient ssdpClient;
 	
 	private DatagramSocket wildSocket = Mockito.mock(DatagramSocket.class);
 	private MulticastSocket mLocalSocket = Mockito.mock(MulticastSocket.class);
 	
-	public SSDPSocketTest() {
+	public SSDPClientTest() {
 		super();
 	}	
 	
 	@Before
 	public void setUp() throws IOException {
 		localAddress = Util.getIpAddress(Robolectric.application); 			
-		ssdpSocket = new SSDPSocket(localAddress, mLocalSocket, wildSocket );		
+		ssdpClient = new SSDPClient(localAddress, mLocalSocket, wildSocket);		
 	}	
 	
 	@Test
 	public void testSend() throws Exception {
-		//Verify is ssdpSocket.send() is sending correct SSDP packet to DatagramSocket
+		//Verify is ssdpClient.send() is sending correct SSDP packet to DatagramSocket
 		
 		String stringData = "some data";
 		DatagramPacket dp = new DatagramPacket(stringData.getBytes(),
 				stringData.length(), new InetSocketAddress("239.255.255.250",1900));
-		ssdpSocket.send(stringData);
+		ssdpClient.send(stringData);
 
 		ArgumentCaptor<DatagramPacket> argument = ArgumentCaptor.forClass(DatagramPacket.class);
 		Mockito.verify(wildSocket).send(argument.capture());
@@ -61,11 +62,11 @@ public class SSDPSocketTest {
 	
 	@Test
 	public void testResponseRecieve() throws IOException {		
-		//Verify is ssdpSocket.responseReceive() receive SSDP Response packet to DatagramSocket
+		//Verify is ssdpClient.responseReceive() receive SSDP Response packet to DatagramSocket
 		
 		byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
-        ssdpSocket.responseReceive();
+        ssdpClient.responseReceive();
         
         ArgumentCaptor<DatagramPacket> argument = ArgumentCaptor.forClass(DatagramPacket.class);
 		Mockito.verify(wildSocket).receive(argument.capture());
@@ -76,11 +77,11 @@ public class SSDPSocketTest {
 	
 	@Test
 	public void testNotifyReceive() throws IOException {		
-		//Verify is ssdpSocket.NotifyReceive() receive SSDP Notify packet to DatagramSocket.
+		//Verify is ssdpClient.NotifyReceive() receive SSDP Notify packet to DatagramSocket.
 		
 		byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
-        ssdpSocket.multicastReceive();
+        ssdpClient.multicastReceive();
         
         ArgumentCaptor<DatagramPacket> argument = ArgumentCaptor.forClass(DatagramPacket.class);
 		Mockito.verify(mLocalSocket).receive(argument.capture());
@@ -94,7 +95,7 @@ public class SSDPSocketTest {
 	public void testClose() throws IOException {
 		wildSocket.connect(localAddress, 1903);
 		mLocalSocket.connect(localAddress, 1904);
-		ssdpSocket.close();
+		ssdpClient.close();
 		
 		Mockito.verify(mLocalSocket, Mockito.times(1)).leaveGroup(Mockito.any(SocketAddress.class),Mockito.any(NetworkInterface.class));
 		Mockito.verify(mLocalSocket, Mockito.times(1)).close();
@@ -107,7 +108,7 @@ public class SSDPSocketTest {
 	@Test
 	public void testSetTimeout() throws Exception {
 		Integer testTimeout = 1 * 1000;
-		ssdpSocket.setTimeout(testTimeout);
+		ssdpClient.setTimeout(testTimeout);
 		
 		ArgumentCaptor<Integer> argument = ArgumentCaptor.forClass(Integer.class);
 		Mockito.verify(wildSocket, Mockito.times(1)).setSoTimeout(argument.capture());

@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-package com.connectsdk.core.upnp.service;
+package com.connectsdk.discovery.provider.ssdp;
 
 public class StateVariable {
     public static final String TAG = "stateVariable";

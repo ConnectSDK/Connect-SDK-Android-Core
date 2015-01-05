@@ -1,24 +1,4 @@
-/*
- * SSDPSocket
- * Connect SDK
- * 
- * Copyright (c) 2014 LG Electronics.
- * Copyright (c) 2011 stonker.lee@gmail.com https://code.google.com/p/android-dlna/
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.connectsdk.core.upnp.ssdp;
+package com.connectsdk.discovery.provider.ssdp;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -30,8 +10,8 @@ import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
-public class SSDPSocket {
-    DatagramSocket datagramSocket;
+public class SSDPClient {
+	DatagramSocket datagramSocket;
     MulticastSocket multicastSocket;
     
     SocketAddress multicastGroup;
@@ -39,13 +19,14 @@ public class SSDPSocket {
     InetAddress localInAddress;
 
     int timeout = 0;
+    static int MX = 5;
     
-    public SSDPSocket(InetAddress source) throws IOException {
+    public SSDPClient(InetAddress source) throws IOException {
         localInAddress = source;
 
         multicastSocket = new MulticastSocket(SSDP.PORT);
 
-        multicastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        multicastGroup = new InetSocketAddress(SSDP.MULTICAST_ADDRESS, SSDP.PORT);
         networkInterface = NetworkInterface.getByInetAddress(localInAddress);
         multicastSocket.joinGroup(multicastGroup, networkInterface);
         
@@ -54,13 +35,13 @@ public class SSDPSocket {
         datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
 
-    //Its a package level constructor added just for unit test case in SSDPSocketTest just to inject custom socket instances.
-    SSDPSocket(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket ) throws IOException {
+    //Its a package level constructor added just for unit test case in SSDPClientTest just to inject custom socket instances.
+    public SSDPClient(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket) throws IOException {
         localInAddress = source;
 
         multicastSocket = mcSocket;
 
-        multicastGroup = new InetSocketAddress(SSDP.ADDRESS, SSDP.PORT);
+        multicastGroup = new InetSocketAddress(SSDP.MULTICAST_ADDRESS, SSDP.PORT);
         networkInterface = NetworkInterface.getByInetAddress(localInAddress);
         multicastSocket.joinGroup(multicastGroup, networkInterface);
         
@@ -126,5 +107,21 @@ public class SSDPSocket {
     public void setTimeout(int timeout) throws SocketException {
     	this.timeout = timeout;
     	datagramSocket.setSoTimeout(this.timeout);
+    }
+    
+    public static String getSSDPSearchMessage(String ST) {
+    	StringBuilder sb = new StringBuilder();
+    	
+        sb.append(SSDP.MSEARCH + SSDP.NEWLINE);
+        sb.append("HOST: " + SSDP.MULTICAST_ADDRESS + ":" + SSDP.PORT + SSDP.NEWLINE);
+        sb.append("MAN: \"ssdp:discover\"" + SSDP.NEWLINE);
+        sb.append("ST: " + ST + SSDP.NEWLINE);
+        sb.append("MX: " +  MX + SSDP.NEWLINE);
+        if (ST.contains("udap")) {
+        	sb.append("USER-AGENT: UDAP/2.0" + SSDP.NEWLINE);
+        }
+        sb.append(SSDP.NEWLINE);
+        
+        return sb.toString();    	
     }
 }

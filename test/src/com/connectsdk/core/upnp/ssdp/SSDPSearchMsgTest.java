@@ -7,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE)
 public class SSDPSearchMsgTest {
@@ -29,7 +31,7 @@ public class SSDPSearchMsgTest {
 
 	@Before
 	public void setUp(){
-		msg = new SSDPSearchMsg(st);	
+		msg = SSDPClient.getSSDPSearchMessage(st);	
 		
 	}
 	

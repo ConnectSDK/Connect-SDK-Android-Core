@@ -26,7 +26,7 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.connectsdk.core.upnp.service.Service;
+import com.connectsdk.discovery.provider.ssdp.Service;
 
 public class ServiceDescription implements Cloneable {
 	
