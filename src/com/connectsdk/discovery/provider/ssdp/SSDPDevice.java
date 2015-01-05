@@ -74,7 +74,7 @@ public class SSDPDevice {
     	port = urlObject.getPort();
     	UUID = null;
     	
-    	ST = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
+    	serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
 
     	if (ST.equalsIgnoreCase("urn:dial-multiscreen-org:service:dial:1"))
     		applicationURL = getApplicationURL(url);
