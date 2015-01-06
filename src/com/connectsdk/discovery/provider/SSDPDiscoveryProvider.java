@@ -329,6 +329,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         	final ServiceDescription service = foundServices.get(uuid);
 
         	if (service != null) {
+        		foundServices.remove(uuid);
+        		
         		notifyListenersOfLostService(service);
         	}
         } else {
