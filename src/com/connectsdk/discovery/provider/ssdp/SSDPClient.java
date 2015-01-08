@@ -31,6 +31,31 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 
 public class SSDPClient {
+    /* New line definition */
+    public static final String NEWLINE = "\r\n";
+    
+    public static final String MULTICAST_ADDRESS = "239.255.255.250";
+    public static final int PORT = 1900;
+    
+    /* Definitions of start line */
+    public static final String NOTIFY = "NOTIFY * HTTP/1.1";
+    public static final String MSEARCH = "M-SEARCH * HTTP/1.1";
+    public static final String OK = "HTTP/1.1 200 OK";
+
+    /* Definitions of search targets */
+//    public static final String DEVICE_MEDIA_SERVER_1 = "urn:schemas-upnp-org:device:MediaServer:1"; 
+    
+//    public static final String SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1";
+//    public static final String SERVICE_CONNECTION_MANAGER_1 = "urn:schemas-upnp-org:service:ConnectionManager:1";
+//    public static final String SERVICE_AV_TRANSPORT_1 = "urn:schemas-upnp-org:service:AVTransport:1";
+//    
+//    public static final String ST_ContentDirectory = ST + ":" + UPNP.SERVICE_CONTENT_DIRECTORY_1;
+    
+    /* Definitions of notification sub type */
+    public static final String ALIVE = "ssdp:alive";
+    public static final String BYEBYE = "ssdp:byebye";
+    public static final String UPDATE = "ssdp:update";
+	
 	DatagramSocket datagramSocket;
     MulticastSocket multicastSocket;
     
@@ -44,9 +69,9 @@ public class SSDPClient {
     public SSDPClient(InetAddress source) throws IOException {
         localInAddress = source;
 
-        multicastSocket = new MulticastSocket(SSDP.PORT);
+        multicastSocket = new MulticastSocket(PORT);
 
-        multicastGroup = new InetSocketAddress(SSDP.MULTICAST_ADDRESS, SSDP.PORT);
+        multicastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
         networkInterface = NetworkInterface.getByInetAddress(localInAddress);
         multicastSocket.joinGroup(multicastGroup, networkInterface);
         
@@ -61,7 +86,7 @@ public class SSDPClient {
 
         multicastSocket = mcSocket;
 
-        multicastGroup = new InetSocketAddress(SSDP.MULTICAST_ADDRESS, SSDP.PORT);
+        multicastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
         networkInterface = NetworkInterface.getByInetAddress(localInAddress);
         multicastSocket.joinGroup(multicastGroup, networkInterface);
         
@@ -132,15 +157,15 @@ public class SSDPClient {
     public static String getSSDPSearchMessage(String ST) {
     	StringBuilder sb = new StringBuilder();
     	
-        sb.append(SSDP.MSEARCH + SSDP.NEWLINE);
-        sb.append("HOST: " + SSDP.MULTICAST_ADDRESS + ":" + SSDP.PORT + SSDP.NEWLINE);
-        sb.append("MAN: \"ssdp:discover\"" + SSDP.NEWLINE);
-        sb.append("ST: " + ST + SSDP.NEWLINE);
-        sb.append("MX: " +  MX + SSDP.NEWLINE);
+        sb.append(MSEARCH + NEWLINE);
+        sb.append("HOST: " + MULTICAST_ADDRESS + ":" + PORT + NEWLINE);
+        sb.append("MAN: \"ssdp:discover\"" + NEWLINE);
+        sb.append("ST: " + ST + NEWLINE);
+        sb.append("MX: " +  MX + NEWLINE);
         if (ST.contains("udap")) {
-        	sb.append("USER-AGENT: UDAP/2.0" + SSDP.NEWLINE);
+        	sb.append("USER-AGENT: UDAP/2.0" + NEWLINE);
         }
-        sb.append(SSDP.NEWLINE);
+        sb.append(NEWLINE);
         
         return sb.toString();    	
     }

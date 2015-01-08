@@ -44,7 +44,6 @@ import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
-import com.connectsdk.discovery.provider.ssdp.SSDP;
 import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.discovery.provider.ssdp.SSDPDevice;
 import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
@@ -308,9 +307,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         if (ssdpPacket == null || ssdpPacket.getData().size() == 0 || ssdpPacket.getType() == null)
         	return;
 
-        String serviceFilter = ssdpPacket.getData().get(ssdpPacket.getType().equals(SSDP.NOTIFY) ? "NT" : "ST");
+        String serviceFilter = ssdpPacket.getData().get(ssdpPacket.getType().equals(SSDPClient.NOTIFY) ? "NT" : "ST");
 
-    	if (serviceFilter == null || SSDP.MSEARCH.equals(ssdpPacket.getType()) || !isSearchingForFilter(serviceFilter))
+    	if (serviceFilter == null || SSDPClient.MSEARCH.equals(ssdpPacket.getType()) || !isSearchingForFilter(serviceFilter))
     		return;
 
     	String usnKey = ssdpPacket.getData().get("USN");
@@ -325,7 +324,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
         String uuid = m.group();
 
-        if (SSDP.BYEBYE.equals(ssdpPacket.getData().get("NTS"))) {
+        if (SSDPClient.BYEBYE.equals(ssdpPacket.getData().get("NTS"))) {
         	final ServiceDescription service = foundServices.get(uuid);
 
         	if (service != null) {
