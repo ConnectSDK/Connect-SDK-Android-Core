@@ -82,17 +82,8 @@ public class SSDPClient {
 
     //Its a package level constructor added just for unit test case in SSDPClientTest just to inject custom socket instances.
     public SSDPClient(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket) throws IOException {
-        localInAddress = source;
-
+    	this(source);
         multicastSocket = mcSocket;
-
-        multicastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
-        networkInterface = NetworkInterface.getByInetAddress(localInAddress);
-        multicastSocket.joinGroup(multicastGroup, networkInterface);
-        
-        datagramSocket = new DatagramSocket(null);
-        datagramSocket.setReuseAddress(true);
-        datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
     
     /** Used to send SSDP packet */
