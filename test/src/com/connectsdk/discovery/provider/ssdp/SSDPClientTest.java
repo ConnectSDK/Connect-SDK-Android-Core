@@ -1,13 +1,7 @@
-package com.connectsdk.core.upnp.ssdp;
+package com.connectsdk.discovery.provider.ssdp;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-import java.net.SocketAddress;
+import com.connectsdk.core.Util;
+import com.connectsdk.shadow.WifiInfoShadow;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,9 +13,14 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import com.connectsdk.core.Util;
-import com.connectsdk.discovery.provider.ssdp.SSDPClient;
-import com.connectsdk.shadow.WifiInfoShadow;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketAddress;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE ,shadows = { WifiInfoShadow.class })
