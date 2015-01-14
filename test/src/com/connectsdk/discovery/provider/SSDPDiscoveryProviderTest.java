@@ -85,7 +85,7 @@ public class SSDPDiscoveryProviderTest{
 		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
 		String msg = search.toString();
 		
-		Thread.sleep(3000);
+		Thread.sleep(4000);
 		dp.stop();
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
 		verify(ssdpSocket, Mockito.times(3)).send(argument.capture());
