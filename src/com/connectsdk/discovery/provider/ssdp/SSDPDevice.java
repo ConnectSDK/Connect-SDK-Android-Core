@@ -44,27 +44,28 @@ public class SSDPDevice {
     public String friendlyName;
     /* Required. Manufacturer's name. */
     public String manufacturer;
-    /* Optional. Web site for manufacturer. */
-    public String manufacturerURL;
+//    /* Optional. Web site for manufacturer. */
+//    public String manufacturerURL;
     /* Recommended. Long description for end user. */
     public String modelDescription;
     /* Required. Model name. */
     public String modelName;
     /* Recommended. Model number. */
     public String modelNumber;
-    /* Optional. Web site for model. */
-    public String modelURL;
-    /* Recommended. Serial number. */
-    public String serialNumber;
+//    /* Optional. Web site for model. */
+//    public String modelURL;
+//    /* Recommended. Serial number. */
+//    public String serialNumber;
     /* Required. Unique Device Name. */
     public String UDN;
-    /* Optional. Universal Product Code. */
-    public String UPC;
+//    /* Optional. Universal Product Code. */
+//    public String UPC;
     /* Required. */
-    List<Icon> iconList = new ArrayList<Icon>();
+//    List<Icon> iconList = new ArrayList<Icon>();
     public String locationXML;
     /* Optional. */
     public List<Service> serviceList = new ArrayList<Service>();
+    
     public String ST;
     public String applicationURL;
     

@@ -20,6 +20,9 @@
 
 package com.connectsdk.discovery.provider.ssdp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -48,9 +51,11 @@ public class SSDPDeviceDescriptionParser extends DefaultHandler {
     Service currentService;
     
     SSDPDevice device;
+    Map<String, String> data;
     
     public SSDPDeviceDescriptionParser(SSDPDevice device) {
     	this.device = device;
+    	data = new HashMap<String, String>();
 	}
     
 	@Override
@@ -104,37 +109,37 @@ public class SSDPDeviceDescriptionParser extends DefaultHandler {
             device.friendlyName = currentValue;
         } else if (TAG_MANUFACTURER.equals(qName)) {
             device.manufacturer = currentValue;
-        } else if (TAG_MANUFACTURER_URL.equals(qName)) {
-            device.manufacturerURL = currentValue;
+//        } else if (TAG_MANUFACTURER_URL.equals(qName)) {
+//            device.manufacturerURL = currentValue;
         } else if (TAG_MODEL_DESCRIPTION.equals(qName)) {
             device.modelDescription = currentValue;
         } else if (TAG_MODEL_NAME.equals(qName)) {
             device.modelName = currentValue;
         } else if (TAG_MODEL_NUMBER.equals(qName)) {
             device.modelNumber = currentValue;
-        } else if (TAG_MODEL_URL.equals(qName)) {
-            device.modelURL = currentValue;
-        } else if (TAG_SERIAL_NUMBER.equals(qName)) {
-            device.serialNumber = currentValue;
+//        } else if (TAG_MODEL_URL.equals(qName)) {
+//            device.modelURL = currentValue;
+//        } else if (TAG_SERIAL_NUMBER.equals(qName)) {
+//            device.serialNumber = currentValue;
         } else if (TAG_UDN.equals(qName)) {
             device.UDN = currentValue;
-        } else if (TAG_UPC.equals(qName)) {
-            device.UPC = currentValue;
+//        } else if (TAG_UPC.equals(qName)) {
+//            device.UPC = currentValue;
         }
-        /* Parse icon-list information */
-        else if (Icon.TAG_MIME_TYPE.equals(qName)) {
-            currentIcon.mimetype = currentValue;
-        } else if (Icon.TAG_WIDTH.equals(qName)) {
-            currentIcon.width = currentValue;
-        } else if (Icon.TAG_HEIGHT.equals(qName)) {
-            currentIcon.height = currentValue;
-        } else if (Icon.TAG_DEPTH.equals(qName)) {
-            currentIcon.depth = currentValue;
-        } else if (Icon.TAG_URL.equals(qName)) {
-            currentIcon.url = currentValue;
-        } else if (Icon.TAG.equals(qName)) {
-            device.iconList.add(currentIcon);
-        }
+//        /* Parse icon-list information */
+//        else if (Icon.TAG_MIME_TYPE.equals(qName)) {
+//            currentIcon.mimetype = currentValue;
+//        } else if (Icon.TAG_WIDTH.equals(qName)) {
+//            currentIcon.width = currentValue;
+//        } else if (Icon.TAG_HEIGHT.equals(qName)) {
+//            currentIcon.height = currentValue;
+//        } else if (Icon.TAG_DEPTH.equals(qName)) {
+//            currentIcon.depth = currentValue;
+//        } else if (Icon.TAG_URL.equals(qName)) {
+//            currentIcon.url = currentValue;
+//        } else if (Icon.TAG.equals(qName)) {
+//            device.iconList.add(currentIcon);
+//        }
         /* Parse service-list information */
         else if (Service.TAG_SERVICE_TYPE.equals(qName)) {
             currentService.serviceType = currentValue;
@@ -150,6 +155,7 @@ public class SSDPDeviceDescriptionParser extends DefaultHandler {
             device.serviceList.add(currentService);
         }
 
+        data.put(qName, currentValue);
         currentValue = null;
 	}
 }
