@@ -33,20 +33,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import android.content.Context;
 import android.util.Log;
 
 import com.connectsdk.core.Util;
-import com.connectsdk.core.upnp.Device;
-import com.connectsdk.core.upnp.ssdp.SSDP;
-import com.connectsdk.core.upnp.ssdp.SSDP.ParsedDatagram;
-import com.connectsdk.core.upnp.ssdp.SSDPSearchMsg;
-import com.connectsdk.core.upnp.ssdp.SSDPSocket;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
+import com.connectsdk.discovery.provider.ssdp.SSDPDevice;
+import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
 import com.connectsdk.service.config.ServiceDescription;
 
 public class SSDPDiscoveryProvider implements DiscoveryProvider {
@@ -63,9 +63,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     protected ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
     private ConcurrentHashMap<String, ServiceDescription> discoveredServices = new ConcurrentHashMap<String, ServiceDescription>();
     
-    List<JSONObject> serviceFilters;
+    List<DiscoveryFilter> serviceFilters;
 
-    private SSDPSocket mSSDPSocket;
+    private SSDPClient ssdpClient;
     
     private Timer dataTimer;
     
@@ -80,11 +80,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 		uuidReg = Pattern.compile("(?<=uuid:)(.+?)(?=(::)|$)");
 
 		serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
-		serviceFilters = new CopyOnWriteArrayList<JSONObject>();
+		serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 	}
 	
 	private void openSocket() {
-		if (mSSDPSocket != null && mSSDPSocket.isConnected())
+		if (ssdpClient != null && ssdpClient.isConnected())
 			return;
 
 		try {
@@ -92,7 +92,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 			if (source == null) 
 				return;
 			
-			mSSDPSocket = createSocket(source);
+			ssdpClient = createSocket(source);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -100,8 +100,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 		}
 	}
 
-	protected SSDPSocket createSocket(InetAddress source) throws IOException {
-		return new SSDPSocket(source);
+	protected SSDPClient createSocket(InetAddress source) throws IOException {
+		return new SSDPClient(source);
 	}
 	
 	@Override
@@ -149,16 +149,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 				foundServices.remove(key);
 		}
 
-        for (JSONObject searchTarget : serviceFilters) {
-        	SSDPSearchMsg search = null;
-        	try {
-        		search = new SSDPSearchMsg(searchTarget.getString("filter"));
-        	} catch (JSONException e) {
-        		e.printStackTrace();
-        		return;
-        	}
-        	
-        	final String message = search.toString();
+        for (DiscoveryFilter searchTarget : serviceFilters) {
+        	final String message = SSDPClient.getSSDPSearchMessage(searchTarget.getServiceFilter());
 	        
         	Timer timer = new Timer();
 	        /* Send 3 times like WindowsMedia */
@@ -168,8 +160,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 					@Override
 					public void run() {
 						try {
-							if (mSSDPSocket != null)
-								mSSDPSocket.send(message);
+							if (ssdpClient != null)
+								ssdpClient.send(message);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -195,9 +187,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 			notifyThread.interrupt();
 		}
 
-		if (mSSDPSocket != null) {
-			mSSDPSocket.close();
-			mSSDPSocket = null;
+		if (ssdpClient != null) {
+			ssdpClient.close();
+			ssdpClient = null;
 		}
 	}
 	
@@ -209,8 +201,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	}
 
 	@Override
-	public void addDeviceFilter(JSONObject parameters) {
-		if ( !parameters.has("filter") ) {
+	public void addDeviceFilter(DiscoveryFilter filter) {
+		if (filter.getServiceFilter() == null) {
 			Log.e("Connect SDK", "This device filter does not have ssdp filter info");
 		} else {
 //			String newFilter = null;
@@ -226,7 +218,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 //				e.printStackTrace();
 //			}
 			
-			serviceFilters.add(parameters);
+			serviceFilters.add(filter);
 			
 //			if ( newFilter != null )
 //			controlPoint.addFilter(newFilter);
@@ -234,29 +226,25 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	}
 	
 	@Override
-	public void removeDeviceFilter(JSONObject parameters) {
+	public void removeDeviceFilter(DiscoveryFilter filter) {
 		String removalServiceId;
 		boolean shouldRemove = false;
 		int removalIndex = -1;
 		
-		try {
-			removalServiceId = parameters.getString("serviceId");
+		removalServiceId = filter.getServiceId();
+		
+		for (int i = 0; i < serviceFilters.size(); i++) {
+			DiscoveryFilter serviceFilter = serviceFilters.get(i);
+			String serviceId = serviceFilter.getServiceId();
 			
-			for (int i = 0; i < serviceFilters.size(); i++) {
-				JSONObject serviceFilter = serviceFilters.get(i);
-				String serviceId = (String) serviceFilter.get("serviceId");
-				
-				if ( serviceId.equals(removalServiceId) ) {
-					shouldRemove = true;
-					removalIndex = i;
-					break;
-				}
+			if (serviceId.equals(removalServiceId)) {
+				shouldRemove = true;
+				removalIndex = i;
+				break;
 			}
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
 		
-		if ( shouldRemove ) {
+		if (shouldRemove) {
 			serviceFilters.remove(removalIndex);
 		}
 	}
@@ -269,9 +257,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     private Runnable mResponseHandler = new Runnable() {
         @Override
         public void run() {
-            while (mSSDPSocket != null) {
+            while (ssdpClient != null) {
                 try {
-                    handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.responseReceive()));
+                    handleSSDPPacket(new SSDPPacket(ssdpClient.responseReceive()));
                 } catch (IOException e) {
                 	e.printStackTrace();
                 	break;
@@ -286,9 +274,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     private Runnable mRespNotifyHandler = new Runnable() {
         @Override
         public void run() {
-            while (mSSDPSocket != null) {
+            while (ssdpClient != null) {
                 try {
-                    handleDatagramPacket(SSDP.convertDatagram(mSSDPSocket.notifyReceive()));
+                	handleSSDPPacket(new SSDPPacket(ssdpClient.multicastReceive()));
                 } catch (IOException e) {
                 	e.printStackTrace();
                 	break;
@@ -300,32 +288,32 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         }
     };
     
-    private void handleDatagramPacket(final ParsedDatagram pd) {
+    private void handleSSDPPacket(SSDPPacket ssdpPacket) {
         // Debugging stuff
 //        Util.runOnUI(new Runnable() {
 //			
 //			@Override
 //			public void run() {
-//		        Log.d("Connect SDK Socket", "Packet received | type = " + pd.type);
+//		        Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.type);
 //		        
-//		        for (String key : pd.data.keySet()) {
-//		        	Log.d("Connect SDK Socket", "    " + key + " = " + pd.data.get(key));
+//		        for (String key : ssdpPacket.data.keySet()) {
+//		        	Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.data.get(key));
 //		        }
 //		        Log.d("Connect SDK Socket", "__________________________________________");
 //			}
 //		});
         // End Debugging stuff
         
-        if (pd == null || pd.data.size() == 0 || pd.type == null)
+        if (ssdpPacket == null || ssdpPacket.getData().size() == 0 || ssdpPacket.getType() == null)
         	return;
 
-        String serviceFilter = pd.data.get(pd.type.equals(SSDP.SL_NOTIFY) ? SSDP.NT : SSDP.ST);
+        String serviceFilter = ssdpPacket.getData().get(ssdpPacket.getType().equals(SSDPClient.NOTIFY) ? "NT" : "ST");
 
-    	if (serviceFilter == null || SSDP.SL_MSEARCH.equals(pd.type) || !isSearchingForFilter(serviceFilter))
+    	if (serviceFilter == null || SSDPClient.MSEARCH.equals(ssdpPacket.getType()) || !isSearchingForFilter(serviceFilter))
     		return;
-    	
-    	String usnKey = pd.data.get(SSDP.USN);
-    	
+
+    	String usnKey = ssdpPacket.getData().get("USN");
+
     	if (usnKey == null || usnKey.length() == 0)
     		return;
 
@@ -335,29 +323,31 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     		return;
 
         String uuid = m.group();
-        
-        if (SSDP.NTS_BYEBYE.equals(pd.data.get(SSDP.NTS))) {
+
+        if (SSDPClient.BYEBYE.equals(ssdpPacket.getData().get("NTS"))) {
         	final ServiceDescription service = foundServices.get(uuid);
-        	
+
         	if (service != null) {
+        		foundServices.remove(uuid);
+        		
         		notifyListenersOfLostService(service);
         	}
         } else {
-        	String location = pd.data.get(SSDP.LOCATION);
-        	
+        	String location = ssdpPacket.getData().get("LOCATION");
+
         	if (location == null || location.length() == 0)
         		return;
-        	
+
         	ServiceDescription foundService = foundServices.get(uuid);
         	ServiceDescription discoverdService = discoveredServices.get(uuid);
-        	
+
         	boolean isNew = foundService == null && discoverdService == null;
-        	
+
         	if (isNew) {
         		foundService = new ServiceDescription();
         		foundService.setUUID(uuid);
         		foundService.setServiceFilter(serviceFilter);
-        		foundService.setIpAddress(pd.dp.getAddress().getHostAddress());
+        		foundService.setIpAddress(ssdpPacket.getDatagramPacket().getAddress().getHostAddress());
         		foundService.setPort(3001);
         		
         		discoveredServices.put(uuid, foundService);
@@ -368,29 +358,6 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         	if (foundService != null)
         		foundService.setLastDetection(new Date().getTime());
         }
-    	
-//    	for (JSONObject filterObj : serviceFilters) {
-//    		String filter = null;
-//    		try {
-//    			filter = filterObj.getString("filter");
-//    		} catch (JSONException e) {
-//    			e.printStackTrace();
-//    			continue;
-//    		}
-//    		if (filter.indexOf(datagramFilter) != -1) {
-//    			skip = false;
-//    			break;
-//    		}
-//    	}
-//    	
-//    	if (skip)
-//    		return;
-//
-//        if (SSDP.SL_OK.equals(pd.type)) {
-//            handleRespMsg(pd);
-//        } else if (SSDP.SL_NOTIFY.equals(pd.type)) {
-//            handleNotifyMsg(pd);
-//        }
     }
     
     public void getLocationData(final String location, final String uuid, final String serviceFilter) {
@@ -398,7 +365,16 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 			
 			@Override
 			public void run() {
-				Device device = Device.createInstanceFromXML(location, serviceFilter);
+				SSDPDevice device = null;
+				try {
+					device = new SSDPDevice(location, serviceFilter);
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ParserConfigurationException e) {
+					e.printStackTrace();
+				} catch (SAXException e) {
+					e.printStackTrace();
+				}
 				
 	            if (device != null) {
 	            	if (true) {//device.friendlyName != null) {
@@ -482,43 +458,32 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     public List<String> serviceIdsForFilter(String filter) {
     	ArrayList<String> serviceIds = new ArrayList<String>();
     	
-    	for (JSONObject serviceFilter : serviceFilters) {
-    		String ssdpFilter;
-    		try {
-    			ssdpFilter = serviceFilter.getString("filter");
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+    		String ssdpFilter = serviceFilter.getServiceFilter();
 
-    			if (ssdpFilter.equals(filter)) {
-    				String serviceId = serviceFilter.getString("serviceId");
-    				
-    				if (serviceId != null)
-    					serviceIds.add(serviceId);
-    			}
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    			continue;
-    		}
+			if (ssdpFilter.equals(filter)) {
+				String serviceId = serviceFilter.getServiceId();
+				
+				if (serviceId != null)
+					serviceIds.add(serviceId);
+			}
     	}
     	
     	return serviceIds;
     }
     
     public boolean isSearchingForFilter(String filter) {
-    	for (JSONObject serviceFilter : serviceFilters) {
-    		try {
-    			String ssdpFilter = serviceFilter.getString("filter");
-    			
-    			if (ssdpFilter.equals(filter))
-    				return true;
-    		} catch (JSONException e) {
-    			e.printStackTrace();
-    			continue;
-    		}
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+			String ssdpFilter = serviceFilter.getServiceFilter();
+			
+			if (ssdpFilter.equals(filter))
+				return true;
     	}
     	
     	return false;
     }
     
-    public boolean containsServicesWithFilter(Device device, String filter) {
+    public boolean containsServicesWithFilter(SSDPDevice device, String filter) {
 //    	List<String> servicesRequired = new ArrayList<String>();
 //    	
 //    	for (JSONObject serviceFilter : serviceFilters) {

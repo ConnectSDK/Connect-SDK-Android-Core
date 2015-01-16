@@ -46,6 +46,7 @@ import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.capability.Launcher;
@@ -87,17 +88,8 @@ public class DIALService extends DeviceService implements Launcher {
 		httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
 	}
 
-	public static JSONObject discoveryParameters() {
-		JSONObject params = new JSONObject();
-		
-		try {
-			params.put("serviceId", ID);
-			params.put("filter",  "urn:dial-multiscreen-org:service:dial:1");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-		return params;
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "urn:dial-multiscreen-org:service:dial:1");
 	}
 	
 	@Override

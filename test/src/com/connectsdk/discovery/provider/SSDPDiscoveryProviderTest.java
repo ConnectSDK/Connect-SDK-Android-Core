@@ -9,11 +9,8 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,8 +24,8 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
-import com.connectsdk.core.upnp.ssdp.SSDPSearchMsg;
-import com.connectsdk.core.upnp.ssdp.SSDPSocket;
+import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.shadow.WifiInfoShadow;
 
 @RunWith(RobolectricTestRunner.class)
@@ -39,7 +36,7 @@ public class SSDPDiscoveryProviderTest{
 	InetAddress localAddress;
 	SSDPDiscoveryProvider dp;
 	MulticastSocket mLocalSocket;
-	private SSDPSocket ssdpSocket = Mockito.mock(SSDPSocket.class);
+	private SSDPClient ssdpClient = Mockito.mock(SSDPClient.class);
 	
 	class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
 
@@ -49,8 +46,8 @@ public class SSDPDiscoveryProviderTest{
 		}
 		
 		@Override
-		protected SSDPSocket createSocket(InetAddress source) throws IOException {
-			return ssdpSocket;
+		protected SSDPClient createSocket(InetAddress source) throws IOException {
+			return ssdpClient;
 		}
 
 	};
@@ -58,8 +55,8 @@ public class SSDPDiscoveryProviderTest{
 	@Before
 	public void setUp() throws Exception {
 		byte[] data = new byte[1];
-		when(ssdpSocket.responseReceive()).thenReturn(new DatagramPacket(data, 1));
-		when(ssdpSocket.notifyReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpClient.responseReceive()).thenReturn(new DatagramPacket(data, 1));
+		when(ssdpClient.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
 		dp = new StubSSDPDiscoveryProvider(Robolectric.application);
 		assertNotNull(dp);
 	}
@@ -74,21 +71,18 @@ public class SSDPDiscoveryProviderTest{
 		//Test Desc. : Test to verify if the socket is created and is not null also sendSearch().
 				
 		dp.start();
-		//assert that after start() SSDPSocket was created.
-		Assert.assertTrue(ssdpSocket != null);
-				
+		//assert that after start() SSDPClient was created.
+		Assert.assertTrue(ssdpClient != null);
+
 		//verify after socket create , sendSearch() is successful.
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);
-		SSDPSearchMsg search = new SSDPSearchMsg(parameters.getString("filter"));
-		String msg = search.toString();
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		dp.serviceFilters.add(filter);
+		String msg = SSDPClient.getSSDPSearchMessage(filter.getServiceFilter());
 		
 		Thread.sleep(4000);
 		dp.stop();
 		ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-		verify(ssdpSocket, Mockito.times(3)).send(argument.capture());
+		verify(ssdpClient, Mockito.times(3)).send(argument.capture());
 		Assert.assertEquals(msg, new String(argument.getValue()));
 					
 	}
@@ -99,30 +93,26 @@ public class SSDPDiscoveryProviderTest{
 		
 		dp.start();
 		dp.stop();		
-		verify(ssdpSocket, Mockito.times(1)).close();
+		verify(ssdpClient, Mockito.times(1)).close();
 	}
 	
 	@Test
 	public void testAddDeviceFilter() throws JSONException {
 		//Test Desc. : Test to verify if the deviceFilter is added properly.
 		
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.addDeviceFilter(parameters);
-		Assert.assertTrue(dp.serviceFilters.contains(parameters));		
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		dp.addDeviceFilter(filter);
+		Assert.assertTrue(dp.serviceFilters.contains(filter));		
 	}
 	
 	@Test
 	public void testRemoveDeviceFilters() throws JSONException {
 		//Test Desc. : Test to verify if the deviceFilter is removed properly.
 		
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);		
-		dp.removeDeviceFilter(parameters);		
-		Assert.assertFalse(dp.serviceFilters.contains(parameters));
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		dp.serviceFilters.add(filter);		
+		dp.removeDeviceFilter(filter);		
+		Assert.assertFalse(dp.serviceFilters.contains(filter));
 		
 	}
 	
@@ -130,11 +120,9 @@ public class SSDPDiscoveryProviderTest{
 	public void testIsEmpty() throws JSONException {
 		//Test Desc.: Verify if the serviceFilters is empty prior to calling the scheduled timer task start() which adds the searchTarget as filter into the ServiceFilters.
 		
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
 		Assert.assertTrue(dp.isEmpty());		
-		dp.serviceFilters.add(parameters);		
+		dp.serviceFilters.add(filter);		
 		Assert.assertFalse(dp.isEmpty());
 	}
 	
@@ -158,13 +146,11 @@ public class SSDPDiscoveryProviderTest{
 	public void testServiceIdsForFilter() throws JSONException {
 		//Test Desc. : Verify if SSDPDiscoveryProvider. serviceIdForFilter returns the serviceId for the specified filter added in ServiceFilters list.
 		
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);		
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		dp.serviceFilters.add(filter);		
 		ArrayList<String> expectedResult = new ArrayList<String>();
-		expectedResult.add(parameters.getString("serviceId"));		
-		Assert.assertEquals(expectedResult, dp.serviceIdsForFilter(parameters.getString("filter")));
+		expectedResult.add(filter.getServiceId());		
+		Assert.assertEquals(expectedResult, dp.serviceIdsForFilter(filter.getServiceFilter()));
 		
 	}
 	
@@ -172,11 +158,9 @@ public class SSDPDiscoveryProviderTest{
 	public void testIsSearchingForFilter() throws JSONException {
 		//Test Desc. : Verify if SSDPDiscoveryProvider. IsSearchingForFilter returns the expected result.
 		
-		JSONObject parameters =new JSONObject();
-		parameters.put("serviceId", "DLNA");
-		parameters.put("filter", "urn:schemas-upnp-org:device:MediaRenderer:1");
-		dp.serviceFilters.add(parameters);		
-		Assert.assertTrue(dp.isSearchingForFilter(parameters.getString("filter")));
+		DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+		dp.serviceFilters.add(filter);		
+		Assert.assertTrue(dp.isSearchingForFilter(filter.getServiceFilter()));
 		
 	}
 	

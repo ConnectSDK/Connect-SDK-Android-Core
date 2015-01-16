@@ -20,7 +20,6 @@
 
 package com.connectsdk.discovery;
 
-import org.json.JSONObject;
 
 /**
  * ###Overview
@@ -61,14 +60,14 @@ public interface DiscoveryProvider {
 	 *
 	 * @param parameters Parameters to be used for discovering a particular DeviceService
 	 */
-	public void addDeviceFilter(JSONObject parameters);
+	public void addDeviceFilter(DiscoveryFilter filter);
 	
 	/**
 	 * Removes a device filter for a particular DeviceService. If the DiscoveryProvider has no other devices to be searching for, the DiscoveryProvider will be stopped and de-referenced.
 	 *
 	 * @param parameters Parameters to be used for discovering a particular DeviceService
 	 */
-	public void removeDeviceFilter(JSONObject parameters);
+	public void removeDeviceFilter(DiscoveryFilter filter);
 
 	/**
 	 * Whether or not the DiscoveryProvider has any services it is supposed to be searching for. If YES, then the DiscoveryProvider will be stopped and de-referenced by the DiscoveryManager.

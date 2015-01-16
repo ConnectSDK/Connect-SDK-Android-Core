@@ -34,6 +34,7 @@ import android.util.SparseArray;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
+import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.DeviceServiceReachability.DeviceServiceReachabilityListener;
 import com.connectsdk.service.capability.CapabilityMethods;
@@ -213,7 +214,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 			return null;
 	}
 	
-	public static JSONObject discoveryParameters() {
+	public static DiscoveryFilter discoveryFilter() {
 		return null;
 	}
 	// @endcond
