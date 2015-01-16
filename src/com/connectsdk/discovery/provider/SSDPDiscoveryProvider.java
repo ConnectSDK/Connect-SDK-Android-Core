@@ -67,12 +67,14 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     private SSDPClient ssdpClient;
     
-    private Timer dataTimer;
+    private Timer scanTimer;
     
     private Pattern uuidReg;
     
     private Thread responseThread;
     private Thread notifyThread;
+    
+    boolean isRunning = false;
 
 	public SSDPDiscoveryProvider(Context context) {
 		this.context = context;
@@ -106,12 +108,15 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 	
 	@Override
 	public void start() {
-		stop();
+		if (isRunning)
+			return;
+		
+		isRunning = true;
 		
 		openSocket();
 
-		dataTimer = new Timer();
-		dataTimer.schedule(new TimerTask() {
+		scanTimer = new Timer();
+		scanTimer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
@@ -148,7 +153,48 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 			if (foundServices.containsKey(key))
 				foundServices.remove(key);
 		}
+		
+		rescan();
+	}
 
+	@Override
+	public void stop() {
+		if (scanTimer != null) { 
+			scanTimer.cancel();
+			scanTimer = null;
+		}
+		
+		if (responseThread != null) {
+			responseThread.interrupt();
+			responseThread = null;
+		}
+		
+		if (notifyThread != null) {
+			notifyThread.interrupt();
+			notifyThread = null;
+		}
+
+		if (ssdpClient != null) {
+			ssdpClient.close();
+			ssdpClient = null;
+		}
+	}
+	
+	@Override
+	public void restart() {
+		stop();
+		start();
+	}
+
+	@Override
+	public void reset() {
+		stop();
+		foundServices.clear();
+		discoveredServices.clear();
+	}
+
+	@Override
+	public void rescan() {
         for (DiscoveryFilter searchTarget : serviceFilters) {
         	final String message = SSDPClient.getSSDPSearchMessage(searchTarget.getServiceFilter());
 	        
@@ -172,34 +218,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         	}
         };
 	}
-
-	@Override
-	public void stop() {
-		if (dataTimer != null) { 
-			dataTimer.cancel();
-		}
-		
-		if (responseThread != null) {
-			responseThread.interrupt();
-		}
-		
-		if (notifyThread != null) {
-			notifyThread.interrupt();
-		}
-
-		if (ssdpClient != null) {
-			ssdpClient.close();
-			ssdpClient = null;
-		}
-	}
 	
-	@Override
-	public void reset() {
-		stop();
-		foundServices.clear();
-		discoveredServices.clear();
-	}
-
 	@Override
 	public void addDeviceFilter(DiscoveryFilter filter) {
 		if (filter.getServiceFilter() == null) {
@@ -247,6 +266,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 		if (shouldRemove) {
 			serviceFilters.remove(removalIndex);
 		}
+	}
+	
+	@Override
+	public void setFilters(List<DiscoveryFilter> filters) {
+		serviceFilters = filters;
 	}
 	
 	@Override

@@ -54,12 +54,14 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 	private final static int RESCAN_ATTEMPTS = 6;
 	private final static int TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
 
-	private Timer dataTimer;
+	private Timer scanTimer;
 
     List<DiscoveryFilter> serviceFilters;
     
     ConcurrentHashMap<String, ServiceDescription> foundServices;
     CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
+    
+    boolean isRunning = false;
     
 	ServiceListener jmdnsListener = new ServiceListener() {
 		
@@ -153,15 +155,20 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 	
 	@Override
 	public void start() {
-		stop();
+		if (isRunning)
+			return;
+
+		isRunning = true;
 		
-		dataTimer = new Timer();
-		MDNSSearchTask sendSearch = new MDNSSearchTask();
-		dataTimer.schedule(sendSearch, 100, RESCAN_INTERVAL);
+		scanTimer = new Timer();
+		scanTimer.schedule(new MDNSSearchTask(), 100, RESCAN_INTERVAL);
 	}
 	
 	protected JmDNS createJmDNS() throws IOException {
-		return JmDNS.create(srcAddress, HOSTNAME);
+		if (srcAddress != null)
+			return JmDNS.create(srcAddress, HOSTNAME);
+		else
+			return null;
 	}
 	
 	private class MDNSSearchTask extends TimerTask {
@@ -198,42 +205,57 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 					foundServices.remove(key);
 			}
 			
-			if (srcAddress != null) {
-				try {
-					if (jmdns != null) {
-						jmdns.close();
-					}
-					jmdns = createJmDNS();
-					
-			        for (DiscoveryFilter searchTarget : serviceFilters) {
-			        	String filter = searchTarget.getServiceFilter();
-						jmdns.addServiceListener(filter, jmdnsListener);
-			        };
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
+			rescan();
 		}
-
 	}
 
 	@Override
 	public void stop() {
-		if (dataTimer != null) {
-			dataTimer.cancel();
+		isRunning = false;
+		
+		if (scanTimer != null) {
+			scanTimer.cancel();
+			scanTimer = null;
 		}
 		
 		if (jmdns != null) {
 	        for (DiscoveryFilter searchTarget : serviceFilters) {
 	        	String filter = searchTarget.getServiceFilter();
 				jmdns.removeServiceListener(filter, jmdnsListener);
-	        };
+	        }
 		}
+	}
+	
+	@Override
+	public void restart() {
+		stop();
+		start();
 	}
 
 	@Override
 	public void reset() {
+		stop();
 		foundServices.clear();
+	}
+	
+	@Override
+	public void rescan() {
+		try {
+			if (jmdns != null) {
+				jmdns.close();
+				jmdns = null;
+			}
+			jmdns = createJmDNS();
+			
+			if (jmdns != null) {
+		        for (DiscoveryFilter searchTarget : serviceFilters) {
+		        	String filter = searchTarget.getServiceFilter();
+					jmdns.addServiceListener(filter, jmdnsListener);
+		        }
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -277,6 +299,11 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 		if (shouldRemove) {
 			serviceFilters.remove(removalIndex);
 		}		
+	}
+	
+	@Override
+	public void setFilters(List<DiscoveryFilter> filters) {
+		serviceFilters = filters;
 	}
 
 	@Override

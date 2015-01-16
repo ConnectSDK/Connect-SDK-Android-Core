@@ -210,7 +210,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 			       	case CONNECTED:
 			    		if (mSearching) {
 			    			for (DiscoveryProvider provider : discoveryProviders) {
-			    				provider.start();
+			    				provider.restart();
 			    			}
 			    		}
 						
@@ -229,10 +229,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 							handleDeviceLoss(device);
 						}
 						compatibleDevices.clear();
-						
-						for (DiscoveryProvider provider : discoveryProviders) {
-							provider.stop();
-						}
 						
 			       		break;
 			       		
