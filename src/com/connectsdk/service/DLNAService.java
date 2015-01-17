@@ -33,6 +33,7 @@ import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
@@ -76,7 +77,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class DLNAService extends DeviceService implements MediaControl, MediaPlayer, VolumeControl {
+
+public class DLNAService extends DeviceService implements PlaylistControl, MediaControl, MediaPlayer, VolumeControl {
 	public static final String ID = "DLNA";
 
 	protected static final String SUBSCRIBE = "SUBSCRIBE";
@@ -95,7 +97,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 
 	Context context;
 
-	String avTransportURL, renderingControlURL;
+	String avTransportURL, renderingControlURL, connectionControlURL;
 	HttpClient httpClient;
 
 	DLNAHttpServer httpServer;
@@ -152,6 +154,9 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 				}
 				else if ((serviceList.get(i).serviceType.contains(RENDERING_CONTROL)) && !(serviceList.get(i).serviceType.contains(GROUP_RENDERING_CONTROL))) {
 					renderingControlURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
+				}
+				else if ((serviceList.get(i).serviceType.contains(CONNECTION_MANAGER)) ) {
+					connectionControlURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
 				}
 			}
 		}
@@ -234,7 +239,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 						launchSession.setService(DLNAService.this);
 						launchSession.setSessionType(LaunchSessionType.Media);
 
-						Util.postSuccess(listener, new MediaLaunchObject(launchSession, DLNAService.this));
+						Util.postSuccess(listener, new MediaLaunchObject(launchSession, DLNAService.this, DLNAService.this));
 					}
 
 					@Override
@@ -317,7 +322,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		String method = "Play";
 		String instanceId = "0";
 
-		Map<String, String> parameters = new HashMap<String, String>();
+		Map<String, String> parameters = new LinkedHashMap<String, String>();
 		parameters.put("Speed", "1");
 
 		String payload = getMessageXml(AV_TRANSPORT_URN, method, instanceId, parameters);
@@ -358,6 +363,20 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		Util.postError(listener, ServiceCommandError.notSupported());
 	}
 
+	/******************
+	 PLAYLIST CONTROL
+	 *****************/
+	
+	@Override
+	public PlaylistControl getPlaylistControl() {
+		return this;
+	}
+
+	@Override
+	public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
+		return CapabilityPriorityLevel.NORMAL;
+	}
+	
 	@Override
 	public void previous(ResponseListener<Object> listener) {
 		String method = "Previous";
@@ -381,24 +400,48 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 	}
 
 	@Override
-	public void seek(long position, ResponseListener<Object> listener) {
-		String method = "Seek";
+	public void jumpToTrack(long index, ResponseListener<Object> listener) {
+		// DLNA requires start index from 1. 0 is a special index which means the end of media.
+		++index;
+		seek("TRACK_NR", Long.toString(index), listener);
+	}
+
+	@Override
+	public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener) {
+		String method = "SetPlayMode";
 		String instanceId = "0";
+		String mode;
+		
+		switch (playMode) {
+			case RepeatAll:
+				mode = "REPEAT_ALL";
+				break;
+			case RepeatOne:
+				mode = "REPEAT_ONE";
+				break;
+			case Shuffle:
+				mode = "SHUFFLE";
+				break;
+			default:
+				mode = "NORMAL";
+		}
 
-		long second = (position / 1000) % 60;
-		long minute = (position / (1000 * 60)) % 60;
-		long hour = (position / (1000 * 60 * 60)) % 24;
-
-		String time = String.format(Locale.US, "%02d:%02d:%02d", hour, minute, second);
-
-		Map<String, String> parameters = new HashMap<String, String>();
-		parameters.put("Unit", "REL_TIME");
-		parameters.put("Target", time);
+		Map<String, String> parameters = new LinkedHashMap<String, String>();
+		parameters.put("NewPlayMode", mode);
 
 		String payload = getMessageXml(AV_TRANSPORT_URN, method, instanceId, parameters);
 
 		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, method, payload, listener);
 		request.send();
+	}
+
+	@Override
+	public void seek(long position, ResponseListener<Object> listener) {
+		long second = (position / 1000) % 60;
+		long minute = (position / (1000 * 60)) % 60;
+		long hour = (position / (1000 * 60 * 60)) % 24;
+		String time = String.format(Locale.US, "%02d:%02d:%02d", hour, minute, second);
+		seek("REL_TIME", time, listener);
 	}
 
 	private void getPositionInfo(final PositionInfoListener listener) {
@@ -480,6 +523,20 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		});
 	}
 
+	protected void seek(String unit, String target, ResponseListener<Object> listener) {
+		String method = "Seek";
+		String instanceId = "0";
+
+		Map<String, String> parameters = new LinkedHashMap<String, String>();
+		parameters.put("Unit", unit);
+		parameters.put("Target", target);
+
+		String payload = getMessageXml(AV_TRANSPORT_URN, method, instanceId, parameters);
+
+		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, method, payload, listener);
+		request.send();
+	}
+
 	protected String getMessageXml(String serviceURN, String method, String instanceId, Map<String, String> params) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -487,7 +544,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 
 		sb.append("<s:Body>");
 		sb.append("<u:" + method + " xmlns:u=\""+ serviceURN + "\">");
-		sb.append("<InstanceID>" + instanceId + "</InstanceID>");
+		if (instanceId != null) sb.append("<InstanceID>" + instanceId + "</InstanceID>");
 
 		if (params != null) {
 			for (Map.Entry<String, String> entry : params.entrySet()) {
@@ -541,6 +598,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		return sb.toString();
 	}
 
+	
 	@Override
 	public void sendCommand(final ServiceCommand<?> mCommand) {
 		Util.runInBackground(new Runnable() {
@@ -564,6 +622,10 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 					targetURL = renderingControlURL;
 					serviceURN = RENDERING_CONTROL_URN;
 				}
+				else if (payload.contains(CONNECTION_MANAGER_URN)) {
+					targetURL = connectionControlURL;
+					serviceURN = CONNECTION_MANAGER_URN;
+				}
 
 				HttpPost post = new HttpPost(targetURL);
 				post.setHeader("Content-Type", "text/xml; charset=utf-8");
@@ -575,7 +637,7 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 					e.printStackTrace();
 				}
 
-				HttpResponse response = null;
+				HttpResponse response;
 
 				try {
 					response = httpClient.execute(post);
@@ -626,6 +688,16 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		capabilities.add(Duration);
 		capabilities.add(PlayState);
 		capabilities.add(PlayState_Subscribe);
+		
+		// for supporting legacy apps. it might be removed in future releases  
+		capabilities.add(MediaControl.Next);
+		capabilities.add(MediaControl.Previous);
+		
+		// playlist capabilities
+		capabilities.add(PlaylistControl.Next);
+		capabilities.add(PlaylistControl.Previous);
+		capabilities.add(PlaylistControl.JumpToTrack);
+		capabilities.add(PlaylistControl.SetPlayMode);
 
 		capabilities.add(Volume_Set);
 		capabilities.add(Volume_Get);
@@ -773,6 +845,58 @@ public class DLNAService extends DeviceService implements MediaControl, MediaPla
 		connected = true;
 
 		reportConnected(true);
+	}
+
+	private void getDeviceCapabilities(final PositionInfoListener listener) {
+		String method = "GetDeviceCapabilities";
+		String instanceId = "0";
+
+		String payload = getMessageXml(AV_TRANSPORT_URN, method, instanceId, null);
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+			@Override
+			public void onSuccess(Object response) {
+				if (listener != null) {
+					listener.onGetPositionInfoSuccess((String)response);
+				}
+			}
+
+			@Override
+			public void onError(ServiceCommandError error) {
+				if (listener != null) {
+					listener.onGetPositionInfoFailed(error);
+				}
+			}
+		};
+
+		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, method, payload, responseListener);
+		request.send();
+	}
+
+	private void getProtocolInfo(final PositionInfoListener listener) {
+		String method = "GetProtocolInfo";
+		String instanceId = null;
+
+		String payload = getMessageXml(CONNECTION_MANAGER_URN, method, instanceId, null);
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+			@Override
+			public void onSuccess(Object response) {
+				if (listener != null) {
+					listener.onGetPositionInfoSuccess((String) response);
+				}
+			}
+
+			@Override
+			public void onError(ServiceCommandError error) {
+				if (listener != null) {
+					listener.onGetPositionInfoFailed(error);
+				}
+			}
+		};
+
+		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, method, payload, responseListener);
+		request.send();
 	}
 
 	@Override

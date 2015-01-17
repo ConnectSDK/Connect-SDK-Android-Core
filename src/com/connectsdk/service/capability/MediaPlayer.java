@@ -81,10 +81,18 @@ public interface MediaPlayer extends CapabilityMethods {
 		public LaunchSession launchSession;
 		/** The MediaControl object for the media launched. */
 		public MediaControl mediaControl;
+		/** The PlaylistControl object for the media launched */
+		public PlaylistControl playlistControl;
 		
 		public MediaLaunchObject(LaunchSession launchSession, MediaControl mediaControl) {
 			this.launchSession = launchSession;
 			this.mediaControl = mediaControl;
+		}
+
+		public MediaLaunchObject(LaunchSession launchSession, MediaControl mediaControl, PlaylistControl playlistControl) {
+			this.launchSession = launchSession;
+			this.mediaControl = mediaControl;
+			this.playlistControl = playlistControl;
 		}
 	}
 

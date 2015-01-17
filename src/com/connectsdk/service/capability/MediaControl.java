@@ -32,13 +32,17 @@ public interface MediaControl extends CapabilityMethods {
 	public final static String Rewind = "MediaControl.Rewind";
 	public final static String FastForward = "MediaControl.FastForward";
     public final static String Seek = "MediaControl.Seek";
-    public final static String Previous = "MediaControl.Previous";
-    public final static String Next = "MediaControl.Next";
-	public final static String Duration = "MediaControl.Duration";
+    public final static String Duration = "MediaControl.Duration";
 	public final static String PlayState = "MediaControl.PlayState";
 	public final static String PlayState_Subscribe = "MediaControl.PlayState.Subscribe";
 	public final static String Position = "MediaControl.Position";
-	
+
+	@Deprecated
+	public final static String Previous = "MediaControl.Previous";
+	@Deprecated
+	public final static String Next = "MediaControl.Next";
+
+
 	public static final int PLAYER_STATE_UNKNOWN = 0;
 	public static final int PLAYER_STATE_IDLE = 1;  
 	public static final int PLAYER_STATE_PLAYING = 2;
@@ -131,7 +135,10 @@ public interface MediaControl extends CapabilityMethods {
 	public void rewind(ResponseListener<Object> listener);
 	public void fastForward(ResponseListener<Object> listener);
 
+	@Deprecated
     public void previous(ResponseListener<Object> listener);
+
+	@Deprecated
     public void next(ResponseListener<Object> listener);
 
 	public void seek(long position, ResponseListener<Object> listener);	
