@@ -419,6 +419,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 			e.printStackTrace();
 		} catch (InstantiationException e) {
 			e.printStackTrace();
+		} catch (RuntimeException e) {
+			e.printStackTrace();
 		}
 	}
 	
