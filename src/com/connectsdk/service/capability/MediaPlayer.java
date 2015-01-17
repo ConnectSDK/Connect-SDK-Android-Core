@@ -31,6 +31,7 @@ public interface MediaPlayer extends CapabilityMethods {
 	public final static String Display_Image = "MediaPlayer.Display.Image";
 	public final static String Display_Video = "MediaPlayer.Display.Video";
 	public final static String Display_Audio = "MediaPlayer.Display.Audio";
+	public final static String Display_Playlist = "MediaPlayer.Display.Playlist";
 	public final static String Close = "MediaPlayer.Close";
 	
 	public final static String MetaData_Title = "MediaPlayer.MetaData.Title";
@@ -45,6 +46,7 @@ public interface MediaPlayer extends CapabilityMethods {
 	    Display_Image,
 	    Display_Video,
 	    Display_Audio, 
+		Display_Playlist,
 	    Close,
 	    MetaData_Title,
 	    MetaData_Description,
