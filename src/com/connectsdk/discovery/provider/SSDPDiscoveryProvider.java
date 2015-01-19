@@ -159,6 +159,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
 	@Override
 	public void stop() {
+		isRunning = false;
+		
 		if (scanTimer != null) { 
 			scanTimer.cancel();
 			scanTimer = null;
