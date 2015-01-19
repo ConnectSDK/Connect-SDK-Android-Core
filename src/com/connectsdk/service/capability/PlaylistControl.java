@@ -2,7 +2,7 @@
  * PlaylistControl
  * Connect SDK
  * 
- * Copyright (c) 2014 LG Electronics.
+ * Copyright (c) 2015 LG Electronics.
  * Created by Oleksii Frolov on 15 Jan 2015
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,11 +31,11 @@ public interface PlaylistControl extends CapabilityMethods {
 
 
 	public final static String[] Capabilities = {
-			Previous,
-			Next,
-			JumpToTrack,
-			SetPlayMode,
-			JumpToTrack,
+		Previous,
+		Next,
+		JumpToTrack,
+		SetPlayMode,
+		JumpToTrack,
 	};
 
 	public static enum PlayMode {
@@ -64,10 +64,10 @@ public interface PlaylistControl extends CapabilityMethods {
 	/**
 	 * This method is used for playlist only and it allows to switch to another track by it's position
 	 *
-	 * @param position index in the playlist, it starts from zero like index of array
+	 * @param index index in the playlist, it starts from zero like index of array
 	 * @param listener
 	 */
-	public void jumpToTrack(long position, ResponseListener<Object> listener);
+	public void jumpToTrack(long index, ResponseListener<Object> listener);
 
 	/**
 	 * Set order of playing tracks

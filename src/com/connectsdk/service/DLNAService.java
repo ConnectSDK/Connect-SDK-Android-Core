@@ -671,9 +671,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 		List<String> capabilities = new ArrayList<String>();
 
 		capabilities.add(Display_Image);
-		capabilities.add(Display_Video);
-		capabilities.add(Display_Audio);
-		capabilities.add(Display_Playlist);
+		capabilities.add(Play_Video);
+		capabilities.add(Play_Audio);
+		capabilities.add(Play_Playlist);
 		capabilities.add(Close);
 
 		capabilities.add(MetaData_Title);

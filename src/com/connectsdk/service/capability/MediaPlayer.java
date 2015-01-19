@@ -28,10 +28,15 @@ import com.connectsdk.service.sessions.LaunchSession;
 public interface MediaPlayer extends CapabilityMethods {
 	public final static String Any = "MediaPlayer.Any";
 
+	@Deprecated
+	public final static String Display_Video = "MediaPlayer.Play.Video";
+	@Deprecated
+	public final static String Display_Audio = "MediaPlayer.Play.Audio";
+
 	public final static String Display_Image = "MediaPlayer.Display.Image";
-	public final static String Display_Video = "MediaPlayer.Display.Video";
-	public final static String Display_Audio = "MediaPlayer.Display.Audio";
-	public final static String Display_Playlist = "MediaPlayer.Display.Playlist";
+	public final static String Play_Video = "MediaPlayer.Play.Video";
+	public final static String Play_Audio = "MediaPlayer.Play.Audio";
+	public final static String Play_Playlist = "MediaPlayer.Play.Playlist";
 	public final static String Close = "MediaPlayer.Close";
 	
 	public final static String MetaData_Title = "MediaPlayer.MetaData.Title";
@@ -44,9 +49,8 @@ public interface MediaPlayer extends CapabilityMethods {
 
 	public final static String[] Capabilities = {
 	    Display_Image,
-	    Display_Video,
-	    Display_Audio, 
-		Display_Playlist,
+	    Play_Video,
+	    Play_Audio,
 	    Close,
 	    MetaData_Title,
 	    MetaData_Description,

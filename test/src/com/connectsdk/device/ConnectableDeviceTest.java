@@ -41,15 +41,15 @@ public class ConnectableDeviceTest {
 
 	@Test
 	public void testHasCapabilityWithEmptyServices() {
-		Assert.assertFalse(device.hasCapability(MediaPlayer.Display_Video));
+		Assert.assertFalse(device.hasCapability(MediaPlayer.Display_Image));
 	}
 
 	@Test
 	public void testHasCapabilityWithServices() {
 		DeviceService service = Mockito.mock(DeviceService.class);
-		Mockito.when(service.hasCapability(MediaPlayer.Display_Video)).thenReturn(Boolean.TRUE);
+		Mockito.when(service.hasCapability(MediaPlayer.Display_Image)).thenReturn(Boolean.TRUE);
 		device.services.put("service", service);
-		Assert.assertTrue(device.hasCapability(MediaPlayer.Display_Video));
+		Assert.assertTrue(device.hasCapability(MediaPlayer.Display_Image));
 	}
 
 	@Test

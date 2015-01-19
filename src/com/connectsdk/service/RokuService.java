@@ -1013,8 +1013,8 @@ public class RokuService extends DeviceService implements Launcher,
 		capabilities.add(Application_Close);
 
 		capabilities.add(Display_Image);
-		capabilities.add(Display_Video);
-		capabilities.add(Display_Audio);
+		capabilities.add(Play_Video);
+		capabilities.add(Play_Audio);
 		capabilities.add(Close);
 		capabilities.add(MetaData_Title);
 
