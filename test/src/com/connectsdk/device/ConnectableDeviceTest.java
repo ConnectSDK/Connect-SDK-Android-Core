@@ -88,6 +88,11 @@ public class ConnectableDeviceTest {
 	public void testGetLauncher() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		Launcher launcherNormal = Mockito.mock(Launcher.class);
+		Mockito.when(service.getAPI(Launcher.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getLauncherCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		Launcher launcherLow = Mockito.mock(Launcher.class);
@@ -109,6 +114,11 @@ public class ConnectableDeviceTest {
 	public void testGetMediaPlayer() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		MediaPlayer launcherNormal = Mockito.mock(MediaPlayer.class);
+		Mockito.when(service.getAPI(MediaPlayer.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getMediaPlayerCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		MediaPlayer controllerLow = Mockito.mock(MediaPlayer.class);
@@ -131,6 +141,11 @@ public class ConnectableDeviceTest {
 	public void testGetMediaControl() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		MediaControl launcherNormal = Mockito.mock(MediaControl.class);
+		Mockito.when(service.getAPI(MediaControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getMediaControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		MediaControl controllerLow = Mockito.mock(MediaControl.class);
@@ -154,6 +169,12 @@ public class ConnectableDeviceTest {
 		DeviceService service;
 
 		service = Mockito.mock(DeviceService.class);
+		PlaylistControl launcherNormal = Mockito.mock(PlaylistControl.class);
+		Mockito.when(service.getAPI(PlaylistControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getPlaylistControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
+
+		service = Mockito.mock(DeviceService.class);
 		PlaylistControl controllerLow = Mockito.mock(PlaylistControl.class);
 		Mockito.when(service.getAPI(PlaylistControl.class)).thenReturn(controllerLow);
 		Mockito.when(controllerLow.getPlaylistControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.LOW);
@@ -174,6 +195,11 @@ public class ConnectableDeviceTest {
 	public void testGetVolumeControl() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		VolumeControl launcherNormal = Mockito.mock(VolumeControl.class);
+		Mockito.when(service.getAPI(VolumeControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getVolumeControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		VolumeControl controllerLow = Mockito.mock(VolumeControl.class);
@@ -196,6 +222,11 @@ public class ConnectableDeviceTest {
 	public void testGetWebAppLauncher() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		WebAppLauncher launcherNormal = Mockito.mock(WebAppLauncher.class);
+		Mockito.when(service.getAPI(WebAppLauncher.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getWebAppLauncherCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		WebAppLauncher controllerLow = Mockito.mock(WebAppLauncher.class);
@@ -217,6 +248,11 @@ public class ConnectableDeviceTest {
 	public void testGetTVControl() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		TVControl launcherNormal = Mockito.mock(TVControl.class);
+		Mockito.when(service.getAPI(TVControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getTVControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		TVControl controllerLow = Mockito.mock(TVControl.class);
@@ -237,6 +273,12 @@ public class ConnectableDeviceTest {
 	@Test
 	public void testGetToastControl() {
 		DeviceService service;
+
+		service = Mockito.mock(DeviceService.class);
+		ToastControl launcherNormal = Mockito.mock(ToastControl.class);
+		Mockito.when(service.getAPI(ToastControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getToastControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		ToastControl controllerLow = Mockito.mock(ToastControl.class);
@@ -260,6 +302,12 @@ public class ConnectableDeviceTest {
 		DeviceService service;
 
 		service = Mockito.mock(DeviceService.class);
+		TextInputControl launcherNormal = Mockito.mock(TextInputControl.class);
+		Mockito.when(service.getAPI(TextInputControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getTextInputControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
+
+		service = Mockito.mock(DeviceService.class);
 		TextInputControl controllerLow = Mockito.mock(TextInputControl.class);
 		Mockito.when(service.getAPI(TextInputControl.class)).thenReturn(controllerLow);
 		Mockito.when(controllerLow.getTextInputControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.LOW);
@@ -280,6 +328,11 @@ public class ConnectableDeviceTest {
 	public void testGetMouseControl() {
 		DeviceService service;
 
+		service = Mockito.mock(DeviceService.class);
+		MouseControl launcherNormal = Mockito.mock(MouseControl.class);
+		Mockito.when(service.getAPI(MouseControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getMouseControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		MouseControl controllerLow = Mockito.mock(MouseControl.class);
@@ -300,6 +353,12 @@ public class ConnectableDeviceTest {
 	@Test
 	public void testGetExternalInputControlControl() {
 		DeviceService service;
+
+		service = Mockito.mock(DeviceService.class);
+		ExternalInputControl launcherNormal = Mockito.mock(ExternalInputControl.class);
+		Mockito.when(service.getAPI(ExternalInputControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getExternalInputControlPriorityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		ExternalInputControl controllerLow = Mockito.mock(ExternalInputControl.class);
@@ -323,6 +382,12 @@ public class ConnectableDeviceTest {
 		DeviceService service;
 
 		service = Mockito.mock(DeviceService.class);
+		PowerControl launcherNormal = Mockito.mock(PowerControl.class);
+		Mockito.when(service.getAPI(PowerControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getPowerControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
+
+		service = Mockito.mock(DeviceService.class);
 		PowerControl controllerLow = Mockito.mock(PowerControl.class);
 		Mockito.when(service.getAPI(PowerControl.class)).thenReturn(controllerLow);
 		Mockito.when(controllerLow.getPowerControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.LOW);
@@ -342,6 +407,12 @@ public class ConnectableDeviceTest {
 	@Test
 	public void testGetKeyControl() {
 		DeviceService service;
+
+		service = Mockito.mock(DeviceService.class);
+		KeyControl launcherNormal = Mockito.mock(KeyControl.class);
+		Mockito.when(service.getAPI(KeyControl.class)).thenReturn(launcherNormal);
+		Mockito.when(launcherNormal.getKeyControlCapabilityLevel()).thenReturn(CapabilityMethods.CapabilityPriorityLevel.NORMAL);
+		device.services.put("normal", service);
 
 		service = Mockito.mock(DeviceService.class);
 		KeyControl controllerLow = Mockito.mock(KeyControl.class);

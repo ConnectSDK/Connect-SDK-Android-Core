@@ -523,7 +523,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
 	/** Accessor for highest priority ExternalInputControl object */
 	public ExternalInputControl getExternalInputControl() {
-		return getApiController(ExternalInputControl.class, "getExternalInputControlCapabilityLevel");
+		return getApiController(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
 	}
 
 	/** Accessor for highest priority PowerControl object */
