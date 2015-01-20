@@ -28,9 +28,15 @@ import com.connectsdk.service.sessions.LaunchSession;
 public interface MediaPlayer extends CapabilityMethods {
 	public final static String Any = "MediaPlayer.Any";
 
+	@Deprecated
+	public final static String Display_Video = "MediaPlayer.Play.Video";
+	@Deprecated
+	public final static String Display_Audio = "MediaPlayer.Play.Audio";
+
 	public final static String Display_Image = "MediaPlayer.Display.Image";
-	public final static String Display_Video = "MediaPlayer.Display.Video";
-	public final static String Display_Audio = "MediaPlayer.Display.Audio";
+	public final static String Play_Video = "MediaPlayer.Play.Video";
+	public final static String Play_Audio = "MediaPlayer.Play.Audio";
+	public final static String Play_Playlist = "MediaPlayer.Play.Playlist";
 	public final static String Close = "MediaPlayer.Close";
 	
 	public final static String MetaData_Title = "MediaPlayer.MetaData.Title";
@@ -43,8 +49,8 @@ public interface MediaPlayer extends CapabilityMethods {
 
 	public final static String[] Capabilities = {
 	    Display_Image,
-	    Display_Video,
-	    Display_Audio, 
+	    Play_Video,
+	    Play_Audio,
 	    Close,
 	    MetaData_Title,
 	    MetaData_Description,
@@ -81,10 +87,18 @@ public interface MediaPlayer extends CapabilityMethods {
 		public LaunchSession launchSession;
 		/** The MediaControl object for the media launched. */
 		public MediaControl mediaControl;
+		/** The PlaylistControl object for the media launched */
+		public PlaylistControl playlistControl;
 		
 		public MediaLaunchObject(LaunchSession launchSession, MediaControl mediaControl) {
 			this.launchSession = launchSession;
 			this.mediaControl = mediaControl;
+		}
+
+		public MediaLaunchObject(LaunchSession launchSession, MediaControl mediaControl, PlaylistControl playlistControl) {
+			this.launchSession = launchSession;
+			this.mediaControl = mediaControl;
+			this.playlistControl = playlistControl;
 		}
 	}
 

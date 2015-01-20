@@ -20,6 +20,8 @@
 
 package com.connectsdk.device;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -36,12 +38,14 @@ import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.DeviceServiceListener;
 import com.connectsdk.service.DeviceService.PairingType;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.MouseControl;
+import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.PowerControl;
 import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
@@ -452,7 +456,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 	 *
 	 * See hasCapability: for a description of the wildcard feature provided by this method.
 	 *
-	 * @param capabilities Array of capabilities to test against
+	 * @param capabilites Array of capabilities to test against
 	 */
 	public synchronized boolean hasCapabilities(String... capabilites) {
 		boolean hasCaps = true;
@@ -469,278 +473,104 @@ public class ConnectableDevice implements DeviceServiceListener {
 
 	/** Accessor for highest priority Launcher object */
 	public Launcher getLauncher() {
-		Launcher foundLauncher = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(Launcher.class) == null )
-				continue;
-			
-			Launcher launcher = service.getAPI(Launcher.class);
-
-			if ( foundLauncher == null ) {
-				foundLauncher = launcher;
-			}
-			else {
-				if ( launcher.getLauncherCapabilityLevel().getValue() > foundLauncher.getLauncherCapabilityLevel().getValue() ) {
-					foundLauncher = launcher;
-				}
-			}
-		}
-		
-		return foundLauncher;
+		return getApiController(Launcher.class, "getLauncherCapabilityLevel");
 	}
 
 	/** Accessor for highest priority MediaPlayer object */
 	public MediaPlayer getMediaPlayer() {
-		MediaPlayer foundMediaPlayer = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(MediaPlayer.class) == null )
-				continue;
-			
-			MediaPlayer mediaPlayer = service.getAPI(MediaPlayer.class);
-
-			if ( foundMediaPlayer == null ) {
-				foundMediaPlayer = mediaPlayer;
-			}
-			else {
-				if ( mediaPlayer.getMediaPlayerCapabilityLevel().getValue() > foundMediaPlayer.getMediaPlayerCapabilityLevel().getValue() ) {
-					foundMediaPlayer = mediaPlayer;
-				}
-			}
-		}
-		
-		return foundMediaPlayer;
+		return getApiController(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
 	}
 
 	/** Accessor for highest priority MediaControl object */
 	public MediaControl getMediaControl() {
-		MediaControl foundMediaControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(MediaControl.class) == null )
-				continue;
-			
-			MediaControl mediaControl = service.getAPI(MediaControl.class);
+		return getApiController(MediaControl.class, "getMediaControlCapabilityLevel");
+	}
 
-			if ( foundMediaControl == null ) {
-				foundMediaControl = mediaControl;
-			}
-			else {
-				if ( mediaControl.getMediaControlCapabilityLevel().getValue() > foundMediaControl.getMediaControlCapabilityLevel().getValue() ) {
-					foundMediaControl = mediaControl;
-				}
-			}
-		}
-		
-		return foundMediaControl;
+	/** Accessor for highest priority PlaylistControl object */
+	public PlaylistControl getPlaylistControl() {
+		return getApiController(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority VolumeControl object */
 	public VolumeControl getVolumeControl() {
-		VolumeControl foundVolumeControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(VolumeControl.class) == null )
-				continue;
-			
-			VolumeControl volumeControl = service.getAPI(VolumeControl.class);
-
-			if ( foundVolumeControl == null ) {
-				foundVolumeControl = volumeControl;
-			}
-			else {
-				if ( volumeControl.getVolumeControlCapabilityLevel().getValue() > foundVolumeControl.getVolumeControlCapabilityLevel().getValue() ) {
-					foundVolumeControl = volumeControl;
-				}
-			}
-		}
-		
-		return foundVolumeControl;
+		return getApiController(VolumeControl.class, "getVolumeControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority WebAppLauncher object */
 	public WebAppLauncher getWebAppLauncher() {
-		WebAppLauncher foundWebAppLauncher = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(WebAppLauncher.class) == null )
-				continue;
-			
-			WebAppLauncher webAppLauncher = service.getAPI(WebAppLauncher.class);
-
-			if ( foundWebAppLauncher == null ) {
-				foundWebAppLauncher = webAppLauncher;
-			}
-			else {
-				if ( webAppLauncher.getWebAppLauncherCapabilityLevel().getValue() > foundWebAppLauncher.getWebAppLauncherCapabilityLevel().getValue() ) {
-					foundWebAppLauncher = webAppLauncher;
-				}
-			}
-		}
-		
-		return foundWebAppLauncher;
+		return getApiController(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
 	}
 
 	/** Accessor for highest priority TVControl object */
 	public TVControl getTVControl() {
-		TVControl foundTVControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(TVControl.class) == null )
-				continue;
-			
-			TVControl tvControl = service.getAPI(TVControl.class);
-
-			if ( foundTVControl == null ) {
-				foundTVControl = tvControl;
-			}
-			else {
-				if ( tvControl.getTVControlCapabilityLevel().getValue() > foundTVControl.getTVControlCapabilityLevel().getValue() ) {
-					foundTVControl = tvControl;
-				}
-			}
-		}
-		
-		return foundTVControl;
+		return getApiController(TVControl.class, "getTVControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority ToastControl object */
 	public ToastControl getToastControl() {
-		ToastControl foundToastControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(ToastControl.class) == null )
-				continue;
-			
-			ToastControl toastControl = service.getAPI(ToastControl.class);
-
-			if ( foundToastControl == null ) {
-				foundToastControl = toastControl;
-			}
-			else {
-				if ( toastControl.getToastControlCapabilityLevel().getValue() > foundToastControl.getToastControlCapabilityLevel().getValue() ) {
-					foundToastControl = toastControl;
-				}
-			}
-		}
-		
-		return foundToastControl;
+		return getApiController(ToastControl.class, "getToastControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority TextInputControl object */
 	public TextInputControl getTextInputControl() {
-		TextInputControl foundTextInputControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(TextInputControl.class) == null )
-				continue;
-			
-			TextInputControl textInputControl = service.getAPI(TextInputControl.class);
-
-			if ( foundTextInputControl == null ) {
-				foundTextInputControl = textInputControl;
-			}
-			else {
-				if ( textInputControl.getTextInputControlCapabilityLevel().getValue() > foundTextInputControl.getTextInputControlCapabilityLevel().getValue() ) {
-					foundTextInputControl = textInputControl;
-				}
-			}
-		}
-		
-		return foundTextInputControl;
+		return getApiController(TextInputControl.class, "getTextInputControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority MouseControl object */
 	public MouseControl getMouseControl() {
-		MouseControl foundMouseControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(MouseControl.class) == null )
-				continue;
-			
-			MouseControl mouseControl = service.getAPI(MouseControl.class);
-
-			if ( foundMouseControl == null ) {
-				foundMouseControl = mouseControl;
-			}
-			else {
-				if ( mouseControl.getMouseControlCapabilityLevel().getValue() > foundMouseControl.getMouseControlCapabilityLevel().getValue() ) {
-					foundMouseControl = mouseControl;
-				}
-			}
-		}
-		
-		return foundMouseControl;
+		return getApiController(MouseControl.class, "getMouseControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority ExternalInputControl object */
 	public ExternalInputControl getExternalInputControl() {
-		ExternalInputControl foundExternalInputControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(ExternalInputControl.class) == null )
-				continue;
-			
-			ExternalInputControl externalInputControl = service.getAPI(ExternalInputControl.class);
-
-			if ( foundExternalInputControl == null ) {
-				foundExternalInputControl = externalInputControl;
-			}
-			else {
-				if ( externalInputControl.getExternalInputControlPriorityLevel().getValue() > foundExternalInputControl.getExternalInputControlPriorityLevel().getValue() ) {
-					foundExternalInputControl = externalInputControl;
-				}
-			}
-		}
-		
-		return foundExternalInputControl;
+		return getApiController(ExternalInputControl.class, "getExternalInputControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority PowerControl object */
 	public PowerControl getPowerControl() {
-		PowerControl foundPowerControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(PowerControl.class) == null )
-				continue;
-			
-			PowerControl powerControl = service.getAPI(PowerControl.class);
-
-			if ( foundPowerControl == null ) {
-				foundPowerControl = powerControl;
-			}
-			else {
-				if ( powerControl.getPowerControlCapabilityLevel().getValue() > foundPowerControl.getPowerControlCapabilityLevel().getValue() ) {
-					foundPowerControl = powerControl;
-				}
-			}
-		}
-		
-		return foundPowerControl;
+		return getApiController(PowerControl.class, "getPowerControlCapabilityLevel");
 	}
 
 	/** Accessor for highest priority KeyControl object */
 	public KeyControl getKeyControl() {
-		KeyControl foundKeyControl = null;
-		
-		for (DeviceService service: services.values()) {
-			if ( service.getAPI(KeyControl.class) == null )
-				continue;
-			
-			KeyControl keyControl = service.getAPI(KeyControl.class);
+		return getApiController(KeyControl.class, "getKeyControlCapabilityLevel");
+	}
 
-			if ( foundKeyControl == null ) {
-				foundKeyControl = keyControl;
+	<T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
+		T foundController = null;
+		for (DeviceService service: services.values()) {
+			if ( service.getAPI(controllerClass) == null )
+				continue;
+
+			T controller = service.getAPI(controllerClass);
+
+			if ( foundController == null ) {
+				foundController = controller;
 			}
 			else {
-				if ( keyControl.getKeyControlCapabilityLevel().getValue() > foundKeyControl.getKeyControlCapabilityLevel().getValue() ) {
-					foundKeyControl = keyControl;
+				Method method;
+				try {
+					method = controllerClass.getMethod(priorityMethod);
+					CapabilityMethods.CapabilityPriorityLevel controllerProirity = 
+							(CapabilityMethods.CapabilityPriorityLevel)method.invoke(controller);
+					CapabilityMethods.CapabilityPriorityLevel foundControllerProirity = 
+							(CapabilityMethods.CapabilityPriorityLevel)method.invoke(foundController);
+					if ( controllerProirity.getValue() > foundControllerProirity.getValue() ) {
+						foundController = controller;
+					}
+				} catch (NoSuchMethodException e) {
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				} catch (RuntimeException e) {
+					e.printStackTrace();
 				}
 			}
 		}
-		
-		return foundKeyControl;
+
+		return foundController;
 	}
 	
 	/** 
