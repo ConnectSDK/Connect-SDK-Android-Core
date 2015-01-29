@@ -20,19 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.java_websocket.client.WebSocketClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -84,6 +71,19 @@ import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
+
+import org.java_websocket.client.WebSocketClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressLint("DefaultLocale")
 public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
@@ -2305,8 +2305,14 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		webAppSession.appToAppSubscription.subscribe();
 	}
 
+	private void notifyPairingRequired() {
+		if (listener != null) {
+			listener.onPairingRequired(this, PairingType.FIRST_SCREEN, null);
+		}
+	}
+
 	@Override
-	public void pinWebApp(LaunchSession webAppSession, ResponseListener<Object> listener) {
+	public void pinWebApp(LaunchSession webAppSession, final ResponseListener<Object> listener) {
 		if (webAppSession == null) {
 			if (listener != null) {
 				listener.onError(new ServiceCommandError(-1, "You must provide a valid LaunchSession object", null));
@@ -2322,13 +2328,33 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
-		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+			@Override
+			public void onSuccess(final Object response) {
+				JSONObject obj = (JSONObject) response;
+				if (obj.has("pairingType")) {
+					notifyPairingRequired();
+				}
+				else if (listener != null) {
+					listener.onSuccess(response);
+				}
+			}
+
+			@Override
+			public void onError(ServiceCommandError error) {
+				Util.postError(listener, error);
+			}
+		};
+
+		ServiceCommand<ResponseListener<Object>> request = 
+				new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
 		request.send();
 	}
 
 	@Override
-	public void unPinWebApp(String webAppId, ResponseListener<Object> listener) {
+	public void unPinWebApp(String webAppId, final ResponseListener<Object> listener) {
 		if (webAppId == null || webAppId.length() == 0) {
 			if (listener != null) {
 				listener.onError(new ServiceCommandError(-1, "You must provide a valid web app id", null));
@@ -2344,8 +2370,28 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
-		ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+			@Override
+			public void onSuccess(final Object response) {
+				JSONObject obj = (JSONObject) response;
+				if (obj.has("pairingType")) {
+					notifyPairingRequired();
+				}
+				else if (listener != null) {
+					listener.onSuccess(response);
+				}
+			}
+
+			@Override
+			public void onError(ServiceCommandError error) {
+				Util.postError(listener, error);
+			}
+		};
+
+		ServiceCommand<ResponseListener<Object>> request =
+				new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
 		request.send();
 	}
 
@@ -2424,7 +2470,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 		
 		final WebOSWebAppSession webAppSession = webAppSessionForLaunchSession(launchSession);
 		
-		connectToWebApp(webAppSession, false, new ResponseListener<Object> () {
+		connectToWebApp(webAppSession, false, new ResponseListener<Object>() {
 			@Override
 			public void onError(ServiceCommandError error) {
 				Util.postError(listener, error);
