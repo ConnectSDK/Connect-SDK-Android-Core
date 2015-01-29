@@ -35,6 +35,7 @@ import android.util.SparseArray;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.DeviceServiceReachability.DeviceServiceReachabilityListener;
 import com.connectsdk.service.capability.CapabilityMethods;
@@ -203,6 +204,27 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 		}
 
 		return null;
+	}
+
+	protected <T extends DeviceService> T getService(Class<T> clazz) {
+		T result = null;
+		DiscoveryManager discoveryManager = DiscoveryManager.getInstance();
+		ConnectableDevice device = discoveryManager.getAllDevices().get(serviceDescription.getIpAddress());
+
+		if (device != null) {
+			T foundService = null;
+
+			for (DeviceService service: device.getServices()) {
+				if (clazz.isAssignableFrom(service.getClass())) {
+					foundService = (T)service;
+					break;
+				}
+			}
+
+			result = foundService;
+		}
+
+		return result;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -434,7 +456,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		
+
 		return jsonObj;
 	}
 	

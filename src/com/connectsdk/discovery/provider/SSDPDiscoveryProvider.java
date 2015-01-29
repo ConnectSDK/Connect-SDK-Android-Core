@@ -317,13 +317,13 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     private void handleSSDPPacket(SSDPPacket ssdpPacket) {
         // Debugging stuff
 //        Util.runOnUI(new Runnable() {
-//			
+//
 //			@Override
 //			public void run() {
-//		        Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.type);
-//		        
-//		        for (String key : ssdpPacket.data.keySet()) {
-//		        	Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.data.get(key));
+//		        Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.getType());
+//
+//		        for (String key : ssdpPacket.getData().keySet()) {
+//		        	Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.getData().get(key));
 //		        }
 //		        Log.d("Connect SDK Socket", "__________________________________________");
 //			}
@@ -439,14 +439,13 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     }
     
     private void notifyListenersOfNewService(ServiceDescription service) {
-    	List<String> serviceIds = serviceIdsForFilter(service.getServiceFilter());
+    	List<String> serviceIds = serviceIdsForFilter(service.getServiceFilter(), service.getModelName());
     	
     	for (String serviceId : serviceIds) {
     		ServiceDescription _newService = service.clone();
     		_newService.setServiceID(serviceId);
     		
     		final ServiceDescription newService = _newService;
-    		
     		Util.runOnUI(new Runnable() {
 				
 				@Override
@@ -461,14 +460,13 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     }
     
     private void notifyListenersOfLostService(ServiceDescription service) {
-    	List<String> serviceIds = serviceIdsForFilter(service.getServiceFilter());
+    	List<String> serviceIds = serviceIdsForFilter(service.getServiceFilter(), service.getModelName());
     	
     	for (String serviceId : serviceIds) {
     		ServiceDescription _newService = service.clone();
     		_newService.setServiceID(serviceId);
     		
     		final ServiceDescription newService = _newService;
-    		
     		Util.runOnUI(new Runnable() {
 				
 				@Override
@@ -481,13 +479,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     	}
     }
     
-    public List<String> serviceIdsForFilter(String filter) {
+    public List<String> serviceIdsForFilter(String filter, String modelName) {
     	ArrayList<String> serviceIds = new ArrayList<String>();
-    	
-    	for (DiscoveryFilter serviceFilter : serviceFilters) {
-    		String ssdpFilter = serviceFilter.getServiceFilter();
 
-			if (ssdpFilter.equals(filter)) {
+    	for (DiscoveryFilter serviceFilter : serviceFilters) {
+			if (serviceFilter.contains(filter, modelName)) {
 				String serviceId = serviceFilter.getServiceId();
 				
 				if (serviceId != null)

@@ -20,28 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
@@ -59,6 +37,37 @@ import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class DIALService extends DeviceService implements Launcher {
 	
@@ -193,7 +202,7 @@ public class DIALService extends DeviceService implements Launcher {
 				launchSession.setSessionId((String)object);
 				launchSession.setService(DIALService.this);
 				launchSession.setSessionType(LaunchSessionType.App);
-				
+
 				Util.postSuccess(listener, launchSession);
 			}
 		});
@@ -293,29 +302,14 @@ public class DIALService extends DeviceService implements Launcher {
 
 	private void getAppState(String appName, final AppStateListener listener) {
 		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
-			
+
 			@Override
 			public void onSuccess(Object response) {
-				String str = (String)response;
-				String[] stateTAG = new String[2];
-				stateTAG[0] = "<state>";
-				stateTAG[1] = "</state>";
-				
-				
-				int start = str.indexOf(stateTAG[0]);
-				int end = str.indexOf(stateTAG[1]);
-				
-				if ( start != -1 && end != -1 ) {
-					start += stateTAG[0].length();
-					
-					String state = str.substring(start, end);
-					AppState appState = new AppState("running".equals(state), "running".equals(state));
-					
+				String str = (String) response;
+				try {
+					AppState appState = parseAppState(str);
 					Util.postSuccess(listener, appState);
-					// TODO: This isn't actually reporting anything.
-//					if ( listener != null ) 
-//						listener.onAppStateSuccess(state);
-				} else {
+				} catch (Exception e) {
 					Util.postError(listener, new ServiceCommandError(0, "Malformed response for app state", null));
 				}
 			}
@@ -332,6 +326,18 @@ public class DIALService extends DeviceService implements Launcher {
 		request.setHttpMethod(ServiceCommand.TYPE_GET);
 
 		request.send();
+	}
+	
+	private AppState parseAppState(String xmlString) throws ParserConfigurationException, IOException, SAXException {
+		String state = null;
+
+		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+		Document doc = builder.parse(new InputSource(new StringReader(xmlString)));
+		NodeList nodeList = doc.getElementsByTagName("state");
+		if (nodeList.getLength() > 0) {
+			state = nodeList.item(0).getTextContent();
+		}
+		return new AppState("running".equals(state), "running".equals(state));
 	}
 	
 	@Override
@@ -353,8 +359,7 @@ public class DIALService extends DeviceService implements Launcher {
 	
 	@Override
 	public void getAppState(LaunchSession launchSession, AppStateListener listener) {
-		// TODO Auto-generated method stub
-		
+		getAppState(launchSession.getAppName(), listener);
 	}
 	
 	@Override
@@ -465,15 +470,12 @@ public class DIALService extends DeviceService implements Launcher {
 					response = httpClient.execute(request);
 					
 					code = response.getStatusLine().getStatusCode();
-					
-					if ( code == 200) { 
-			            HttpEntity entity = response.getEntity();
-			            String message = EntityUtils.toString(entity, "UTF-8");
-
+					if ( code == 200) {
+						HttpEntity entity = response.getEntity();
+						String message = EntityUtils.toString(entity, "UTF-8");
 						Util.postSuccess(command.getResponseListener(), message);
 					} else if (code == 201) {
 						String locationPath = response.getHeaders("Location")[0].getValue();
-						
 						Util.postSuccess(command.getResponseListener(), locationPath);
 					}
 					else {
@@ -492,7 +494,7 @@ public class DIALService extends DeviceService implements Launcher {
 			}
 		});
 	}
-	
+		
 	private String requestURL(String appName) {
 		String applicationURL = serviceDescription != null ? serviceDescription.getApplicationURL() : null;
 		
