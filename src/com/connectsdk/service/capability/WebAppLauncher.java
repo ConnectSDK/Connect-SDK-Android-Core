@@ -23,8 +23,10 @@ package com.connectsdk.service.capability;
 import org.json.JSONObject;
 
 import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.WebAppSession.LaunchListener;
+import com.connectsdk.service.sessions.WebAppSession.WebAppPinStatusListener;
 
 
 public interface WebAppLauncher extends CapabilityMethods {
@@ -40,6 +42,7 @@ public interface WebAppLauncher extends CapabilityMethods {
 	public final static String Disconnect = "WebAppLauncher.Disconnect";
 	public final static String Join = "WebAppLauncher.Join";
 	public final static String Close = "WebAppLauncher.Close";
+	public final static String Pin = "WebAppLauncher.Pin";
 
 	public final static String[] Capabilities = {
 	    Launch,
@@ -51,7 +54,8 @@ public interface WebAppLauncher extends CapabilityMethods {
 	    Connect,
 	    Disconnect,
 	    Join,
-	    Close
+	    Close,
+	    Pin
 	};
 
 	public WebAppLauncher getWebAppLauncher();
@@ -61,7 +65,14 @@ public interface WebAppLauncher extends CapabilityMethods {
 	public void launchWebApp(String webAppId, boolean relaunchIfRunning, LaunchListener listener);
 	public void launchWebApp(String webAppId, JSONObject params, LaunchListener listener);
 	public void launchWebApp(String webAppId, JSONObject params, boolean relaunchIfRunning, LaunchListener listener);
+	
 	public void joinWebApp(LaunchSession webAppLaunchSession, LaunchListener listener);
 	public void joinWebApp(String webAppId, LaunchListener listener);
-	public void closeWebApp(LaunchSession launchSession, ResponseListener<Object> listener); 
+	
+	public void closeWebApp(LaunchSession launchSession, ResponseListener<Object> listener);
+
+	public void pinWebApp(LaunchSession launchSession, ResponseListener<Object> listener);
+	public void unPinWebApp(String webAppId, ResponseListener<Object> listener);
+	public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener);
+	public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(String webAppId, WebAppPinStatusListener listener);
 }
