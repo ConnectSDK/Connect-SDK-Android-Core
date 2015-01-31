@@ -1,5 +1,7 @@
 package com.connectsdk.discovery.provider.ssdp;
 
+import com.connectsdk.TestUtil;
+
 import junit.framework.Assert;
 
 import org.apache.tools.ant.filters.StringInputStream;
@@ -97,7 +99,7 @@ public class SSDPDeviceTest {
 	@Test
 	public void testCreateDeviceFromPlainTextContent() {
 		try {
-			new SSDPDevice(getMockUrl("plain text", null), null);
+			new SSDPDevice(TestUtil.getMockUrl("plain text", null), null);
 			Assert.fail("SAXParseException should be thrown");
 		} catch (SAXParseException e) {
 			// OK
@@ -108,51 +110,34 @@ public class SSDPDeviceTest {
 
 	@Test
 	public void testCreateDeviceFrom() throws IOException, ParserConfigurationException, SAXException {
-		SSDPDevice device = new SSDPDevice(getMockUrl(deviceDescription, "http://application_url/"), null);
+		SSDPDevice device = new SSDPDevice(TestUtil.getMockUrl(deviceDescription, "http://application_url/"), null);
 		Assert.assertEquals("urn:schemas-upnp-org:device:Basic:1", device.deviceType);
 		Assert.assertEquals("Adnan TV", device.friendlyName);
 		Assert.assertEquals("LG Electronics", device.manufacturer);
 		Assert.assertNull(device.modelDescription);
 		Assert.assertEquals(deviceDescription, device.locationXML);
 		Assert.assertEquals("http://application_url/", device.applicationURL);
-		Assert.assertEquals("foo.bar", device.ipAddress);
+		Assert.assertEquals("hostname", device.ipAddress);
 		Assert.assertEquals(80, device.port);
-		Assert.assertEquals("http://foo.bar", device.serviceURI);
-		Assert.assertEquals("http://foo.bar:80", device.baseURL);
+		Assert.assertEquals("http://hostname", device.serviceURI);
+		Assert.assertEquals("http://hostname:80", device.baseURL);
 		Assert.assertEquals("WEBOS1", device.modelNumber);
 	}
 
 	@Test
 	public void testCreateDeviceFromSmallDescription() throws IOException, ParserConfigurationException, SAXException {
-		SSDPDevice device = new SSDPDevice(getMockUrl(deviceSmallDescription, "http://application_url"), null);
+		SSDPDevice device = new SSDPDevice(TestUtil.getMockUrl(deviceSmallDescription, "http://application_url"), null);
 		Assert.assertEquals("urn:schemas-upnp-org:device:Basic:1", device.deviceType);
 		Assert.assertNull(device.friendlyName);
 		Assert.assertNull(device.manufacturer);
 		Assert.assertNull(device.modelDescription);
 		Assert.assertEquals(deviceSmallDescription, device.locationXML);
 		Assert.assertEquals("http://application_url/", device.applicationURL);
-		Assert.assertEquals("foo.bar", device.ipAddress);
+		Assert.assertEquals("hostname", device.ipAddress);
 		Assert.assertEquals(80, device.port);
-		Assert.assertEquals("http://foo.bar", device.serviceURI);
-		Assert.assertEquals("http://foo.bar:80", device.baseURL);
+		Assert.assertEquals("http://hostname", device.serviceURI);
+		Assert.assertEquals("http://hostname:80", device.baseURL);
 		Assert.assertNull(device.modelNumber);
 	}
 
-	private URL getMockUrl(final String content, String applicationUrl) throws IOException {
-		final URLConnection mockConnection = Mockito.mock(URLConnection.class);
-		Mockito.when(mockConnection.getInputStream()).thenReturn(new StringInputStream(content));
-		Mockito.when(mockConnection.getHeaderField("Application-URL")).thenReturn(applicationUrl);
-
-		final URLStreamHandler handler = new URLStreamHandler() {
-
-			@Override
-			protected URLConnection openConnection(final URL arg0)
-					throws IOException {
-				return mockConnection;
-			}
-		};
-		final URL url = new URL("http", "foo.bar", 80, "", handler);
-		return url;
-	}
-	
 }

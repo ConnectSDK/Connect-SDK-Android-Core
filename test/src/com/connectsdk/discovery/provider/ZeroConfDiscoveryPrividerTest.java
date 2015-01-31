@@ -92,7 +92,7 @@ public class ZeroConfDiscoveryPrividerTest {
 		dp.addDeviceFilter(filter);
 		dp.start();
 	
-		Thread.sleep(300);
+		Thread.sleep(500);
 		verify(mDNS).addServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
 	}
 	

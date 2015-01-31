@@ -1,14 +1,12 @@
 package com.connectsdk.discovery.provider;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import android.content.Context;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.net.MulticastSocket;
-import java.util.ArrayList;
+import com.connectsdk.TestUtil;
+import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.provider.ssdp.SSDPClient;
+import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.shadow.WifiInfoShadow;
 
 import org.json.JSONException;
 import org.junit.After;
@@ -22,20 +20,22 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import android.content.Context;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.ArrayList;
 
-import com.connectsdk.discovery.DiscoveryFilter;
-import com.connectsdk.discovery.provider.ssdp.SSDPClient;
-import com.connectsdk.shadow.WifiInfoShadow;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE,shadows={WifiInfoShadow.class})
 public class SSDPDiscoveryProviderTest{
 
-	Context context;
-	InetAddress localAddress;
+
 	SSDPDiscoveryProvider dp;
-	MulticastSocket mLocalSocket;
 	private SSDPClient ssdpClient = Mockito.mock(SSDPClient.class);
 	
 	class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
@@ -127,21 +127,53 @@ public class SSDPDiscoveryProviderTest{
 	}
 	
 	@Test
-	public void testGetLocationData() {
-		//Test Desc. : Test to verify if the GetLocation works as expected.
-		
-		String location = "http://10.194.183.124:1874/";
+	public void testGetLocationDataFromEmptyLocation() {
+		try {
+			dp.getLocationData((String)null, null, null);
+		} catch (Exception e) {
+			Assert.fail(e.getClass().getSimpleName());
+		}
+        TestUtil.runUtilBackgroundTasks();
+		Assert.assertTrue(dp.foundServices.isEmpty());
+	}
+
+	@Test
+	public void testGetLocationDataFrom() throws IOException, InterruptedException {
 		String uuid = "0f574021-141a-ebe8-eeac-bcf7b973615a";
 		String serviceFilter = "urn:lge-com:service:webos-second-screen:1";
+		String deviceDescription =
+				"<root xmlns=\"urn:schemas-upnp-org:device-1-0\" xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">\n" +
+						"<specVersion>\n" +
+						"<major>1</major>\n" +
+						"<minor>0</minor>\n" +
+						"</specVersion>\n" +
+						"<device>\n" +
+						"<UDN>" + uuid + "</UDN>\n" +
+						"<deviceType>" + serviceFilter + "</deviceType>\n" +
+						"<friendlyName>Adnan TV</friendlyName>\n" +
+						"</device>\n" +
+						"</root>";
+		String applicationUrl = "http://appurl/";
+		URL location = TestUtil.getMockUrl(deviceDescription, applicationUrl);
 		
-		dp.getLocationData(location, uuid, serviceFilter);
+		ServiceDescription foundService = new ServiceDescription();
+		foundService.setUUID(uuid);
+		foundService.setServiceFilter(serviceFilter);
+		foundService.setIpAddress("hostname");
+		foundService.setPort(80);
+
+		dp.discoveredServices.put(uuid, foundService);
 		
-		// ConcurrentHashMap<String, ServiceDescription> foundService = dp.getFoundServices();		
-		// Have to implement
-		Assert.assertTrue(true);
-		
+		try {
+			dp.getLocationData(location, uuid, serviceFilter);
+		} catch (Exception e) {
+			Assert.fail(e.getClass().getSimpleName());
+		}
+        TestUtil.runUtilBackgroundTasks();
+		Assert.assertFalse(dp.foundServices.isEmpty());
+        Assert.assertEquals("Adnan TV", dp.foundServices.get(uuid).getFriendlyName());
 	}
-	
+
 	@Test
 	public void testServiceIdsForFilter() throws JSONException {
 		//Test Desc. : Verify if SSDPDiscoveryProvider. serviceIdForFilter returns the serviceId for the specified filter added in ServiceFilters list.
