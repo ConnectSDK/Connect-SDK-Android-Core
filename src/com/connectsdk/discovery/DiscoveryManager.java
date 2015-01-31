@@ -673,7 +673,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 	
 	@Override
 	public void onServiceConfigUpdate(ServiceConfig serviceConfig) {
-		
+        if (connectableDeviceStore == null) {
+            return;
+        }
+        for (ConnectableDevice device : getAllDevices().values()) {
+            if (null != device.getServiceWithUUID(serviceConfig.getServiceUUID())) {
+                connectableDeviceStore.updateDevice(device);
+            }
+        }
 	}
 	
 	@Override

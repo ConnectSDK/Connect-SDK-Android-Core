@@ -48,6 +48,9 @@ public class NetcastTVServiceConfig extends ServiceConfig {
 
 	public void setPairingKey(String pairingKey) {
 		this.pairingKey = pairingKey;
+        if (listener != null) {
+            listener.onServiceConfigUpdate(this);
+        }
 	}
 	
 	@Override

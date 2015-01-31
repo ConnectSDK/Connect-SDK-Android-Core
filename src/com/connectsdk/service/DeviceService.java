@@ -467,7 +467,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 	 * Closes the session on the first screen device. Depending on the sessionType, the associated service will have different ways of handling the close functionality.
 	 *
 	 * @param launchSession LaunchSession to close
-	 * @param success (optional) listener to be called on success/failure
+	 * @param listener (optional) listener to be called on success/failure
 	 */
 	public void closeLaunchSession(LaunchSession launchSession, ResponseListener<Object> listener) {
 		if (launchSession == null) {
