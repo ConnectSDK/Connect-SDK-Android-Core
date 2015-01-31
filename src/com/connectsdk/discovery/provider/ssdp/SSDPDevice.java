@@ -65,7 +65,7 @@ public class SSDPDevice {
     public String locationXML;
     /* Optional. */
     public List<Service> serviceList = new ArrayList<Service>();
-    
+
     public String ST;
     public String applicationURL;
     
@@ -79,21 +79,23 @@ public class SSDPDevice {
     public Map<String, List<String>> headers;
     
     public SSDPDevice(String url, String ST) throws IOException, ParserConfigurationException, SAXException {
-      	URL urlObject = new URL(url);
-
-    	if (urlObject.getPort() == -1) {
-    		baseURL = String.format("%s://%s", urlObject.getProtocol(), urlObject.getHost());
-    	} else {
-    		baseURL = String.format("%s://%s:%d", urlObject.getProtocol(), urlObject.getHost(), urlObject.getPort());
-    	}
-    	ipAddress = urlObject.getHost();
-    	port = urlObject.getPort();
-    	UUID = null;
-    	
-    	serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
-
-    	parse(urlObject);
+		this(new URL(url), ST);
     }
+
+	public SSDPDevice(URL urlObject, String ST) throws IOException, ParserConfigurationException, SAXException {
+		if (urlObject.getPort() == -1) {
+			baseURL = String.format("%s://%s", urlObject.getProtocol(), urlObject.getHost());
+		} else {
+			baseURL = String.format("%s://%s:%d", urlObject.getProtocol(), urlObject.getHost(), urlObject.getPort());
+		}
+		ipAddress = urlObject.getHost();
+		port = urlObject.getPort();
+		UUID = null;
+
+		serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
+
+		parse(urlObject);
+	}
     
     public void parse(URL url) throws IOException, ParserConfigurationException, SAXException {
         SAXParserFactory factory = SAXParserFactory.newInstance();

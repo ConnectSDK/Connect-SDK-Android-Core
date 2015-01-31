@@ -74,4 +74,23 @@ public class SSDPPacketTest {
 		Assert.assertTrue(ssdpPacket.getData().isEmpty());
 	}
 
+	@Test
+	public void testParseGarbage() {
+		String testDatagramData = "\n\r\n\r\r\n\n\r\n\r\n::::sdkfjh::\r\n:\r\n::\r\nKEY:\r\nsdf\r\n\u000E¾<ƒÄ\f^‹Ã_Ã\u0007Ì\u0001ÜLÿ›îÿ$\u0004‰P\u0004‹T$\b‰H\u001B\f\f‰\r\n";
+		try {
+			mDatagramPacket = new DatagramPacket(testDatagramData.getBytes(), 0);
+			ssdpPacket = new SSDPPacket(mDatagramPacket);
+			Assert.assertEquals("", ssdpPacket.getData().get("KEY"));
+		} catch (Exception e) {
+			Assert.fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testParseDatagramWithoutLineEnd() {
+		String testDatagramData = "key:value";
+		mDatagramPacket = new DatagramPacket(testDatagramData.getBytes(), 0);
+		ssdpPacket = new SSDPPacket(mDatagramPacket);
+		Assert.assertEquals(null, ssdpPacket.getData().get("key"));
+	}
 }
