@@ -68,65 +68,65 @@ public class SSDPDevice {
 
     public String ST;
     public String applicationURL;
-    
+
     public String serviceURI;
 
     public String baseURL;
     public String ipAddress;
     public int port;
     public String UUID;
-    
+
     public Map<String, List<String>> headers;
-    
+
     public SSDPDevice(String url, String ST) throws IOException, ParserConfigurationException, SAXException {
-		this(new URL(url), ST);
+        this(new URL(url), ST);
     }
 
-	public SSDPDevice(URL urlObject, String ST) throws IOException, ParserConfigurationException, SAXException {
-		if (urlObject.getPort() == -1) {
-			baseURL = String.format("%s://%s", urlObject.getProtocol(), urlObject.getHost());
-		} else {
-			baseURL = String.format("%s://%s:%d", urlObject.getProtocol(), urlObject.getHost(), urlObject.getPort());
-		}
-		ipAddress = urlObject.getHost();
-		port = urlObject.getPort();
-		UUID = null;
+    public SSDPDevice(URL urlObject, String ST) throws IOException, ParserConfigurationException, SAXException {
+        if (urlObject.getPort() == -1) {
+            baseURL = String.format("%s://%s", urlObject.getProtocol(), urlObject.getHost());
+        } else {
+            baseURL = String.format("%s://%s:%d", urlObject.getProtocol(), urlObject.getHost(), urlObject.getPort());
+        }
+        ipAddress = urlObject.getHost();
+        port = urlObject.getPort();
+        UUID = null;
 
-		serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
+        serviceURI = String.format("%s://%s",  urlObject.getProtocol(), urlObject.getHost());
 
-		parse(urlObject);
-	}
-    
+        parse(urlObject);
+    }
+
     public void parse(URL url) throws IOException, ParserConfigurationException, SAXException {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         SAXParser saxParser;
-        
-        SSDPDeviceDescriptionParser parser = new SSDPDeviceDescriptionParser(this);
-        
-    	URLConnection urlConnection = url.openConnection();
-    	
-    	applicationURL = urlConnection.getHeaderField("Application-URL");
-		if (applicationURL != null && !applicationURL.substring(applicationURL.length() - 1).equals("/")) {
-			applicationURL = applicationURL.concat("/");
-		}
-    	
-    	InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-    	Scanner s = null;
-    	try {
-        	s = new Scanner(in).useDelimiter("\\A");
-        	locationXML = s.hasNext() ? s.next() : "";
 
-        	saxParser = factory.newSAXParser();
-        	saxParser.parse(new ByteArrayInputStream(locationXML.getBytes()), parser);
-    	} finally {
-    		in.close();
-    		if (s != null)
-    			s.close();
-    	}
-    	
-    	headers = urlConnection.getHeaderFields();
+        SSDPDeviceDescriptionParser parser = new SSDPDeviceDescriptionParser(this);
+
+        URLConnection urlConnection = url.openConnection();
+
+        applicationURL = urlConnection.getHeaderField("Application-URL");
+        if (applicationURL != null && !applicationURL.substring(applicationURL.length() - 1).equals("/")) {
+            applicationURL = applicationURL.concat("/");
+        }
+
+        InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+        Scanner s = null;
+        try {
+            s = new Scanner(in).useDelimiter("\\A");
+            locationXML = s.hasNext() ? s.next() : "";
+
+            saxParser = factory.newSAXParser();
+            saxParser.parse(new ByteArrayInputStream(locationXML.getBytes()), parser);
+        } finally {
+            in.close();
+            if (s != null)
+                s.close();
+        }
+
+        headers = urlConnection.getHeaderFields();
     }
-    
+
     @Override
     public String toString() {
         return friendlyName;

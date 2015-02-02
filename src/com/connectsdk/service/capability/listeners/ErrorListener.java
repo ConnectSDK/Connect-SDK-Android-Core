@@ -42,11 +42,11 @@ import com.connectsdk.service.command.ServiceCommandError;
  * @param error ServiceCommandError object describing the nature of the problem. Error descriptions are not localized and mostly intended for developer use. It is not recommended to display most error descriptions in UI elements.
  */
 public interface ErrorListener {
-	
-	/**
-	 * Method to return the error that was generated. Will pass an error object with a helpful status code and error message.
-	 * 
-	 * @param error ServiceCommandError describing the error
-	 */
-	public void onError(ServiceCommandError error);
+
+    /**
+     * Method to return the error that was generated. Will pass an error object with a helpful status code and error message.
+     * 
+     * @param error ServiceCommandError describing the error
+     */
+    public void onError(ServiceCommandError error);
 }

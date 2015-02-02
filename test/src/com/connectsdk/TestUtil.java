@@ -16,23 +16,23 @@ import java.util.concurrent.TimeUnit;
  * Created by oleksii.frolov on 1/30/2015.
  */
 public final class TestUtil {
-	
-	public static URL getMockUrl(final String content, String applicationUrl) throws IOException {
-		final URLConnection mockConnection = Mockito.mock(URLConnection.class);
-		Mockito.when(mockConnection.getInputStream()).thenReturn(new StringInputStream(content));
-		Mockito.when(mockConnection.getHeaderField("Application-URL")).thenReturn(applicationUrl);
 
-		final URLStreamHandler handler = new URLStreamHandler() {
+    public static URL getMockUrl(final String content, String applicationUrl) throws IOException {
+        final URLConnection mockConnection = Mockito.mock(URLConnection.class);
+        Mockito.when(mockConnection.getInputStream()).thenReturn(new StringInputStream(content));
+        Mockito.when(mockConnection.getHeaderField("Application-URL")).thenReturn(applicationUrl);
 
-			@Override
-			protected URLConnection openConnection(final URL arg0)
-					throws IOException {
-				return mockConnection;
-			}
-		};
-		final URL url = new URL("http", "hostname", 80, "", handler);
-		return url;
-	}
+        final URLStreamHandler handler = new URLStreamHandler() {
+
+            @Override
+            protected URLConnection openConnection(final URL arg0)
+                    throws IOException {
+                return mockConnection;
+            }
+        };
+        final URL url = new URL("http", "hostname", 80, "", handler);
+        return url;
+    }
 
     public static void runUtilBackgroundTasks() {
         ExecutorService executor = (ExecutorService) Util.getExecutor();

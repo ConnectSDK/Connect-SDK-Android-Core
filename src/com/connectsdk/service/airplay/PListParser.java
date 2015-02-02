@@ -32,9 +32,9 @@ import android.util.Xml;
 
 public class PListParser {
     private static final String ns = null;
-    
+
     public JSONObject parse(InputStream in) throws XmlPullParserException, IOException, JSONException {
-    	try {
+        try {
             XmlPullParser parser = Xml.newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
@@ -44,7 +44,7 @@ public class PListParser {
             in.close();
         }
     }
-    
+
     private JSONObject readPlist(XmlPullParser parser) throws XmlPullParserException, IOException, JSONException {
         JSONObject plist = null;
 
@@ -53,24 +53,24 @@ public class PListParser {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
             }
-            
+
             String name = parser.getName();
 
             if (name.equals("dict")) {
-            	plist = readDict(parser);
+                plist = readDict(parser);
             }
         }  
-        
+
         return plist;
     }
-    
+
     public JSONObject readDict(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
         JSONObject plist = new JSONObject();
-        
+
         parser.require(XmlPullParser.START_TAG, ns, "dict");
-        
+
         String key = null;
-        
+
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
                 continue;
@@ -78,40 +78,40 @@ public class PListParser {
             String name = parser.getName();
 
             if (name.equals("key")) {
-            	key = readKey(parser);
+                key = readKey(parser);
             }
             else if (key != null) {
-            	if (name.equals("data")) {
-            		plist.put(key, readData(parser));
-            	}
-            	else if (name.equals("integer")) {
-            		plist.put(key, readInteger(parser));
-            	}
-            	else if (name.equals("string")) {
-            		plist.put(key, readString(parser));
-            	}
-            	else if (name.equals("real")) {
-            		plist.put(key, readReal(parser));
-            	}
-            	else if (name.equals("true") || name.equals("false")) {
-            		plist.put(key, Boolean.valueOf(name));
-            		skip(parser);
-            	}
+                if (name.equals("data")) {
+                    plist.put(key, readData(parser));
+                }
+                else if (name.equals("integer")) {
+                    plist.put(key, readInteger(parser));
+                }
+                else if (name.equals("string")) {
+                    plist.put(key, readString(parser));
+                }
+                else if (name.equals("real")) {
+                    plist.put(key, readReal(parser));
+                }
+                else if (name.equals("true") || name.equals("false")) {
+                    plist.put(key, Boolean.valueOf(name));
+                    skip(parser);
+                }
 
-            	key = null;
+                key = null;
             }
         }
 
         return plist;
     }
-    
+
     private String readKey(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "key");
         String key = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "key");
         return key;
     }
-    
+
     private String readData(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "data");
         String value = readText(parser);
@@ -148,7 +148,7 @@ public class PListParser {
         }
         return result;
     }
-    
+
     private void skip(XmlPullParser parser) throws XmlPullParserException, IOException {
         if (parser.getEventType() != XmlPullParser.START_TAG) {
             throw new IllegalStateException();
@@ -164,5 +164,5 @@ public class PListParser {
                 break;
             }
         }
-     }
+    }
 }

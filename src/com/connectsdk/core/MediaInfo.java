@@ -31,167 +31,167 @@ import java.util.List;
 
 public class MediaInfo {
 
-	/**
-	 * Default constructor method.
-	 */
+    /**
+     * Default constructor method.
+     */
 
-	public MediaInfo(String url, String mimeType, String title,
-			String description) {
-		super();
-		this.url = url;
-		this.mimeType = mimeType;
-		this.title = title;
-		this.description = description;
-	}
+    public MediaInfo(String url, String mimeType, String title,
+            String description) {
+        super();
+        this.url = url;
+        this.mimeType = mimeType;
+        this.title = title;
+        this.description = description;
+    }
 
-	/**
-	 * Default constructor method.
-	 * 
-	 * @param allImages
-	 *            list of imageInfo objects where [0] is icon, [1] is poster
-	 */
+    /**
+     * Default constructor method.
+     * 
+     * @param allImages
+     *            list of imageInfo objects where [0] is icon, [1] is poster
+     */
 
-	public MediaInfo(String url, String mimeType, String title,
-			String description, List<ImageInfo> allImages) {
-		this(url, mimeType, title, description);
-		this.allImages = allImages;
-	}
+    public MediaInfo(String url, String mimeType, String title,
+            String description, List<ImageInfo> allImages) {
+        this(url, mimeType, title, description);
+        this.allImages = allImages;
+    }
 
-	// @cond INTERNAL
-	private String url, mimeType, description, title;
+    // @cond INTERNAL
+    private String url, mimeType, description, title;
 
-	private List<ImageInfo> allImages;
+    private List<ImageInfo> allImages;
 
-	private long duration;
+    private long duration;
 
-	// @endcond
+    // @endcond
 
-	/**
-	 * Gets type of a media file.
-	 * 
-	 * 
-	 */
+    /**
+     * Gets type of a media file.
+     * 
+     * 
+     */
 
-	public String getMimeType() {
-		return mimeType;
-	}
+    public String getMimeType() {
+        return mimeType;
+    }
 
-	/**
-	 * Sets type of a media file.
-	 * 
-	 * 
-	 */
+    /**
+     * Sets type of a media file.
+     * 
+     * 
+     */
 
-	public void setMimeType(String mimeType) {
-		this.mimeType = mimeType;
-	}
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
 
-	/**
-	 * Gets title for a media file.
-	 * 
-	 * 
-	 */
+    /**
+     * Gets title for a media file.
+     * 
+     * 
+     */
 
-	public String getTitle() {
-		return title;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	/**
-	 * Sets title of a media file.
-	 * 
-	 * 
-	 */
+    /**
+     * Sets title of a media file.
+     * 
+     * 
+     */
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	/**
-	 * Gets description for a media.
-	 * 
-	 */
+    /**
+     * Gets description for a media.
+     * 
+     */
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	/**
-	 * Sets description for a media.
-	 * 
-	 */
+    /**
+     * Sets description for a media.
+     * 
+     */
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	
-	/**
-	 * Gets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
-	 */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public List<ImageInfo> getImages() {
-		return allImages;
-	}
+    /**
+     * Gets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
+     */
 
-	/**
-	 * Sets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
+    public List<ImageInfo> getImages() {
+        return allImages;
+    }
 
-	 * 
-	 */
-	
-	public void setImages(List<ImageInfo> images) {
-		this.allImages = images;
-	}
-	
-	/**
-	 * Gets duration of a media file.
-	 * 
-	 */
+    /**
+     * Sets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
 
-	public long getDuration() {
-		return duration;
-	}
-	
-	/**
-	 * Sets duration of a media file.
-	 * 
-	 */
+     * 
+     */
 
-	public void setDuration(long duration) {
-		this.duration = duration;
-	}
-	
-	/**
-	 * Gets URL address of a media file.
-	 * 
-	 */
+    public void setImages(List<ImageInfo> images) {
+        this.allImages = images;
+    }
 
-	public String getUrl() {
-		return url;
-	}
-	
-	/**
-	 * Sets URL address of a media file.
-	 * 
-	 */
+    /**
+     * Gets duration of a media file.
+     * 
+     */
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
-	
-	/**
-	 * Stores ImageInfo objects.
-	 * 
-	 */
+    public long getDuration() {
+        return duration;
+    }
 
-	public void addImages(ImageInfo... images) {
+    /**
+     * Sets duration of a media file.
+     * 
+     */
 
-		List<ImageInfo> list = new ArrayList<ImageInfo>();
-		for (int i = 0; i < images.length; i++) {
-			list.add(images[i]);
-		}
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
 
-		this.setImages(list);
+    /**
+     * Gets URL address of a media file.
+     * 
+     */
 
-	}
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets URL address of a media file.
+     * 
+     */
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    /**
+     * Stores ImageInfo objects.
+     * 
+     */
+
+    public void addImages(ImageInfo... images) {
+
+        List<ImageInfo> list = new ArrayList<ImageInfo>();
+        for (int i = 0; i < images.length; i++) {
+            list.add(images[i]);
+        }
+
+        this.setImages(list);
+
+    }
 
 }

@@ -36,56 +36,56 @@ import com.connectsdk.service.config.ServiceConfig;
  *   + purge all data from ConnectableDeviceStore (removeAll)
  * - Your ConnectableDeviceStore implementation should
  *   + avoid tracking too much data (indefinitely storing all discovered devices)
-  *  + periodically remove ConnectableDevices from the ConnectableDeviceStore if they haven't been used/connected in X amount of time
+ *  + periodically remove ConnectableDevices from the ConnectableDeviceStore if they haven't been used/connected in X amount of time
  */
 public interface ConnectableDeviceStore {
-	
-	/**
-	 * Add a ConnectableDevice to the ConnectableDeviceStore. If the ConnectableDevice is already stored, it's record will be updated.
-	 *
-	 * @param device ConnectableDevice to add to the ConnectableDeviceStore
-	 */
-	public void addDevice(ConnectableDevice device);
-	
-	/**
-	 * Removes a ConnectableDevice's record from the ConnectableDeviceStore.
-	 *
-	 * @param device ConnectableDevice to remove from the ConnectableDeviceStore
-	 */
-	public void removeDevice(ConnectableDevice device);
-	
-	/**
-	 * Updates a ConnectableDevice's record in the ConnectableDeviceStore.
-	 *
-	 * @param device ConnectableDevice to update in the ConnectableDeviceStore
-	 */
-	public void updateDevice(ConnectableDevice device);
-	
-	/**
-	 * A JSONObject of all ConnectableDevices in the ConnectableDeviceStore. To gt a strongly-typed ConnectableDevice object, use the `getDevice(String);` method.
-	 */
-	public JSONObject getStoredDevices();
-	
-	/**
-	 * Gets a ConnectableDevice object for a provided id.  The id may be for the ConnectableDevice object or any of the DeviceServices.
-	 * 
-	 * @param uuid Unique ID for a ConnectableDevice or any of its DeviceService objects
-	 * 
-	 * @return ConnectableDevice object if a matching uuit was found, otherwise will return null
-	 */
-	public ConnectableDevice getDevice(String uuid);
-	
-	/**
-	 * Gets a ServcieConfig object for a provided UUID.  This is used by DiscoveryManager to retain crucial service information between sessions (pairing code, etc).
-	 * 
-	 * @param uuid Unique ID for the service
-	 * 
-	 * @return ServiceConfig object if matching UUID was found, otherwise will return null
-	 */
-	public ServiceConfig getServiceConfig(String uuid);
-	
-	/**
-	 * Clears out the ConnectableDeviceStore, removing all records.
-	 */
-	public void removeAll();
+
+    /**
+     * Add a ConnectableDevice to the ConnectableDeviceStore. If the ConnectableDevice is already stored, it's record will be updated.
+     *
+     * @param device ConnectableDevice to add to the ConnectableDeviceStore
+     */
+    public void addDevice(ConnectableDevice device);
+
+    /**
+     * Removes a ConnectableDevice's record from the ConnectableDeviceStore.
+     *
+     * @param device ConnectableDevice to remove from the ConnectableDeviceStore
+     */
+    public void removeDevice(ConnectableDevice device);
+
+    /**
+     * Updates a ConnectableDevice's record in the ConnectableDeviceStore.
+     *
+     * @param device ConnectableDevice to update in the ConnectableDeviceStore
+     */
+    public void updateDevice(ConnectableDevice device);
+
+    /**
+     * A JSONObject of all ConnectableDevices in the ConnectableDeviceStore. To gt a strongly-typed ConnectableDevice object, use the `getDevice(String);` method.
+     */
+    public JSONObject getStoredDevices();
+
+    /**
+     * Gets a ConnectableDevice object for a provided id.  The id may be for the ConnectableDevice object or any of the DeviceServices.
+     * 
+     * @param uuid Unique ID for a ConnectableDevice or any of its DeviceService objects
+     * 
+     * @return ConnectableDevice object if a matching uuit was found, otherwise will return null
+     */
+    public ConnectableDevice getDevice(String uuid);
+
+    /**
+     * Gets a ServcieConfig object for a provided UUID.  This is used by DiscoveryManager to retain crucial service information between sessions (pairing code, etc).
+     * 
+     * @param uuid Unique ID for the service
+     * 
+     * @return ServiceConfig object if matching UUID was found, otherwise will return null
+     */
+    public ServiceConfig getServiceConfig(String uuid);
+
+    /**
+     * Clears out the ConnectableDeviceStore, removing all records.
+     */
+    public void removeAll();
 }

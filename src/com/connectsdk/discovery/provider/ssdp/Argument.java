@@ -26,7 +26,7 @@ public class Argument {
     public static final String TAG_DIRECTION = "direction";
     public static final String TAG_RETVAL = "retval";
     public static final String TAG_RELATED_STATE_VARIABLE = "relatedStateVariable";
-    
+
     /* Required. Name of formal parameter. */
     String mName;
     /* Required. Defines whether argument is an input or output paramter. */

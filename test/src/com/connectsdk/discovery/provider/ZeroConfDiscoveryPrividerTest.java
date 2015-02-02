@@ -39,278 +39,278 @@ import com.connectsdk.shadow.WifiInfoShadow;
 @Config(manifest = Config.NONE, shadows = { WifiInfoShadow.class })
 public class ZeroConfDiscoveryPrividerTest {
 
-	private ZeroconfDiscoveryProvider dp;
-	private JmDNS mDNS;
-	private ServiceEvent eventMock;
+    private ZeroconfDiscoveryProvider dp;
+    private JmDNS mDNS;
+    private ServiceEvent eventMock;
 
-	// stub classes are used to allow mocking inside Robolectric test
-	class StubJmDNS extends JmDNSImpl {
+    // stub classes are used to allow mocking inside Robolectric test
+    class StubJmDNS extends JmDNSImpl {
 
-		public StubJmDNS() throws IOException {
-			this(null, null);
-		}
+        public StubJmDNS() throws IOException {
+            this(null, null);
+        }
 
-		public StubJmDNS(InetAddress address, String name) throws IOException {
-			super(address, name);
-		}
-	}
+        public StubJmDNS(InetAddress address, String name) throws IOException {
+            super(address, name);
+        }
+    }
 
-	abstract class StubServiceEvent extends ServiceEvent {
+    abstract class StubServiceEvent extends ServiceEvent {
 
-		public StubServiceEvent(Object eventSource) {
-			super(eventSource);
-		}
-	}
-	
-	abstract class StubServiceInfo extends javax.jmdns.ServiceInfo {}
+        public StubServiceEvent(Object eventSource) {
+            super(eventSource);
+        }
+    }
 
-	class StubZeroConfDiscoveryProvider extends ZeroconfDiscoveryProvider {
+    abstract class StubServiceInfo extends javax.jmdns.ServiceInfo {}
 
-		public StubZeroConfDiscoveryProvider(Context context) {
-			super(context);
-		}
+    class StubZeroConfDiscoveryProvider extends ZeroconfDiscoveryProvider {
 
-		@Override
-		protected JmDNS createJmDNS() {
-			return mDNS;
-		}
-	}
+        public StubZeroConfDiscoveryProvider(Context context) {
+            super(context);
+        }
 
-	@Before
-	public void setUp() {
-		dp = new StubZeroConfDiscoveryProvider(Robolectric.application);
-		mDNS = mock(StubJmDNS.class);
-		eventMock = mock(StubServiceEvent.class);
+        @Override
+        protected JmDNS createJmDNS() {
+            return mDNS;
+        }
+    }
 
-		dp.jmdns = mDNS;
-	}
+    @Before
+    public void setUp() {
+        dp = new StubZeroConfDiscoveryProvider(Robolectric.application);
+        mDNS = mock(StubJmDNS.class);
+        eventMock = mock(StubServiceEvent.class);
 
-	@Test
-	public void testStartShouldAddDeviceFilter() throws Exception {
-		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
-		
-		dp.addDeviceFilter(filter);
-		dp.start();
-	
-		Thread.sleep(500);
-		verify(mDNS).addServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
-	}
-	
-	@Test
-	public void testStartShouldCancelPreviousSearch() throws Exception {
-		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
-		
-		dp.addDeviceFilter(filter);
-		dp.stop();
-	
-		verify(mDNS).removeServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
-	}
+        dp.jmdns = mDNS;
+    }
 
-	@Test
-	public void testJmdnsServiceAdded() throws Exception {
-		// Test Desc.: Verify when service added to the JmdnsServiceListener
-		// then "service information is queried from registry with injected
-		// event mock object.
+    @Test
+    public void testStartShouldAddDeviceFilter() throws Exception {
+        DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
 
-		dp.jmdnsListener.serviceAdded(eventMock);
-		dp.start();
+        dp.addDeviceFilter(filter);
+        dp.start();
 
-		verify(eventMock, atLeastOnce()).getType();
-		verify(eventMock, atLeastOnce()).getName();
-		verify(mDNS, timeout(100)).requestServiceInfo(eventMock.getType(),
-				eventMock.getName(), 1);
-	}
+        Thread.sleep(500);
+        verify(mDNS).addServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
+    }
 
-	@Test
-	public void testAddListener() throws Exception {
-		// Test Desc.: Verify ZeroConfDiscoveryProvider addListener - Adds a
-		// DiscoveryProviderListener instance which is the DiscoveryManager Impl
-		// to ServiceListeners List.
+    @Test
+    public void testStartShouldCancelPreviousSearch() throws Exception {
+        DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
 
-		DiscoveryManager listenerMock = mock(DiscoveryManager.class);
+        dp.addDeviceFilter(filter);
+        dp.stop();
 
-		Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
-		dp.addListener(listenerMock);
+        verify(mDNS).removeServiceListener(filter.getServiceFilter(), dp.jmdnsListener);
+    }
 
-		Assert.assertTrue(dp.serviceListeners.contains(listenerMock));
-	}
+    @Test
+    public void testJmdnsServiceAdded() throws Exception {
+        // Test Desc.: Verify when service added to the JmdnsServiceListener
+        // then "service information is queried from registry with injected
+        // event mock object.
 
-	@Test
-	public void testRemoveListener() throws Exception {
-		// Test Desc.: Verify ZeroConfDiscoveryProvider RemoveListener - Removes
-		// a DiscoveryProviderListener instance which is the DiscoveryManager
-		// Impl from ServiceListeners List.
+        dp.jmdnsListener.serviceAdded(eventMock);
+        dp.start();
 
-		DiscoveryManager listenerMock = mock(DiscoveryManager.class);
+        verify(eventMock, atLeastOnce()).getType();
+        verify(eventMock, atLeastOnce()).getName();
+        verify(mDNS, timeout(100)).requestServiceInfo(eventMock.getType(),
+                eventMock.getName(), 1);
+    }
 
-		Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
-		dp.serviceListeners.add(listenerMock);
-		Assert.assertTrue(dp.serviceListeners.contains(listenerMock));
+    @Test
+    public void testAddListener() throws Exception {
+        // Test Desc.: Verify ZeroConfDiscoveryProvider addListener - Adds a
+        // DiscoveryProviderListener instance which is the DiscoveryManager Impl
+        // to ServiceListeners List.
 
-		dp.removeListener(listenerMock);
+        DiscoveryManager listenerMock = mock(DiscoveryManager.class);
 
-		Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
-	}
+        Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
+        dp.addListener(listenerMock);
 
-	@Test
-	public void testFiltersAreEmptyByDefault() throws Exception {
-		// Test Desc.: Verify if the serviceFilters is empty prior to calling
-		// the scheduled timer task start() which adds the searchTarget as
-		// filter into the ServiceFilters.
+        Assert.assertTrue(dp.serviceListeners.contains(listenerMock));
+    }
 
-		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
-		Assert.assertTrue(dp.isEmpty());
+    @Test
+    public void testRemoveListener() throws Exception {
+        // Test Desc.: Verify ZeroConfDiscoveryProvider RemoveListener - Removes
+        // a DiscoveryProviderListener instance which is the DiscoveryManager
+        // Impl from ServiceListeners List.
 
-		dp.serviceFilters.add(filter);
+        DiscoveryManager listenerMock = mock(DiscoveryManager.class);
 
-		Assert.assertFalse(dp.isEmpty());
-	}
+        Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
+        dp.serviceListeners.add(listenerMock);
+        Assert.assertTrue(dp.serviceListeners.contains(listenerMock));
 
-	@Test
-	public void testStopZeroConfService() throws Exception {
-		// Test Desc. : Verify if on stop() of ZeroConfDiscoveryProvider
-		// Service, implicitly invoke the removeServiceListener() on JmDns
-		// instance,
+        dp.removeListener(listenerMock);
 
-		DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
-		dp.serviceFilters.add(filter);
+        Assert.assertFalse(dp.serviceListeners.contains(listenerMock));
+    }
 
-		ServiceListener listener = dp.jmdnsListener;
+    @Test
+    public void testFiltersAreEmptyByDefault() throws Exception {
+        // Test Desc.: Verify if the serviceFilters is empty prior to calling
+        // the scheduled timer task start() which adds the searchTarget as
+        // filter into the ServiceFilters.
 
-		verify(mDNS, Mockito.never()).removeServiceListener(
-				filter.getServiceFilter(), listener);
-		dp.stop();
-		verify(mDNS, Mockito.times(1)).removeServiceListener(
-				filter.getServiceFilter(), listener);
-	}
+        DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
+        Assert.assertTrue(dp.isEmpty());
 
-	@Test
-	public void testReset() throws Exception {
-		// Test Desc. : Verify if JmdnsRegistry reset the services found for
-		// ZeroConfDiscoveryProvider.
+        dp.serviceFilters.add(filter);
 
-		ServiceDescription serviceDesc = new ServiceDescription();
-		dp.foundServices.put("service", serviceDesc);
-		Assert.assertFalse(dp.foundServices.isEmpty());
+        Assert.assertFalse(dp.isEmpty());
+    }
 
-		dp.reset();
-		Assert.assertTrue(dp.foundServices.isEmpty());
-	}
+    @Test
+    public void testStopZeroConfService() throws Exception {
+        // Test Desc. : Verify if on stop() of ZeroConfDiscoveryProvider
+        // Service, implicitly invoke the removeServiceListener() on JmDns
+        // instance,
 
-	@Test
-	public void testAddDeviceFilter() throws Exception {
-		// Test Desc. : Verify if ZeroConfDiscoveryProvider. AddDeviceFilter
-		// adds the specified device filter to serviceFilters list.
+        DiscoveryFilter filter = new DiscoveryFilter("Apple TV", "_testservicetype._tcp.local.");
+        dp.serviceFilters.add(filter);
 
-		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
+        ServiceListener listener = dp.jmdnsListener;
 
-		Assert.assertFalse(dp.serviceFilters.contains(filter));
-		dp.addDeviceFilter(filter);
+        verify(mDNS, Mockito.never()).removeServiceListener(
+                filter.getServiceFilter(), listener);
+        dp.stop();
+        verify(mDNS, Mockito.times(1)).removeServiceListener(
+                filter.getServiceFilter(), listener);
+    }
 
-		Assert.assertTrue(dp.serviceFilters.contains(filter));
-	}
+    @Test
+    public void testReset() throws Exception {
+        // Test Desc. : Verify if JmdnsRegistry reset the services found for
+        // ZeroConfDiscoveryProvider.
 
-	@Test
-	public void testRemoveDeviceFilter() throws Exception {
-		// Test Desc. : Verify if ZeroConfDiscoveryProvider. removeDeviceFilter
-		// removes the entry specified device filter from to serviceFilters
-		// list.
+        ServiceDescription serviceDesc = new ServiceDescription();
+        dp.foundServices.put("service", serviceDesc);
+        Assert.assertFalse(dp.foundServices.isEmpty());
 
-		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
+        dp.reset();
+        Assert.assertTrue(dp.foundServices.isEmpty());
+    }
 
-		dp.serviceFilters.add(filter);
-		Assert.assertFalse(dp.serviceFilters.isEmpty());
+    @Test
+    public void testAddDeviceFilter() throws Exception {
+        // Test Desc. : Verify if ZeroConfDiscoveryProvider. AddDeviceFilter
+        // adds the specified device filter to serviceFilters list.
 
-		dp.removeDeviceFilter(filter);
+        DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
 
-		Assert.assertTrue(dp.serviceFilters.isEmpty());
-	}
+        Assert.assertFalse(dp.serviceFilters.contains(filter));
+        dp.addDeviceFilter(filter);
 
-	@Test
-	public void testServiceIdForFilter() throws Exception {
-		// Test Desc. : Verify if ZeroConfDiscoveryProvider. serviceIdForFilter
-		// returns the serviceId for the specified filter added in
-		// ServiceFilters list.
+        Assert.assertTrue(dp.serviceFilters.contains(filter));
+    }
 
-		DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
-		dp.serviceFilters.add(filter);
+    @Test
+    public void testRemoveDeviceFilter() throws Exception {
+        // Test Desc. : Verify if ZeroConfDiscoveryProvider. removeDeviceFilter
+        // removes the entry specified device filter from to serviceFilters
+        // list.
 
-		String serviceId = dp.serviceIdForFilter(filter.getServiceFilter());
+        DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
 
-		Assert.assertEquals("Test TV", serviceId);
-	}
+        dp.serviceFilters.add(filter);
+        Assert.assertFalse(dp.serviceFilters.isEmpty());
 
-	private ServiceEvent createMockedServiceEvent(String ip, String name) {
-		ServiceEvent event = mock(StubServiceEvent.class);
-		ServiceInfo info = mock(StubServiceInfo.class);
-		when(event.getInfo()).thenReturn(info);
-		when(info.getHostAddress()).thenReturn(ip);
-		when(info.getPort()).thenReturn(7000);
-		when(info.getName()).thenReturn(name);
-		return event;
-	}
-	
-	@Test
-	public void testServiceResolveEvent() throws Exception {
-		// given
-		ServiceEvent event = createMockedServiceEvent("192.168.0.1", "Test TV");
-		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
-		dp.addListener(listener);
-		
-		// when
-		dp.jmdnsListener.serviceResolved(event);
-		
-		// then
-		verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
-	}
+        dp.removeDeviceFilter(filter);
 
-	@Test
-	public void testServiceResolveEventWhenThereIsFoundService() throws Exception {
-		// given
-		String uuid = "192.168.0.1";
-		String name = "Test TV";
-		ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
-		serviceDescription.setFriendlyName(name);
-		ServiceEvent event = createMockedServiceEvent(uuid, name);
-		dp.foundServices.put(uuid, serviceDescription);
-		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
-		dp.addListener(listener);
-		
-		// when
-		dp.jmdnsListener.serviceResolved(event);
-		
-		// then
-		verify(listener, never()).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
-	}
-	
-	@Test
-	public void testServiceRemoveEvent() throws Exception {
-		// given
-		String uuid = "192.168.0.1";
-		String name = "Test TV";
-		ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
-		serviceDescription.setFriendlyName(name);
-		ServiceEvent event = createMockedServiceEvent(uuid, name);
-		DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
-		dp.addListener(listener);
-		dp.foundServices.put(uuid, serviceDescription);
-		
-		// when
-		dp.jmdnsListener.serviceRemoved(event);
-		Robolectric.runUiThreadTasksIncludingDelayedTasks();
-		
-		// then
-		verify(listener).onServiceRemoved(any(DiscoveryProvider.class), any(ServiceDescription.class));
-	}
-	
-	@Test
-	public void testStateAfterConstruction() {
-		Assert.assertNotNull(dp.foundServices);
-		Assert.assertNotNull(dp.serviceFilters);
-		Assert.assertNotNull(dp.serviceListeners);
-		Assert.assertTrue(dp.foundServices.isEmpty());
-		Assert.assertTrue(dp.serviceFilters.isEmpty());
-		Assert.assertTrue(dp.serviceListeners.isEmpty());
-		Assert.assertNotNull(dp.srcAddress);
-	}
+        Assert.assertTrue(dp.serviceFilters.isEmpty());
+    }
+
+    @Test
+    public void testServiceIdForFilter() throws Exception {
+        // Test Desc. : Verify if ZeroConfDiscoveryProvider. serviceIdForFilter
+        // returns the serviceId for the specified filter added in
+        // ServiceFilters list.
+
+        DiscoveryFilter filter = new DiscoveryFilter("Test TV", "_testservicetype._tcp.local.");
+        dp.serviceFilters.add(filter);
+
+        String serviceId = dp.serviceIdForFilter(filter.getServiceFilter());
+
+        Assert.assertEquals("Test TV", serviceId);
+    }
+
+    private ServiceEvent createMockedServiceEvent(String ip, String name) {
+        ServiceEvent event = mock(StubServiceEvent.class);
+        ServiceInfo info = mock(StubServiceInfo.class);
+        when(event.getInfo()).thenReturn(info);
+        when(info.getHostAddress()).thenReturn(ip);
+        when(info.getPort()).thenReturn(7000);
+        when(info.getName()).thenReturn(name);
+        return event;
+    }
+
+    @Test
+    public void testServiceResolveEvent() throws Exception {
+        // given
+        ServiceEvent event = createMockedServiceEvent("192.168.0.1", "Test TV");
+        DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+        dp.addListener(listener);
+
+        // when
+        dp.jmdnsListener.serviceResolved(event);
+
+        // then
+        verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+    }
+
+    @Test
+    public void testServiceResolveEventWhenThereIsFoundService() throws Exception {
+        // given
+        String uuid = "192.168.0.1";
+        String name = "Test TV";
+        ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
+        serviceDescription.setFriendlyName(name);
+        ServiceEvent event = createMockedServiceEvent(uuid, name);
+        dp.foundServices.put(uuid, serviceDescription);
+        DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+        dp.addListener(listener);
+
+        // when
+        dp.jmdnsListener.serviceResolved(event);
+
+        // then
+        verify(listener, never()).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+    }
+
+    @Test
+    public void testServiceRemoveEvent() throws Exception {
+        // given
+        String uuid = "192.168.0.1";
+        String name = "Test TV";
+        ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, uuid);
+        serviceDescription.setFriendlyName(name);
+        ServiceEvent event = createMockedServiceEvent(uuid, name);
+        DiscoveryProviderListener listener = mock(DiscoveryProviderListener.class);
+        dp.addListener(listener);
+        dp.foundServices.put(uuid, serviceDescription);
+
+        // when
+        dp.jmdnsListener.serviceRemoved(event);
+        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+
+        // then
+        verify(listener).onServiceRemoved(any(DiscoveryProvider.class), any(ServiceDescription.class));
+    }
+
+    @Test
+    public void testStateAfterConstruction() {
+        Assert.assertNotNull(dp.foundServices);
+        Assert.assertNotNull(dp.serviceFilters);
+        Assert.assertNotNull(dp.serviceListeners);
+        Assert.assertTrue(dp.foundServices.isEmpty());
+        Assert.assertTrue(dp.serviceFilters.isEmpty());
+        Assert.assertTrue(dp.serviceListeners.isEmpty());
+        Assert.assertNotNull(dp.srcAddress);
+    }
 }

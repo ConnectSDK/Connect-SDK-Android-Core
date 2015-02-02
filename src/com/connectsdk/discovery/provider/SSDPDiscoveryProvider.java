@@ -228,23 +228,23 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         if (filter.getServiceFilter() == null) {
             Log.e("Connect SDK", "This device filter does not have ssdp filter info");
         } else {
-//			String newFilter = null;
-//			try {
-//				newFilter = parameters.getString("filter");
-//				for ( int i = 0; i < serviceFilters.size(); i++) { 
-//					String filter = serviceFilters.get(i).getString("filter");
-//					
-//					if ( newFilter.equals(filter) ) 
-//						return;
-//				}
-//			} catch (JSONException e) {
-//				e.printStackTrace();
-//			}
+//            String newFilter = null;
+//            try {
+//                newFilter = parameters.getString("filter");
+//                for (int i = 0; i < serviceFilters.size(); i++) { 
+//                    String filter = serviceFilters.get(i).getString("filter");
+//
+//                    if (newFilter.equals(filter)) 
+//                        return;
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
 
             serviceFilters.add(filter);
 
-//			if ( newFilter != null )
-//			controlPoint.addFilter(newFilter);
+//            if (newFilter != null)
+//                controlPoint.addFilter(newFilter);
         }
     }
 
@@ -319,17 +319,17 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     private void handleSSDPPacket(SSDPPacket ssdpPacket) {
         // Debugging stuff
 //        Util.runOnUI(new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//		        Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.type);
-//		        
-//		        for (String key : ssdpPacket.data.keySet()) {
-//		        	Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.data.get(key));
-//		        }
-//		        Log.d("Connect SDK Socket", "__________________________________________");
-//			}
-//		});
+//
+//            @Override
+//            public void run() {
+//                Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.type);
+//
+//                for (String key : ssdpPacket.data.keySet()) {
+//                    Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.data.get(key));
+//                }
+//                Log.d("Connect SDK Socket", "__________________________________________");
+//            }
+//        });
         // End Debugging stuff
 
         if (ssdpPacket == null || ssdpPacket.getData().size() == 0 || ssdpPacket.getType() == null)
@@ -518,12 +518,12 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     }
 
     public boolean containsServicesWithFilter(SSDPDevice device, String filter) {
-//    	List<String> servicesRequired = new ArrayList<String>();
-//    	
-//    	for (JSONObject serviceFilter : serviceFilters) {
-//    	}
+//        List<String> servicesRequired = new ArrayList<String>();
+//
+//        for (JSONObject serviceFilter : serviceFilters) {
+//        }
 
-        //  TODO  Implement this method.  Not sure why needs to happen since there are now required services.
+    //  TODO  Implement this method.  Not sure why needs to happen since there are now required services.
 
         return true;
     }

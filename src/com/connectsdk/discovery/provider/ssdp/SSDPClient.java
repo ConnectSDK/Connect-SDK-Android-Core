@@ -33,10 +33,10 @@ import java.net.SocketException;
 public class SSDPClient {
     /* New line definition */
     public static final String NEWLINE = "\r\n";
-    
+
     public static final String MULTICAST_ADDRESS = "239.255.255.250";
     public static final int PORT = 1900;
-    
+
     /* Definitions of start line */
     public static final String NOTIFY = "NOTIFY * HTTP/1.1";
     public static final String MSEARCH = "M-SEARCH * HTTP/1.1";
@@ -44,45 +44,45 @@ public class SSDPClient {
 
     /* Definitions of search targets */
 //    public static final String DEVICE_MEDIA_SERVER_1 = "urn:schemas-upnp-org:device:MediaServer:1"; 
-    
+
 //    public static final String SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1";
 //    public static final String SERVICE_CONNECTION_MANAGER_1 = "urn:schemas-upnp-org:service:ConnectionManager:1";
 //    public static final String SERVICE_AV_TRANSPORT_1 = "urn:schemas-upnp-org:service:AVTransport:1";
 //    
 //    public static final String ST_ContentDirectory = ST + ":" + UPNP.SERVICE_CONTENT_DIRECTORY_1;
-    
+
     /* Definitions of notification sub type */
     public static final String ALIVE = "ssdp:alive";
     public static final String BYEBYE = "ssdp:byebye";
     public static final String UPDATE = "ssdp:update";
-	
-	DatagramSocket datagramSocket;
+
+    DatagramSocket datagramSocket;
     MulticastSocket multicastSocket;
-    
+
     SocketAddress multicastGroup;
     NetworkInterface networkInterface;
     InetAddress localInAddress;
 
     int timeout = 0;
     static int MX = 5;
-    
+
     public SSDPClient(InetAddress source) throws IOException {
         this(source, new MulticastSocket(PORT), new DatagramSocket(null));
     }
 
     public SSDPClient(InetAddress source, MulticastSocket mcSocket, DatagramSocket dgSocket) throws IOException {
-		localInAddress = source;
-		multicastSocket = mcSocket;
-		datagramSocket = dgSocket;
+        localInAddress = source;
+        multicastSocket = mcSocket;
+        datagramSocket = dgSocket;
 
-		multicastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
-		networkInterface = NetworkInterface.getByInetAddress(localInAddress);
-		multicastSocket.joinGroup(multicastGroup, networkInterface);
+        multicastGroup = new InetSocketAddress(MULTICAST_ADDRESS, PORT);
+        networkInterface = NetworkInterface.getByInetAddress(localInAddress);
+        multicastSocket.joinGroup(multicastGroup, networkInterface);
 
-		datagramSocket.setReuseAddress(true);
-		datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
+        datagramSocket.setReuseAddress(true);
+        datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
-    
+
     /** Used to send SSDP packet */
     public void send(String data) throws IOException {
         DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), multicastGroup);
@@ -100,7 +100,7 @@ public class SSDPClient {
 
         return dp;
     }
-    
+
     /** Used to receive SSDP Multicast packet */
     public DatagramPacket multicastReceive() throws IOException {
         byte[] buf = new byte[1024];
@@ -110,16 +110,16 @@ public class SSDPClient {
 
         return dp;
     }
-    
+
 //    /** Starts the socket */
 //    public void start() {
-//    	
+//    
 //    }
 
     public boolean isConnected() {
-    	return datagramSocket != null && multicastSocket != null && datagramSocket.isConnected() && multicastSocket.isConnected();
+        return datagramSocket != null && multicastSocket != null && datagramSocket.isConnected() && multicastSocket.isConnected();
     }
-    
+
     /** Close the socket */
     public void close() {
         if (multicastSocket != null) {
@@ -130,31 +130,31 @@ public class SSDPClient {
             }
             multicastSocket.close();
         }
-        
+
         if (datagramSocket != null) {
             datagramSocket.disconnect();
             datagramSocket.close();
         }
     }
-    
+
     public void setTimeout(int timeout) throws SocketException {
-    	this.timeout = timeout;
-    	datagramSocket.setSoTimeout(this.timeout);
+        this.timeout = timeout;
+        datagramSocket.setSoTimeout(this.timeout);
     }
-    
+
     public static String getSSDPSearchMessage(String ST) {
-    	StringBuilder sb = new StringBuilder();
-    	
+        StringBuilder sb = new StringBuilder();
+
         sb.append(MSEARCH + NEWLINE);
         sb.append("HOST: " + MULTICAST_ADDRESS + ":" + PORT + NEWLINE);
         sb.append("MAN: \"ssdp:discover\"" + NEWLINE);
         sb.append("ST: " + ST + NEWLINE);
         sb.append("MX: " +  MX + NEWLINE);
         if (ST.contains("udap")) {
-        	sb.append("USER-AGENT: UDAP/2.0" + NEWLINE);
+            sb.append("USER-AGENT: UDAP/2.0" + NEWLINE);
         }
         sb.append(NEWLINE);
-        
-        return sb.toString();    	
+
+        return sb.toString();
     }
 }
