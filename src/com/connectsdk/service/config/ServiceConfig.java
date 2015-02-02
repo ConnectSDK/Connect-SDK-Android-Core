@@ -96,9 +96,10 @@ public class ServiceConfig {
 
     public void setServiceUUID(String serviceUUID) {
         this.serviceUUID = serviceUUID;
+        notifyUpdate();
     }
 
-    public String toString() { 
+    public String toString() {
         return serviceUUID;
     }
 
@@ -108,10 +109,11 @@ public class ServiceConfig {
 
     public void setLastDetected(long value) {
         lastDetected = value;
+        notifyUpdate();
     }
 
     public void detect() {
-        lastDetected = Util.getTime();
+        setLastDetected(Util.getTime());
     }
 
     public ServiceConfigListener getListener() {
@@ -134,6 +136,12 @@ public class ServiceConfig {
         }
 
         return jsonObj;
+    }
+
+    protected void notifyUpdate() {
+        if (listener != null) {
+            listener.onServiceConfigUpdate(this);
+        }
     }
 
     public static interface ServiceConfigListener {

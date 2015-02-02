@@ -60,30 +60,26 @@ import com.connectsdk.service.config.ServiceDescription;
 
 /**
  * ###Overview
- *
+ * <p/>
  * At the heart of Connect SDK is DiscoveryManager, a multi-protocol service discovery engine with a pluggable architecture. Much of your initial experience with Connect SDK will be with the DiscoveryManager class, as it consolidates discovered service information into ConnectableDevice objects.
- *
+ * <p/>
  * ###In depth
  * DiscoveryManager supports discovering services of differing protocols by using DiscoveryProviders. Many services are discoverable over [SSDP][0] and are registered to be discovered with the SSDPDiscoveryProvider class.
- *
+ * <p/>
  * As services are discovered on the network, the DiscoveryProviders will notify DiscoveryManager. DiscoveryManager is capable of attributing multiple services, if applicable, to a single ConnectableDevice instance. Thus, it is possible to have a mixed-mode ConnectableDevice object that is theoretically capable of more functionality than a single service can provide.
- *
+ * <p/>
  * DiscoveryManager keeps a running list of all discovered devices and maintains a filtered list of devices that have satisfied any of your CapabilityFilters. This filtered list is used by the DevicePicker when presenting the user with a list of devices.
- *
+ * <p/>
  * Only one instance of the DiscoveryManager should be in memory at a time. To assist with this, DiscoveryManager has static method at sharedManager.
- *
+ * <p/>
  * Example:
  *
  * @capability kMediaControlPlay
- *
- @code
-    DiscoveryManager.init(getApplicationContext());
-    DiscoveryManager discoveryManager = DiscoveryManager.getInstance();
-    discoveryManager.addListener(this);
-    discoveryManager.start();
- @endcode
- *
- * [0]: http://tools.ietf.org/html/draft-cai-ssdp-v1-03
+ * @code DiscoveryManager.init(getApplicationContext());
+ * DiscoveryManager discoveryManager = DiscoveryManager.getInstance();
+ * discoveryManager.addListener(this);
+ * discoveryManager.start();
+ * @endcode [0]: http://tools.ietf.org/html/draft-cai-ssdp-v1-03
  */
 public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryProviderListener, ServiceConfigListener {
 
@@ -126,10 +122,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Initilizes the Discovery manager with a valid context.  This should be done as soon as possible and it should use getApplicationContext() as the Discovery manager could persist longer than the current Activity.
-     * 
-     @code
-        DiscoveryManager.init(getApplicationContext());
-     @endcode
+     *
+     * @code DiscoveryManager.init(getApplicationContext());
+     * @endcode
      */
     public static synchronized void init(Context context) {
         instance = new DiscoveryManager(context);
@@ -141,13 +136,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Initilizes the Discovery manager with a valid context.  This should be done as soon as possible and it should use getApplicationContext() as the Discovery manager could persist longer than the current Activity.
-     * 
+     * <p/>
      * This accepts a ConnectableDeviceStore to use instead of the default device store.
-     * 
-     @code
-        MyConnectableDeviceStore myDeviceStore = new MyConnectableDeviceStore();
-        DiscoveryManager.init(getApplicationContext(), myDeviceStore);
-     @endcode
+     *
+     * @code MyConnectableDeviceStore myDeviceStore = new MyConnectableDeviceStore();
+     * DiscoveryManager.init(getApplicationContext(), myDeviceStore);
+     * @endcode
      */
     public static synchronized void init(Context context, ConnectableDeviceStore connectableDeviceStore) {
         instance = new DiscoveryManager(context, connectableDeviceStore);
@@ -164,6 +158,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     // @cond INTERNAL
+
     /**
      * Create a new instance of DiscoveryManager.
      * Direct use of this constructor is not recommended. In most cases,
@@ -197,52 +192,52 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         capabilityFilters = new ArrayList<CapabilityFilter>();
         pairingLevel = PairingLevel.OFF;
 
-        receiver = new BroadcastReceiver() { 
+        receiver = new BroadcastReceiver() {
 
-            @Override 
-            public void onReceive(Context context, Intent intent) { 
+            @Override
+            public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
 
                 if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
                     NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
 
                     switch (networkInfo.getState()) {
-                    case CONNECTED:
-                        if (mSearching) {
-                            for (DiscoveryProvider provider : discoveryProviders) {
-                                provider.restart();
+                        case CONNECTED:
+                            if (mSearching) {
+                                for (DiscoveryProvider provider : discoveryProviders) {
+                                    provider.restart();
+                                }
                             }
-                        }
 
-                        break;
+                            break;
 
-                    case DISCONNECTED:
-                        Log.w("Connect SDK", "Network connection is disconnected"); 
+                        case DISCONNECTED:
+                            Log.w("Connect SDK", "Network connection is disconnected");
 
-                        for (DiscoveryProvider provider : discoveryProviders) {
-                            provider.reset();
-                        }
+                            for (DiscoveryProvider provider : discoveryProviders) {
+                                provider.reset();
+                            }
 
-                        allDevices.clear();
+                            allDevices.clear();
 
-                        for (ConnectableDevice device: compatibleDevices.values()) {
-                            handleDeviceLoss(device);
-                        }
-                        compatibleDevices.clear();
+                            for (ConnectableDevice device : compatibleDevices.values()) {
+                                handleDeviceLoss(device);
+                            }
+                            compatibleDevices.clear();
 
-                        break;
+                            break;
 
-                    case CONNECTING:
-                        break;
-                    case DISCONNECTING:
-                        break;
-                    case SUSPENDED:
-                        break;
-                    case UNKNOWN:
-                        break;
+                        case CONNECTING:
+                            break;
+                        case DISCONNECTING:
+                            break;
+                        case SUSPENDED:
+                            break;
+                        case UNKNOWN:
+                            break;
                     }
                 }
-            } 
+            }
         };
 
         registerBroadcastReceiver();
@@ -269,12 +264,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Listener which should receive discovery updates. It is not necessary to set this listener property unless you are implementing your own device picker. Connect SDK provides a default DevicePicker which acts as a DiscoveryManagerListener, and should work for most cases.
-     *
+     * <p/>
      * If you have provided a capabilityFilters array, the listener will only receive update messages for ConnectableDevices which satisfy at least one of the CapabilityFilters. If no capabilityFilters array is provided, the listener will receive update messages for all ConnectableDevice objects that are discovered.
      */
     public void addListener(DiscoveryManagerListener listener) {
         // notify listener of all devices so far
-        for (ConnectableDevice device: compatibleDevices.values()) {
+        for (ConnectableDevice device : compatibleDevices.values()) {
             listener.onDeviceAdded(this, device);
         }
         discoveryListeners.add(listener);
@@ -287,20 +282,20 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         discoveryListeners.remove(listener);
     }
 
-    public void setCapabilityFilters(CapabilityFilter ... capabilityFilters) {
+    public void setCapabilityFilters(CapabilityFilter... capabilityFilters) {
         setCapabilityFilters(Arrays.asList(capabilityFilters));
     }
 
     public void setCapabilityFilters(List<CapabilityFilter> capabilityFilters) {
         this.capabilityFilters = capabilityFilters;
 
-        for (ConnectableDevice device: compatibleDevices.values()) {
+        for (ConnectableDevice device : compatibleDevices.values()) {
             handleDeviceLoss(device);
         }
 
         compatibleDevices.clear();
 
-        for (ConnectableDevice device: allDevices.values()) {
+        for (ConnectableDevice device : allDevices.values()) {
             if (deviceIsCompatible(device)) {
                 compatibleDevices.put(device.getIpAddress(), device);
 
@@ -323,7 +318,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         boolean isCompatible = false;
 
-        for (CapabilityFilter filter: this.capabilityFilters) {
+        for (CapabilityFilter filter : this.capabilityFilters) {
             if (device.hasCapabilities(filter.capabilities)) {
                 isCompatible = true;
                 break;
@@ -336,18 +331,18 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Registers a commonly-used set of DeviceServices with DiscoveryManager. This method will be called on first call of startDiscovery if no DeviceServices have been registered.
-     *
+     * <p/>
      * - CastDiscoveryProvider
-     *   + CastService
+     * + CastService
      * - SSDPDiscoveryProvider
-     *   + DIALService
-     *   + DLNAService (limited to LG TVs, currently)
-     *   + NetcastTVService
-     *   + RokuService
-     *   + WebOSTVService
-     *   + MultiScreenService
+     * + DIALService
+     * + DLNAService (limited to LG TVs, currently)
+     * + NetcastTVService
+     * + RokuService
+     * + WebOSTVService
+     * + MultiScreenService
      * - ZeroconfDiscoveryProvider
-     *   + AirPlayService
+     * + AirPlayService
      */
     @SuppressWarnings("unchecked")
     public void registerDefaultDeviceTypes() {
@@ -356,8 +351,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
-            try { 
-                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
+            try {
+                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>) Class.forName(value));
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -367,7 +362,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     /**
      * Registers a DeviceService with DiscoveryManager and tells it which DiscoveryProvider to use to find it. Each DeviceService has a JSONObject of discovery parameters that its DiscoveryProvider will use to find it.
      *
-     * @param deviceClass Class for object that should be instantiated when DeviceService is found
+     * @param deviceClass    Class for object that should be instantiated when DeviceService is found
      * @param discoveryClass Class for object that should discover this DeviceService. If a DiscoveryProvider of this class already exists, then the existing DiscoveryProvider will be used.
      */
     public void registerDeviceService(Class<? extends DeviceService> deviceClass, Class<? extends DiscoveryProvider> discoveryClass) {
@@ -423,7 +418,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     /**
      * Unregisters a DeviceService with DiscoveryManager. If no other DeviceServices are set to being discovered with the associated DiscoveryProvider, then that DiscoveryProvider instance will be stopped and shut down.
      *
-     * @param deviceClass Class for DeviceService that should no longer be discovered
+     * @param deviceClass    Class for DeviceService that should no longer be discovered
      * @param discoveryClass Class for DiscoveryProvider that is discovering DeviceServices of deviceClass type
      */
     public void unregisterDeviceService(Class<?> deviceClass, Class<?> discoveryClass) {
@@ -438,14 +433,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         try {
             DiscoveryProvider discoveryProvider = null;
 
-            for (DiscoveryProvider dp: discoveryProviders) {
+            for (DiscoveryProvider dp : discoveryProviders) {
                 if (dp.getClass().isAssignableFrom(discoveryClass)) {
                     discoveryProvider = dp;
                     break;
                 }
             }
 
-            if (discoveryProvider == null) 
+            if (discoveryProvider == null)
                 return;
 
             Method m = deviceClass.getMethod("discoveryFilter");
@@ -522,7 +517,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Stop scanning for devices.
-     *
+     * <p/>
      * This method will be called when your app enters a background state. When your app resumes, startDiscovery will be called.
      */
     public void stop() {
@@ -542,11 +537,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * ConnectableDeviceStore object which loads & stores references to all discovered devices. Pairing codes/keys, SSL certificates, recent access times, etc are kept in the device store.
-     *
+     * <p/>
      * ConnectableDeviceStore is a protocol which may be implemented as needed. A default implementation, DefaultConnectableDeviceStore, exists for convenience and will be used if no other device store is provided.
-     *
+     * <p/>
      * In order to satisfy user privacy concerns, you should provide a UI element in your app which exposes the ConnectableDeviceStore removeAll method.
-     *
+     * <p/>
      * To disable the ConnectableDeviceStore capabilities of Connect SDK, set this value to nil. This may be done at the time of instantiation with `DiscoveryManager.init(context, null);`.
      */
     public void setConnectableDeviceStore(ConnectableDeviceStore connectableDeviceStore) {
@@ -555,11 +550,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * ConnectableDeviceStore object which loads & stores references to all discovered devices. Pairing codes/keys, SSL certificates, recent access times, etc are kept in the device store.
-     *
+     * <p/>
      * ConnectableDeviceStore is a protocol which may be implemented as needed. A default implementation, DefaultConnectableDeviceStore, exists for convenience and will be used if no other device store is provided.
-     *
+     * <p/>
      * In order to satisfy user privacy concerns, you should provide a UI element in your app which exposes the ConnectableDeviceStore removeAll method.
-     *
+     * <p/>
      * To disable the ConnectableDeviceStore capabilities of Connect SDK, set this value to nil. This may be done at the time of instantiation with `DiscoveryManager.init(context, null);`.
      */
     public ConnectableDeviceStore getConnectableDeviceStore() {
@@ -568,12 +563,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     // @cond INTERNAL
     public void handleDeviceAdd(ConnectableDevice device) {
-        if (!deviceIsCompatible(device)) 
+        if (!deviceIsCompatible(device))
             return;
 
         compatibleDevices.put(device.getIpAddress(), device);
 
-        for (DiscoveryManagerListener listenter: discoveryListeners) {
+        for (DiscoveryManagerListener listenter : discoveryListeners) {
             listenter.onDeviceAdded(this, device);
         }
     }
@@ -581,22 +576,20 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     public void handleDeviceUpdate(ConnectableDevice device) {
         if (deviceIsCompatible(device)) {
             if (device.getIpAddress() != null && compatibleDevices.containsKey(device.getIpAddress())) {
-                for (DiscoveryManagerListener listenter: discoveryListeners) {
+                for (DiscoveryManagerListener listenter : discoveryListeners) {
                     listenter.onDeviceUpdated(this, device);
                 }
-            }
-            else {
+            } else {
                 handleDeviceAdd(device);
             }
-        }
-        else {
+        } else {
             compatibleDevices.remove(device.getIpAddress());
             handleDeviceLoss(device);
         }
     }
 
     public void handleDeviceLoss(ConnectableDevice device) {
-        for (DiscoveryManagerListener listenter: discoveryListeners) {
+        for (DiscoveryManagerListener listenter : discoveryListeners) {
             listenter.onDeviceRemoved(this, device);
         }
 
@@ -611,7 +604,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         if (modelName != null && modelName.toUpperCase(Locale.US).equals("LG TV")) {
             if (modelDescription != null && !(modelDescription.toUpperCase(Locale.US).contains("WEBOS"))) {
-                if (description.getServiceID().equals(NetcastTVService.ID)); {
+                if (description.getServiceID().equals(NetcastTVService.ID)) ;
+                {
                     isNetcastTV = true;
                 }
             }
@@ -638,9 +632,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
-     *
+     * <p/>
      * If pairingLevel is set to ConnectableDevicePairingLevelOn, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
-     *
+     * <p/>
      * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
      */
     public PairingLevel getPairingLevel() {
@@ -649,9 +643,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
-     *
+     * <p/>
      * If pairingLevel is set to ConnectableDevicePairingLevelOn, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
-     *
+     * <p/>
      * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
      */
     public void setPairingLevel(PairingLevel pairingLevel) {
@@ -688,10 +682,21 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         handleDeviceUpdate(device);
     }
 
-    @Override public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) { } 
-    @Override public void onDeviceDisconnected(ConnectableDevice device) { } 
-    @Override public void onDeviceReady(ConnectableDevice device) { } 
-    @Override public void onPairingRequired(ConnectableDevice device, DeviceService service, PairingType pairingType) { } 
+    @Override
+    public void onConnectionFailed(ConnectableDevice device, ServiceCommandError error) {
+    }
+
+    @Override
+    public void onDeviceDisconnected(ConnectableDevice device) {
+    }
+
+    @Override
+    public void onDeviceReady(ConnectableDevice device) {
+    }
+
+    @Override
+    public void onPairingRequired(ConnectableDevice device, DeviceService service, PairingType pairingType) {
+    }
 
     @Override
     public void onServiceAdded(DiscoveryProvider provider, ServiceDescription serviceDescription) {
@@ -724,7 +729,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         device.setLastDetection(Util.getTime());
         device.setLastKnownIPAddress(serviceDescription.getIpAddress());
         //  TODO: Implement the currentSSID Property in DiscoveryManager
-//        device.setLastSeenOnWifi(currentSSID);
+//		device.setLastSeenOnWifi(currentSSID);
 
         addServiceDescriptionToDevice(serviceDescription, device);
 
@@ -741,7 +746,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             handleDeviceAdd(device);
         else
             handleDeviceUpdate(device);
-    } 
+    }
 
     @Override
     public void onServiceRemoved(DiscoveryProvider provider, ServiceDescription serviceDescription) {
@@ -756,15 +761,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         ConnectableDevice device = allDevices.get(serviceDescription.getIpAddress());
 
-        if (device != null) { 
+        if (device != null) {
             device.removeServiceWithId(serviceDescription.getServiceID());
 
             if (device.getServices().isEmpty()) {
                 allDevices.remove(serviceDescription.getIpAddress());
 
                 handleDeviceLoss(device);
-            }
-            else {
+            } else {
                 handleDeviceUpdate(device);
             }
         }
@@ -773,7 +777,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     @Override
     public void onServiceDiscoveryFailed(DiscoveryProvider provider, ServiceCommandError error) {
         Log.w("Connect SDK", "DiscoveryProviderListener, Service Discovery Failed");
-    } 
+    }
 
     @SuppressWarnings("unchecked")
     public void addServiceDescriptionToDevice(ServiceDescription desc, ConnectableDevice device) {
@@ -790,12 +794,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         } else if (deviceServiceClass == NetcastTVService.class) {
             if (!isNetcast(desc))
                 return;
-        } 
+        }
 
         ServiceConfig serviceConfig = null;
 
         if (connectableDeviceStore != null)
-            serviceConfig = connectableDeviceStore.getServiceConfig(desc.getUUID());
+            serviceConfig = connectableDeviceStore.getServiceConfig(desc);
 
         if (serviceConfig == null)
             serviceConfig = new ServiceConfig(desc);
@@ -823,7 +827,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
                 if (alreadyAddedService != null)
                     alreadyAddedService.setServiceDescription(desc);
-
+git 
                 return;
             }
 
