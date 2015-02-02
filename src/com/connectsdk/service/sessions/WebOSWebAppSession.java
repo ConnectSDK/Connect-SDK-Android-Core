@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
+import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
@@ -240,7 +241,7 @@ public class WebOSWebAppSession extends WebAppSession {
         }
 
         @Override
-        public void onBeforeRegister() {
+        public void onBeforeRegister(PairingType pairingType) {
         }
     };
 

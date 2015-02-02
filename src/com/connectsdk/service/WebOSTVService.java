@@ -374,7 +374,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         }
 
         @Override
-        public void onBeforeRegister() {
+        public void onBeforeRegister(final PairingType pairingType) {
             if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
                 Util.runOnUI(new Runnable() {
 
@@ -2952,7 +2952,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return true;
     }
 
-    @Override public void sendPairingKey(String pairingKey) { }
+    @Override
+    public void sendPairingKey(String pairingKey) {
+        if (this.socket != null) {
+            this.socket.sendPairingKey(pairingKey);
+        }
+    }
 
     public static interface ServiceInfoListener extends ResponseListener<JSONArray> { }
 
