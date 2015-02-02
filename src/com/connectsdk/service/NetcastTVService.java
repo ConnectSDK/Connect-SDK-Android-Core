@@ -127,7 +127,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         PAIRED,
         DISCONNECTING
     };
-<<<<<<< HEAD
+
 
     HttpClient httpClient;
     NetcastHttpServer httpServer;

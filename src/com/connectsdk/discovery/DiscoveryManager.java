@@ -827,7 +827,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
                 if (alreadyAddedService != null)
                     alreadyAddedService.setServiceDescription(desc);
-git 
+
                 return;
             }
 
