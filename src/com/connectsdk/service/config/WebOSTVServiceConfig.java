@@ -74,6 +74,7 @@ public class WebOSTVServiceConfig extends ServiceConfig {
 
     public void setClientKey(String clientKey) {
         this.clientKey = clientKey;
+        notifyUpdate();
     }
 
     public X509Certificate getServerCertificate() {
@@ -82,10 +83,12 @@ public class WebOSTVServiceConfig extends ServiceConfig {
 
     public void setServerCertificate(X509Certificate cert) {
         this.cert = cert;
+        notifyUpdate();
     }
 
     public void setServerCertificate(String cert) {
         this.cert = loadCertificateFromPEM(cert);
+        notifyUpdate();
     }
 
     public String getServerCertificateInString() {

@@ -795,7 +795,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         ServiceConfig serviceConfig = null;
 
         if (connectableDeviceStore != null)
-            serviceConfig = connectableDeviceStore.getServiceConfig(desc.getUUID());
+            serviceConfig = connectableDeviceStore.getServiceConfig(desc);
 
         if (serviceConfig == null)
             serviceConfig = new ServiceConfig(desc);

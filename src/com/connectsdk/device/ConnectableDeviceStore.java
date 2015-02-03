@@ -23,6 +23,7 @@ package com.connectsdk.device;
 import org.json.JSONObject;
 
 import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
 
 /**
  * ConnectableDeviceStore is a interface which can be implemented to save key information about ConnectableDevices that have been connected to.  Any class which implements this interface can be used as DiscoveryManager's deviceStore.
@@ -78,11 +79,11 @@ public interface ConnectableDeviceStore {
     /**
      * Gets a ServcieConfig object for a provided UUID.  This is used by DiscoveryManager to retain crucial service information between sessions (pairing code, etc).
      * 
-     * @param uuid Unique ID for the service
+     * @param serviceDescription Description for the service
      * 
-     * @return ServiceConfig object if matching UUID was found, otherwise will return null
+     * @return ServiceConfig object if matching description was found, otherwise will return null
      */
-    public ServiceConfig getServiceConfig(String uuid);
+    public ServiceConfig getServiceConfig(ServiceDescription serviceDescription);
 
     /**
      * Clears out the ConnectableDeviceStore, removing all records.
