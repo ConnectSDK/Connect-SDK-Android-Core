@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -471,72 +472,124 @@ public class ConnectableDevice implements DeviceServiceListener {
         return hasCaps;
     }
 
-    /** Accessor for highest priority Launcher object */
+    /**
+     * Accessor for highest priority Launcher object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public Launcher getLauncher() {
-        return getApiController(Launcher.class, "getLauncherCapabilityLevel");
+        return getCapability(Launcher.class);
     }
 
-    /** Accessor for highest priority MediaPlayer object */
+    /**
+     * Accessor for highest priority MediaPlayer object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public MediaPlayer getMediaPlayer() {
-        return getApiController(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
+        return getCapability(MediaPlayer.class);
     }
 
-    /** Accessor for highest priority MediaControl object */
+    /**
+     * Accessor for highest priority MediaControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public MediaControl getMediaControl() {
-        return getApiController(MediaControl.class, "getMediaControlCapabilityLevel");
+        return getCapability(MediaControl.class);
     }
 
-    /** Accessor for highest priority PlaylistControl object */
+    /**
+     * Accessor for highest priority PlaylistControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public PlaylistControl getPlaylistControl() {
-        return getApiController(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
+        return getCapability(PlaylistControl.class);
     }
 
-    /** Accessor for highest priority VolumeControl object */
+    /**
+     * Accessor for highest priority VolumeControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public VolumeControl getVolumeControl() {
-        return getApiController(VolumeControl.class, "getVolumeControlCapabilityLevel");
+        return getCapability(VolumeControl.class);
     }
 
-    /** Accessor for highest priority WebAppLauncher object */
+    /**
+     * Accessor for highest priority WebAppLauncher object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public WebAppLauncher getWebAppLauncher() {
-        return getApiController(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
+        return getCapability(WebAppLauncher.class);
     }
 
-    /** Accessor for highest priority TVControl object */
+    /**
+     * Accessor for highest priority TVControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public TVControl getTVControl() {
-        return getApiController(TVControl.class, "getTVControlCapabilityLevel");
+        return getCapability(TVControl.class);
     }
 
-    /** Accessor for highest priority ToastControl object */
+    /**
+     * Accessor for highest priority ToastControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public ToastControl getToastControl() {
-        return getApiController(ToastControl.class, "getToastControlCapabilityLevel");
+        return getCapability(ToastControl.class);
     }
 
-    /** Accessor for highest priority TextInputControl object */
+    /**
+     * Accessor for highest priority TextInputControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public TextInputControl getTextInputControl() {
-        return getApiController(TextInputControl.class, "getTextInputControlCapabilityLevel");
+        return getCapability(TextInputControl.class);
     }
 
-    /** Accessor for highest priority MouseControl object */
+    /**
+     * Accessor for highest priority MouseControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public MouseControl getMouseControl() {
-        return getApiController(MouseControl.class, "getMouseControlCapabilityLevel");
+        return getCapability(MouseControl.class);
     }
 
-    /** Accessor for highest priority ExternalInputControl object */
+    /**
+     * Accessor for highest priority ExternalInputControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public ExternalInputControl getExternalInputControl() {
-        return getApiController(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
+        return getCapability(ExternalInputControl.class);
     }
 
-    /** Accessor for highest priority PowerControl object */
+    /**
+     * Accessor for highest priority PowerLauncher object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public PowerControl getPowerControl() {
-        return getApiController(PowerControl.class, "getPowerControlCapabilityLevel");
+        return getCapability(PowerControl.class);
     }
 
-    /** Accessor for highest priority KeyControl object */
+    /**
+     * Accessor for highest priority KeyControl object
+     * @deprecated Use getCapability method instead
+     */
+    @Deprecated
     public KeyControl getKeyControl() {
-        return getApiController(KeyControl.class, "getKeyControlCapabilityLevel");
+        return getCapability(KeyControl.class);
     }
 
-    <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
+    private <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
         T foundController = null;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
@@ -571,6 +624,29 @@ public class ConnectableDevice implements DeviceServiceListener {
         }
 
         return foundController;
+    }
+
+    /**
+     * get the highest priority capability of a service
+     * @param clazz
+     * @return
+     */
+    public <T extends CapabilityMethods> T getCapability(Class<T> clazz) {
+        Map<Class, String> methods = new HashMap<Class, String>();
+        methods.put(Launcher.class, "getLauncherCapabilityLevel");
+        methods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
+        methods.put(MediaControl.class, "getMediaControlCapabilityLevel");
+        methods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
+        methods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
+        methods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
+        methods.put(TVControl.class, "getTVControlCapabilityLevel");
+        methods.put(ToastControl.class, "getToastControlCapabilityLevel");
+        methods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
+        methods.put(MouseControl.class, "getMouseControlCapabilityLevel");
+        methods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
+        methods.put(PowerControl.class, "getPowerControlCapabilityLevel");
+        methods.put(KeyControl.class, "getKeyControlCapabilityLevel");
+        return getApiController(clazz, methods.get(clazz));
     }
 
     /** 
