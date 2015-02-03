@@ -128,6 +128,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         DISCONNECTING
     };
 
+
     HttpClient httpClient;
     NetcastHttpServer httpServer;
 
@@ -391,6 +392,273 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
 
     /******************
+=======
+	
+	HttpClient httpClient;
+	NetcastHttpServer httpServer;
+	
+	DLNAService dlnaService;
+	DIALService dialService;
+	
+	LaunchSession inputPickerSession;
+	
+	List<AppInfo> applications;
+	List<URLServiceSubscription<?>> subscriptions;
+	StringBuilder keyboardString;
+	
+	State state = State.INITIAL;
+	
+	PointF mMouseDistance;
+	Boolean mMouseIsMoving;
+    
+	public NetcastTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
+		super(serviceDescription, serviceConfig);
+		
+		if (serviceDescription.getPort() != 8080)
+			serviceDescription.setPort(8080);
+		
+		applications = new ArrayList<AppInfo>();
+		subscriptions = new ArrayList<URLServiceSubscription<?>>();
+
+		keyboardString = new StringBuilder();
+		
+		httpClient = new DefaultHttpClient();
+		ClientConnectionManager mgr = httpClient.getConnectionManager();
+		HttpParams params = httpClient.getParams();
+		httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
+		
+		state = State.INITIAL;
+		
+		inputPickerSession = null;
+	}
+	
+	public static DiscoveryFilter discoveryFilter() {
+		return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
+	}
+	
+	@Override
+	public void setServiceDescription(ServiceDescription serviceDescription) {
+		super.setServiceDescription(serviceDescription);
+		
+		if (serviceDescription.getPort() != 8080)
+			serviceDescription.setPort(8080);
+	}
+	
+	@Override
+	public void connect() {
+		if (state != State.INITIAL) {
+			Log.w("Connect SDK", "already connecting; not trying to connect again: " + state);
+			return; // don't try to connect again while connected
+		}
+		
+		if (!(serviceConfig instanceof NetcastTVServiceConfig)) {
+			serviceConfig = new NetcastTVServiceConfig(serviceConfig.getServiceUUID());
+            serviceConfig.setListener(DiscoveryManager.getInstance());
+		}
+		
+		if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+			if (((NetcastTVServiceConfig) serviceConfig).getPairingKey() != null 
+					&& ((NetcastTVServiceConfig)serviceConfig).getPairingKey().length() != 0) {
+				
+				sendPairingKey(((NetcastTVServiceConfig) serviceConfig).getPairingKey());
+			}
+			else {
+				showPairingKeyOnTV();
+			}
+			
+			Util.runInBackground(new Runnable() {
+				
+				@Override
+				public void run() {
+					httpServer = new NetcastHttpServer(NetcastTVService.this, getServiceDescription().getPort(), mTextChangedListener);
+					httpServer.setSubscriptions(subscriptions);
+					httpServer.start();
+				}
+			});
+		} else {
+			hConnectSuccess();
+		}
+	}
+	
+	@Override
+	public void disconnect() {
+		endPairing(null);
+
+		connected = false;
+		
+		if (mServiceReachability != null)
+			mServiceReachability.stop();
+		
+		Util.runOnUI(new Runnable() {
+			
+			@Override
+			public void run() {
+				if (listener != null)
+					listener.onDisconnect(NetcastTVService.this, null);
+			}
+		});
+		
+		if (httpServer != null) {
+			httpServer.stop();
+			httpServer = null;
+		}
+		
+		state = State.INITIAL;
+	}
+	
+	@Override
+	public boolean isConnectable() {
+		return true;
+	}
+	
+	@Override
+	public boolean isConnected() {
+		return connected;
+	}
+	
+	private void hConnectSuccess() {
+	//  TODO:  Fix this for Netcast.  Right now it is using the InetAddress reachable function.  Need to use an HTTP Method.
+//		mServiceReachability = DeviceServiceReachability.getReachability(serviceDescription.getIpAddress(), this);
+//		mServiceReachability.start();
+		
+		connected = true;
+
+		// Pairing was successful, so report connected and ready
+		reportConnected(true);
+	}
+	
+	@Override
+	public void onLoseReachability(DeviceServiceReachability reachability) {
+		if (connected) {
+			disconnect();
+		} else {
+			if (mServiceReachability != null)
+				mServiceReachability.stop();
+		}
+	}
+	
+	public void hostByeBye () {
+		disconnect();
+	}
+	
+	//============= Auth ==============================
+	public void showPairingKeyOnTV() {
+		state = State.CONNECTING;
+		
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+			
+			@Override
+			public void onSuccess(Object response) {
+				if (listener != null)
+					listener.onPairingRequired(NetcastTVService.this, PairingType.PIN_CODE, null);
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+				state = State.INITIAL;
+
+				if (listener != null)
+					listener.onConnectionFailure(NetcastTVService.this, error);
+			}
+		};
+		
+		String requestURL = getUDAPRequestURL(UDAP_PATH_PAIRING);
+		
+		Map <String,String> params = new HashMap<String,String>();
+		params.put("name", "showKey");
+		
+		String httpMessage = getUDAPMessageBody(UDAP_API_PAIRING, params);
+		
+		ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL, httpMessage, responseListener);
+		command.send();
+	}
+	
+	@Override
+	public void cancelPairing() {
+		removePairingKeyOnTV();
+		state = State.INITIAL;
+	}
+	
+	public void removePairingKeyOnTV() {
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+			
+			@Override
+			public void onSuccess(Object response) {
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+			}
+		};
+		
+		String requestURL = getUDAPRequestURL(UDAP_PATH_PAIRING);
+		
+		Map <String,String> params = new HashMap<String,String>();
+		params.put("name", "CancelAuthKeyReq");
+		
+		String httpMessage = getUDAPMessageBody(UDAP_API_PAIRING, params);
+		
+		ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL, httpMessage, responseListener);
+		command.send();
+	}
+	
+	@Override
+	public void sendPairingKey(final String pairingKey) {
+		state = State.PAIRING;
+
+		if (!(serviceConfig instanceof NetcastTVServiceConfig)) {
+			serviceConfig = new NetcastTVServiceConfig(serviceConfig.getServiceUUID());
+		}
+		
+		ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+			
+			@Override
+			public void onSuccess(Object response) {
+				state = State.PAIRED;
+				
+				((NetcastTVServiceConfig)serviceConfig).setPairingKey(pairingKey);
+				
+        		hConnectSuccess();
+			}
+			
+			@Override
+			public void onError(ServiceCommandError error) {
+				state = State.INITIAL;
+
+				if (listener != null)
+					listener.onConnectionFailure(NetcastTVService.this, error);
+			}
+		};
+		
+		String requestURL = getUDAPRequestURL(UDAP_PATH_PAIRING);
+		
+		Map <String,String> params = new HashMap<String,String>();
+		params.put("name", "hello");
+		params.put("value", pairingKey);
+		params.put("port", String.valueOf(serviceDescription.getPort()));
+		
+		String httpMessage = getUDAPMessageBody(UDAP_API_PAIRING, params);
+		
+		ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL, httpMessage, responseListener);
+		command.send();
+	}
+	
+	private void endPairing(ResponseListener<Object> listener) {
+		String requestURL = getUDAPRequestURL(UDAP_PATH_PAIRING);
+		
+		Map <String,String> params = new HashMap<String,String>();
+		params.put("name", "byebye");
+		params.put("port", String.valueOf(serviceDescription.getPort()));
+		
+		String httpMessage = getUDAPMessageBody(UDAP_API_PAIRING, params);
+		
+		ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL, httpMessage, listener);
+		command.send();
+	}
+	
+	
+	/******************
+>>>>>>> Fix updating services in the storage
     LAUNCHER
      *****************/
     public Launcher getLauncher() {

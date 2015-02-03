@@ -74,6 +74,7 @@ public class WebOSTVServiceConfig extends ServiceConfig {
 
     public void setClientKey(String clientKey) {
         this.clientKey = clientKey;
+        notifyUpdate();
     }
 
     public X509Certificate getServerCertificate() {
@@ -82,10 +83,12 @@ public class WebOSTVServiceConfig extends ServiceConfig {
 
     public void setServerCertificate(X509Certificate cert) {
         this.cert = cert;
+        notifyUpdate();
     }
 
     public void setServerCertificate(String cert) {
         this.cert = loadCertificateFromPEM(cert);
+        notifyUpdate();
     }
 
     public String getServerCertificateInString() {
@@ -94,7 +97,7 @@ public class WebOSTVServiceConfig extends ServiceConfig {
 
     private String exportCertificateToPEM(X509Certificate cert) {
         try {
-            if (cert == null) 
+            if (cert == null)
                 return null;
             return Base64.encodeToString(cert.getEncoded(), Base64.DEFAULT);
         } catch (CertificateEncodingException e) {
@@ -109,7 +112,7 @@ public class WebOSTVServiceConfig extends ServiceConfig {
             certFactory = CertificateFactory.getInstance("X.509");
             ByteArrayInputStream inputStream = new ByteArrayInputStream(pemString.getBytes("US-ASCII"));
 
-            return (X509Certificate)certFactory.generateCertificate(inputStream);
+            return (X509Certificate) certFactory.generateCertificate(inputStream);
         } catch (CertificateException e) {
             e.printStackTrace();
             return null;

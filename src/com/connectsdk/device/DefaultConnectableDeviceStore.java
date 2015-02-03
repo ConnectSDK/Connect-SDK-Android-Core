@@ -36,10 +36,12 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Environment;
+import android.util.Log;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
 
 public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     // @cond INTERNAL
@@ -76,11 +78,17 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
     // @endcond
 
-    /** Date (in seconds from 1970) that the ConnectableDeviceStore was created. */
+    /**
+     * Date (in seconds from 1970) that the ConnectableDeviceStore was created.
+     */
     public long created;
-    /** Date (in seconds from 1970) that the ConnectableDeviceStore was last updated. */
+    /**
+     * Date (in seconds from 1970) that the ConnectableDeviceStore was last updated.
+     */
     public long updated;
-    /** Current version of the ConnectableDeviceStore, may be necessary for migrations */
+    /**
+     * Current version of the ConnectableDeviceStore, may be necessary for migrations
+     */
     public int version;
 
     /**
@@ -97,12 +105,11 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
     private boolean waitToWrite = false;
 
-    public DefaultConnectableDeviceStore(Context context) { 
+    public DefaultConnectableDeviceStore(Context context) {
         String dirPath;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        }
-        else {
+        } else {
             dirPath = Environment.MEDIA_UNMOUNTED;
         }
         fileFullPath = dirPath + DIRPATH + FILENAME;
@@ -176,7 +183,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                 JSONObject serviceInfo = service.toJSONObject();
 
                 if (serviceInfo != null)
-                    services.put(service.getServiceDescription().getUUID(), serviceInfo);
+                    services.put(service.getServiceDescription().getServiceID(), serviceInfo);
             }
 
             storedDevice.put(ConnectableDevice.KEY_SERVICES, services);
@@ -255,15 +262,15 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     }
 
     @Override
-    public ServiceConfig getServiceConfig(String uuid) {
-        if (uuid == null || uuid.length() == 0)
+    public ServiceConfig getServiceConfig(ServiceDescription serviceDescription) {
+        if (serviceDescription == null)
             return null;
 
-        JSONObject device = getStoredDevice(uuid);
+        JSONObject device = getStoredDevice(serviceDescription.getUUID());
         if (device != null) {
             JSONObject services = device.optJSONObject(ConnectableDevice.KEY_SERVICES);
             if (services != null) {
-                JSONObject service = services.optJSONObject(uuid);
+                JSONObject service = services.optJSONObject(serviceDescription.getServiceID());
                 if (service != null) {
                     JSONObject serviceConfigInfo = service.optJSONObject(DeviceService.KEY_CONFIG);
                     if (serviceConfigInfo != null) {

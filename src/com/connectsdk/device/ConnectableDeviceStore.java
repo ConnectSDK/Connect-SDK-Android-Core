@@ -23,20 +23,21 @@ package com.connectsdk.device;
 import org.json.JSONObject;
 
 import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
 
 /**
  * ConnectableDeviceStore is a interface which can be implemented to save key information about ConnectableDevices that have been connected to.  Any class which implements this interface can be used as DiscoveryManager's deviceStore.
- *
+ * <p/>
  * A default implementation, DefaultConnectableDeviceStore, will be used by DiscoveryManager if no other ConnectableDeviceStore is provided to DiscoveryManager when startDiscovery is called.
- *
+ * <p/>
  * ###Privacy Considerations
  * If you chose to implement ConnectableDeviceStore, it is important to keep your users' privacy in mind.
  * - There should be UI elements in your app to
- *   + completely disable ConnectableDeviceStore
- *   + purge all data from ConnectableDeviceStore (removeAll)
+ * + completely disable ConnectableDeviceStore
+ * + purge all data from ConnectableDeviceStore (removeAll)
  * - Your ConnectableDeviceStore implementation should
- *   + avoid tracking too much data (indefinitely storing all discovered devices)
- *  + periodically remove ConnectableDevices from the ConnectableDeviceStore if they haven't been used/connected in X amount of time
+ * + avoid tracking too much data (indefinitely storing all discovered devices)
+ * + periodically remove ConnectableDevices from the ConnectableDeviceStore if they haven't been used/connected in X amount of time
  */
 public interface ConnectableDeviceStore {
 
@@ -68,24 +69,23 @@ public interface ConnectableDeviceStore {
 
     /**
      * Gets a ConnectableDevice object for a provided id.  The id may be for the ConnectableDevice object or any of the DeviceServices.
-     * 
+     *
      * @param uuid Unique ID for a ConnectableDevice or any of its DeviceService objects
-     * 
      * @return ConnectableDevice object if a matching uuit was found, otherwise will return null
      */
     public ConnectableDevice getDevice(String uuid);
 
     /**
      * Gets a ServcieConfig object for a provided UUID.  This is used by DiscoveryManager to retain crucial service information between sessions (pairing code, etc).
-     * 
-     * @param uuid Unique ID for the service
-     * 
+     *
+     * @param serviceDescription Unique ID for the service
      * @return ServiceConfig object if matching UUID was found, otherwise will return null
      */
-    public ServiceConfig getServiceConfig(String uuid);
+    public ServiceConfig getServiceConfig(ServiceDescription serviceDescription);
 
     /**
      * Clears out the ConnectableDeviceStore, removing all records.
      */
     public void removeAll();
+
 }
