@@ -41,13 +41,14 @@ import android.view.WindowManager;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
-import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
 
 @SuppressLint("DefaultLocale")
@@ -429,7 +430,24 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             }
 
             @Override
-            public void onSuccess(Object object) { }
+            public void onSuccess(Object object) {
+                if (object instanceof JSONObject) {
+                    PairingType pairingType = PairingType.NONE;
+                    
+                    JSONObject jsonObj = (JSONObject)object;
+                    String type = jsonObj.optString("pairingType");
+                    
+                    if (type.equalsIgnoreCase("PROMPT")) {
+                        pairingType = PairingType.FIRST_SCREEN;
+                    }
+                    else if (type.equalsIgnoreCase("PIN")) {
+                        pairingType = PairingType.PIN_CODE;
+                    }
+                    
+                    if (mListener != null)
+                        mListener.onBeforeRegister(pairingType);
+                }
+            }
         };
 
         int dataId = this.nextRequestId++;
@@ -451,10 +469,6 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             if (((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey() != null) {
                 payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
             }
-            else {
-                if (mListener != null)
-                    mListener.onBeforeRegister();
-            }
 
             if (manifest != null) {
                 payload.put("manifest", manifest);
@@ -465,6 +479,46 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
         requests.put(dataId, command);
 
+        sendMessage(headers, payload);
+    }
+    
+    public void sendPairingKey(String pairingKey) {
+        ResponseListener<Object> listener = new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                state = State.INITIAL;
+                
+                if (mListener != null)
+                    mListener.onFailWithError(error);
+            }
+
+            @Override
+            public void onSuccess(Object object) { }
+        };
+        
+        String uri = "ssap://pairing/setPin";
+
+        int dataId = this.nextRequestId++;
+        
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, null, null, listener);
+        command.setRequestId(dataId);
+        
+        JSONObject headers = new JSONObject();
+        JSONObject payload = new JSONObject();
+        
+        try {
+            headers.put("type", "request");
+            headers.put("id", dataId);
+            headers.put("uri", uri);
+            
+            payload.put("pin", pairingKey);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        requests.put(dataId, command);
+        
         sendMessage(headers, payload);
     }
 
@@ -787,7 +841,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         public void onCloseWithError(ServiceCommandError error);
         public void onFailWithError(ServiceCommandError error);
 
-        public void onBeforeRegister();
+        public void onBeforeRegister(PairingType pairingType);
         public void onRegistrationFailed(ServiceCommandError error);
         public Boolean onReceiveMessage(JSONObject message);
 
