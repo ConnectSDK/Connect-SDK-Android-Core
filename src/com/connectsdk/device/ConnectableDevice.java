@@ -38,6 +38,7 @@ import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.DeviceServiceListener;
+import com.connectsdk.service.DeviceService.PairingLevel;
 import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
@@ -777,6 +778,39 @@ public class ConnectableDevice implements DeviceServiceListener {
             this.id = java.util.UUID.randomUUID().toString();
 
         return this.id;
+    }
+    
+    /**
+     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
+     *
+     * If pairingLevel is set to PairingLevel.On, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
+     *
+     * If pairingLevel is set to PairingLevel.Off (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
+     */
+    public PairingLevel getPairingLevel() {
+        PairingLevel pairingLevel = PairingLevel.OFF;
+        
+        for (DeviceService service : getServices()) {
+            if (service.getPairingLevel() == PairingLevel.ON) {
+                pairingLevel = PairingLevel.ON;
+                break;
+            }
+        }
+        
+        return pairingLevel;
+    }
+
+    /**
+     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
+     *
+     * If pairingLevel is set to PairingLevel.On, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
+     *
+     * If pairingLevel is set to PairingLevel.Off (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
+     */
+    public void setPairingLevel(PairingLevel pairingLevel) {
+        for (DeviceService service : getServices()) {
+            service.setPairingLevel(pairingLevel);
+        }
     }
 
     // @cond INTERNAL

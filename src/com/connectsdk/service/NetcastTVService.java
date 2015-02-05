@@ -63,9 +63,9 @@ import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
-import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.DeviceService.PairingLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -190,7 +190,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             serviceConfig.setListener(DiscoveryManager.getInstance());
         }
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (getPairingLevel() == PairingLevel.ON) {
             if (((NetcastTVServiceConfig) serviceConfig).getPairingKey() != null 
                     && ((NetcastTVServiceConfig)serviceConfig).getPairingKey().length() != 0) {
 
@@ -1562,7 +1562,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
      *****************/
     @Override
     public MediaControl getMediaControl() {
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.OFF)
+        if (getPairingLevel() == PairingLevel.OFF)
             return this.getDLNAService();
         else
             return this;
@@ -2292,7 +2292,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (getPairingLevel() == PairingLevel.ON) {
             for (String capability : TextInputControl.Capabilities) { capabilities.add(capability); }
             for (String capability : MouseControl.Capabilities) { capabilities.add(capability); }
             for (String capability : KeyControl.Capabilities) { capabilities.add(capability); }

@@ -469,6 +469,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             if (((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey() != null) {
                 payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
             }
+            
+            if (mService.getPairingType() == PairingType.PIN_CODE) {
+                payload.put("pairingType", "PIN");
+            }
 
             if (manifest != null) {
                 payload.put("manifest", manifest);

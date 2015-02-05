@@ -44,10 +44,10 @@ import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.WebAppLauncher;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
-import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
@@ -73,6 +73,11 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         FIRST_SCREEN,
         PIN_CODE
     }
+    
+    public enum PairingLevel {
+        OFF,
+        ON
+    }
 
     // @cond INTERNAL
     public static final String KEY_CLASS = "class";
@@ -84,6 +89,9 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 
     protected DeviceServiceReachability mServiceReachability;
     protected boolean connected = false;
+    
+    PairingLevel pairingLevel = PairingLevel.OFF;
+
     // @endcond
 
     /**
@@ -596,6 +604,30 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     //  Unused by default.
     @Override public void onLoseReachability(DeviceServiceReachability reachability) { }
     // @endcond
+    
+    /**
+     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
+     *
+     * If pairingLevel is set to PairingLevel.On, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
+     *
+     * If pairingLevel is set to PairingLevel.Off (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
+     */
+    public PairingLevel getPairingLevel() {
+        return pairingLevel;
+    }
+
+    /**
+     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
+     *
+     * If pairingLevel is set to PairingLevel.On, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
+     *
+     * If pairingLevel is set to PairingLevel.Off (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
+     */
+    public void setPairingLevel(PairingLevel pairingLevel) {
+        this.pairingLevel = pairingLevel;
+        
+        updateCapabilities();
+    }
 
     public interface DeviceServiceListener {
 

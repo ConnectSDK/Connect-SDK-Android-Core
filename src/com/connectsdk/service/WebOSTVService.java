@@ -40,7 +40,6 @@ import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
-import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -258,7 +257,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public boolean isConnected() {
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (getPairingLevel() == PairingLevel.ON) {
             return this.socket != null && this.socket.isConnected() && (((WebOSTVServiceConfig)serviceConfig).getClientKey() != null);
         } else {
             return this.socket != null && this.socket.isConnected();
@@ -375,7 +374,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
         @Override
         public void onBeforeRegister(final PairingType pairingType) {
-            if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+            if (getPairingLevel() == PairingLevel.ON) {
                 Util.runOnUI(new Runnable() {
 
                     @Override
@@ -2733,12 +2732,20 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         if (socket != null)
             socket.unsubscribe(subscription);
     }
+    
+    public PairingType getPairingType() {
+        return pairingType;
+    }
+    
+    public void setPairingType(PairingType pairingType) {
+        this.pairingType = pairingType;
+    }
 
     @Override
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (getPairingLevel() == PairingLevel.ON) {
             for (String capability : TextInputControl.Capabilities) { capabilities.add(capability); }
             for (String capability : MouseControl.Capabilities) { capabilities.add(capability); }
             for (String capability : KeyControl.Capabilities) { capabilities.add(capability); }
@@ -2807,7 +2814,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             defaultPermissions.add(perm);
         }
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (getPairingLevel() == PairingLevel.ON) {
             for (String perm: kWebOSTVServiceProtectedPermissions) {
                 defaultPermissions.add(perm);
             }

@@ -87,11 +87,6 @@ import com.connectsdk.service.config.ServiceDescription;
  */
 public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryProviderListener, ServiceConfigListener {
 
-    public enum PairingLevel {
-        OFF,
-        ON
-    }
-
     // @cond INTERNAL
 
     public static String CONNECT_SDK_VERSION = "1.4";
@@ -117,8 +112,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     boolean isBroadcastReceiverRegistered = false;
 
     Timer rescanTimer;
-
-    PairingLevel pairingLevel;
 
     private boolean mSearching = false;
 
@@ -195,7 +188,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         multicastLock.setReferenceCounted(true);
 
         capabilityFilters = new ArrayList<CapabilityFilter>();
-        pairingLevel = PairingLevel.OFF;
 
         receiver = new BroadcastReceiver() { 
 
@@ -634,28 +626,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      */
     public Map<String, ConnectableDevice> getCompatibleDevices() {
         return compatibleDevices;
-    }
-
-    /**
-     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
-     *
-     * If pairingLevel is set to ConnectableDevicePairingLevelOn, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
-     *
-     * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
-     */
-    public PairingLevel getPairingLevel() {
-        return pairingLevel;
-    }
-
-    /**
-     * The pairingLevel property determines whether capabilities that require pairing (such as entering a PIN) will be available.
-     *
-     * If pairingLevel is set to ConnectableDevicePairingLevelOn, ConnectableDevices that require pairing will prompt the user to pair when connecting to the ConnectableDevice.
-     *
-     * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid requiring pairing if possible but some capabilities may not be available.
-     */
-    public void setPairingLevel(PairingLevel pairingLevel) {
-        this.pairingLevel = pairingLevel;
     }
 
     // @cond INTERNAL
