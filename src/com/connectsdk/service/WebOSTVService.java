@@ -78,7 +78,6 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.sessions.WebAppSession;
-import com.connectsdk.service.sessions.WebAppSession.WebAppPinStatusListener;
 import com.connectsdk.service.sessions.WebOSWebAppSession;
 import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
@@ -2303,108 +2302,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
         webAppSession.appToAppSubscription = new URLServiceSubscription<ResponseListener<Object>>(webAppSession.socket, uri, payload, true, responseListener);
         webAppSession.appToAppSubscription.subscribe();
-    }
-
-    @Override
-    public void pinWebApp(LaunchSession webAppSession, ResponseListener<Object> listener) {
-        if (webAppSession == null) {
-            if (listener != null) {
-                listener.onError(new ServiceCommandError(-1, "You must provide a valid LaunchSession object", null));
-            }
-            return;
-        }
-
-        String uri = "ssap://webapp/pinWebApp";
-        JSONObject payload = new JSONObject();
-
-        try {
-            payload.put("webAppId", webAppSession.getAppId());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
-        request.send();
-    }
-
-    @Override
-    public void unPinWebApp(String webAppId, ResponseListener<Object> listener) {
-        if (webAppId == null || webAppId.length() == 0) {
-            if (listener != null) {
-                listener.onError(new ServiceCommandError(-1, "You must provide a valid web app id", null));
-            }
-            return;
-        }
-
-        String uri = "ssap://webapp/removePinnedWebApp";
-        JSONObject payload = new JSONObject();
-
-        try {
-            payload.put("webAppId", webAppId);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
-        request.send();
-    }
-
-    private ServiceCommand<WebAppPinStatusListener> isWebAppPinned(boolean isSubscription, String webAppId, final WebAppPinStatusListener listener) {
-        if (webAppId == null || webAppId.length() == 0) {
-            if (listener != null) {
-                listener.onError(new ServiceCommandError(-1, "You must provide a valid web app id", null));
-            }
-            return null;
-        }
-
-        String uri = "ssap://webapp/isWebAppPinned";
-        JSONObject payload = new JSONObject();
-
-        try {
-            payload.put("webAppId", webAppId);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(final Object response) {
-                JSONObject obj = (JSONObject) response;
-
-                boolean status = obj.optBoolean("pinned");
-
-                if (listener != null) {
-                    listener.onSuccess(status);
-                }
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        };
-
-        ServiceCommand<WebAppPinStatusListener> request;
-        if (isSubscription == true) 
-            request = new URLServiceSubscription<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
-        else 
-            request = new ServiceCommand<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
-
-        request.send();
-
-        return request;
-    }
-
-    @Override
-    public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
-        isWebAppPinned(false, webAppId, listener);
-    }
-
-    @Override
-    public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(
-            String webAppId, WebAppPinStatusListener listener) {
-        return (URLServiceSubscription<WebAppPinStatusListener>)isWebAppPinned(true, webAppId, listener);
     }
 
     /* Join a native/installed webOS app */
