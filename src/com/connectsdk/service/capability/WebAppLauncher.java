@@ -71,7 +71,7 @@ public interface WebAppLauncher extends CapabilityMethods {
 
     public void closeWebApp(LaunchSession launchSession, ResponseListener<Object> listener);
 
-    public void pinWebApp(LaunchSession launchSession, ResponseListener<Object> listener);
+    public void pinWebApp(String webAppId, ResponseListener<Object> listener);
     public void unPinWebApp(String webAppId, ResponseListener<Object> listener);
     public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener);
     public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(String webAppId, WebAppPinStatusListener listener);

@@ -488,8 +488,8 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     @Override
-    public void pinWebApp(ResponseListener<Object> listener) {
-        service.getWebAppLauncher().pinWebApp(launchSession, listener);
+    public void pinWebApp(String webAppId, ResponseListener<Object> listener) {
+        service.getWebAppLauncher().pinWebApp(webAppId, listener);
     }
 
     @Override

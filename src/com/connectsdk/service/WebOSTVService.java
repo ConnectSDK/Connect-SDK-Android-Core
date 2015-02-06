@@ -2312,19 +2312,19 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void pinWebApp(LaunchSession webAppSession, final ResponseListener<Object> listener) {
-        if (webAppSession == null) {
+    public void pinWebApp(String webAppId, final ResponseListener<Object> listener) {
+        if (webAppId == null || webAppId.length() == 0) {
             if (listener != null) {
-                listener.onError(new ServiceCommandError(-1, "You must provide a valid LaunchSession object", null));
+                listener.onError(new ServiceCommandError(-1, "You must provide a valid web app id", null));
             }
             return;
         }
-
+        
         String uri = "ssap://webapp/pinWebApp";
         JSONObject payload = new JSONObject();
 
         try {
-            payload.put("webAppId", webAppSession.getAppId());
+            payload.put("webAppId", webAppId);
         } catch (JSONException e) {
             e.printStackTrace();
         }

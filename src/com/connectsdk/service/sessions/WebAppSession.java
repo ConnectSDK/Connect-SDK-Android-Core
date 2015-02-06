@@ -145,7 +145,7 @@ public class WebAppSession implements MediaControl, MediaPlayer {
     /**
      * Pin the web app on the launcher.
      */
-    public void pinWebApp(ResponseListener<Object> listener) {
+    public void pinWebApp(String webAppId, ResponseListener<Object> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
