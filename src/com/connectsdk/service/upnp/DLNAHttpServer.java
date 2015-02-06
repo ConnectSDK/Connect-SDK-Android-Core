@@ -1,5 +1,16 @@
 package com.connectsdk.service.upnp;
 
+import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.Util;
+import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.URLServiceSubscription;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -13,23 +24,11 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParserException;
-
-import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.Util;
-import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
-import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.command.URLServiceSubscription;
-
 public class DLNAHttpServer {
     ServerSocket welcomeSocket;
 
-    int port = 49291;
-
     boolean running = false;
+    int port = 49291;
 
     CopyOnWriteArrayList<URLServiceSubscription<?>> subscriptions;
 
@@ -44,7 +43,7 @@ public class DLNAHttpServer {
         running = true;
 
         try {
-            welcomeSocket = new ServerSocket(this.port);
+            welcomeSocket = new ServerSocket(port);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -69,29 +68,31 @@ public class DLNAHttpServer {
             }
 
             int c = 0;
-
             String body = null;
+            StringCompareAutomata compare;
 
             try {
                 inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 
+                // skip HTTP headers
+                compare = new StringCompareAutomata("\r\n\r\n");
+                while (-1 != (c = inFromClient.read())) {
+                    if (compare.isStringFound((char)c)) {
+                        break;
+                    }
+                }
+
+                // read HTTP body
                 StringBuilder sb = new StringBuilder();
-
-                while ((c = inFromClient.read()) != -1) {
+                compare = new StringCompareAutomata("</e:propertyset>");
+                while (-1 != (c = inFromClient.read())) {
                     sb.append((char)c);
-
-                    if (sb.toString().endsWith("\r\n\r\n"))
+                    if (compare.isStringFound((char)c)) {
                         break;
+                    }
                 }
-                sb = new StringBuilder();
 
-                while ((c = inFromClient.read()) != -1) {
-                    sb.append((char)c);
-                    body = sb.toString();
-
-                    if (body.endsWith("</e:propertyset>"))
-                        break;
-                }
+                body = sb.toString();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -173,7 +174,6 @@ public class DLNAHttpServer {
         if (entry.has("TransportState")) {
             String transportState = entry.getString("TransportState");
             PlayStateStatus status = PlayStateStatus.convertTransportStateToPlayStateStatus(transportState);
-
             for (URLServiceSubscription<?> sub: subscriptions) {
                 if (sub.getTarget().equalsIgnoreCase("playState")) {
                     for (int j = 0; j < sub.getListeners().size(); j++) {
@@ -276,5 +276,39 @@ public class DLNAHttpServer {
 
     public boolean isRunning() {
         return running;
+    }
+
+    private static class StringCompareAutomata {
+
+        private int state;
+
+        private String line;
+
+        StringCompareAutomata(String line) {
+            this.line = line;
+        }
+
+        boolean isStringFound(char character) {
+            if (compare(character)) {
+                return true;
+            } else if (state == 0) {
+                if (compare(character)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean compare(char character) {
+            if (line.charAt(state) == character) {
+                ++state;
+                if (state >= line.length()) {
+                    return true;
+                }
+            } else {
+                state = 0;
+            }
+            return false;
+        }
     }
 }
