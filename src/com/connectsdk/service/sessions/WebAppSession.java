@@ -65,6 +65,13 @@ public class WebAppSession implements MediaControl, MediaPlayer {
     }
 
     /**
+     * Success block that is called upon successfully getting a web app's status.
+     *
+     * @param status The current running & foreground status of the web app
+     */
+    public static interface WebAppPinStatusListener extends ResponseListener<Boolean> { }
+
+    /**
      * LaunchSession object containing key session information. Much of this
      * information is required for web app messaging & closing the web app.
      */
@@ -133,6 +140,37 @@ public class WebAppSession implements MediaControl, MediaPlayer {
      * Closes any open communication channel with the web app.
      */
     public void disconnectFromWebApp() {
+    }
+
+    /**
+     * Pin the web app on the launcher.
+     */
+    public void pinWebApp(String webAppId, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    /**
+     * UnPin the web app on the launcher.
+     *
+     * @param webAppId NSString webAppId to be unpinned.
+     */
+    public void unPinWebApp(String webAppId, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    /**
+     * To check if the web app is pinned or not
+     */
+    public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    /**
+     * Subscribe to check if the web app is pinned or not
+     */
+    public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+        return null;
     }
 
     /**

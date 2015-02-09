@@ -267,7 +267,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 }
 
                 if (!(request instanceof URLServiceSubscription)) {
-                    requests.remove(id);
+                    if (!(payload instanceof JSONObject && ((JSONObject) payload).has("pairingType")))
+                        requests.remove(id);
                 }
             } else {
                 System.err.println("no matching request id: " + strId + ", payload: " + payload.toString());
@@ -425,6 +426,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
             @Override
             public void onError(ServiceCommandError error) {
+                state = State.INITIAL;
+                
                 if (mListener != null)
                     mListener.onRegistrationFailed(error);
             }

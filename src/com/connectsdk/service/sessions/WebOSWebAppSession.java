@@ -56,6 +56,8 @@ public class WebOSWebAppSession extends WebAppSession {
     private ServiceSubscription<MessageListener> mMessageSubscription;
     private ConcurrentHashMap<String, ServiceCommand<?>> mActiveCommands;
 
+    private ServiceSubscription<WebAppPinStatusListener> mWebAppPinnedSubscription;
+
     String mFullAppId;
 
     private int UID;
@@ -477,7 +479,34 @@ public class WebOSWebAppSession extends WebAppSession {
             mMessageSubscription = null;
         }
 
+        if (mWebAppPinnedSubscription != null) {
+            mWebAppPinnedSubscription.unsubscribe();
+            mWebAppPinnedSubscription = null;
+        }
+
         service.getWebAppLauncher().closeWebApp(launchSession, listener);
+    }
+
+    @Override
+    public void pinWebApp(String webAppId, ResponseListener<Object> listener) {
+        service.getWebAppLauncher().pinWebApp(webAppId, listener);
+    }
+
+    @Override
+    public void unPinWebApp(String webAppId, ResponseListener<Object> listener) {
+        service.getWebAppLauncher().unPinWebApp(webAppId, listener);
+    }
+
+    @Override
+    public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
+        service.getWebAppLauncher().isWebAppPinned(webAppId, listener);
+    }
+
+    @Override
+    public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(
+            String webAppId, WebAppPinStatusListener listener) {
+        mWebAppPinnedSubscription = service.getWebAppLauncher().subscribeIsWebAppPinned(webAppId, listener);
+        return mWebAppPinnedSubscription;
     }
 
     @Override
