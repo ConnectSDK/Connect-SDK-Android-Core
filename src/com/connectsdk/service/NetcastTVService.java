@@ -186,8 +186,9 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
 
         if (!(serviceConfig instanceof NetcastTVServiceConfig)) {
+            ServiceConfig.ServiceConfigListener serviceConfigListener = serviceConfig.getListener();
             serviceConfig = new NetcastTVServiceConfig(serviceConfig.getServiceUUID());
-            serviceConfig.setListener(DiscoveryManager.getInstance());
+            serviceConfig.setListener(serviceConfigListener);
         }
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
