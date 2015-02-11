@@ -623,7 +623,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
             T controller = service.getAPI(controllerClass);
 
-            if (priorityMethod == null)
+            if (priorityMethod == null && controller != null)
                 return controller;
 
             if (foundController == null) {
