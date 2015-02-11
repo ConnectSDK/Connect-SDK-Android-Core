@@ -98,9 +98,13 @@ public class ConnectableDevice implements DeviceServiceListener {
     Map<String, DeviceService> services;
 
     public boolean featuresReady = false;
+    
+    Map<Class, String> priorityMethods = new HashMap<Class, String>();
 
     public ConnectableDevice() {
         services = new ConcurrentHashMap<String, DeviceService>();
+        
+        init();
     }
 
     public ConnectableDevice(String ipAddress, String friendlyName, String modelName, String modelNumber) {
@@ -140,6 +144,22 @@ public class ConnectableDevice implements DeviceServiceListener {
         mDevice.setId(id);
 
         return mDevice;
+    }
+    
+    private void init() {
+        priorityMethods.put(Launcher.class, "getLauncherCapabilityLevel");
+        priorityMethods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
+        priorityMethods.put(MediaControl.class, "getMediaControlCapabilityLevel");
+        priorityMethods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
+        priorityMethods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
+        priorityMethods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
+        priorityMethods.put(TVControl.class, "getTVControlCapabilityLevel");
+        priorityMethods.put(ToastControl.class, "getToastControlCapabilityLevel");
+        priorityMethods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
+        priorityMethods.put(MouseControl.class, "getMouseControlCapabilityLevel");
+        priorityMethods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
+        priorityMethods.put(PowerControl.class, "getPowerControlCapabilityLevel");
+        priorityMethods.put(KeyControl.class, "getKeyControlCapabilityLevel");
     }
 
     public ServiceDescription getServiceDescription() {
@@ -589,13 +609,22 @@ public class ConnectableDevice implements DeviceServiceListener {
         return getCapability(KeyControl.class);
     }
 
-    private <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
+    /**
+     * get the highest priority capability of a service
+     * @param clazz
+     * @param priorityMethod
+     * @return
+     */
+    public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass, String priorityMethod) {
         T foundController = null;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
                 continue;
 
             T controller = service.getAPI(controllerClass);
+
+            if (priorityMethod == null)
+                return controller;
 
             if (foundController == null) {
                 foundController = controller;
@@ -632,21 +661,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * @return
      */
     public <T extends CapabilityMethods> T getCapability(Class<T> clazz) {
-        Map<Class, String> methods = new HashMap<Class, String>();
-        methods.put(Launcher.class, "getLauncherCapabilityLevel");
-        methods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
-        methods.put(MediaControl.class, "getMediaControlCapabilityLevel");
-        methods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
-        methods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
-        methods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
-        methods.put(TVControl.class, "getTVControlCapabilityLevel");
-        methods.put(ToastControl.class, "getToastControlCapabilityLevel");
-        methods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
-        methods.put(MouseControl.class, "getMouseControlCapabilityLevel");
-        methods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
-        methods.put(PowerControl.class, "getPowerControlCapabilityLevel");
-        methods.put(KeyControl.class, "getKeyControlCapabilityLevel");
-        return getApiController(clazz, methods.get(clazz));
+        return getCapability(clazz, priorityMethods.get(clazz));
     }
 
     /** 
