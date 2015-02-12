@@ -57,6 +57,7 @@ import com.connectsdk.service.airplay.PListBuilder;
 import com.connectsdk.service.airplay.PersistentHttpClient;
 import com.connectsdk.service.airplay.PersistentHttpClient.Response;
 import com.connectsdk.service.airplay.PersistentHttpClient.ResponseReceiver;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.listeners.ResponseListener;
@@ -81,6 +82,17 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     private String mSessionId;
 
     private Timer timer;
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.VERY_LOW;
+    }
 
     interface PlaybackPositionListener {
         void onGetPlaybackPositionSuccess(long duration, long position);

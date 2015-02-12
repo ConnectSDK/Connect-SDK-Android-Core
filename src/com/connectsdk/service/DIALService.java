@@ -49,7 +49,10 @@ import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.Launcher;
+import com.connectsdk.service.capability.MediaControl;
+import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceSubscription;
 import com.connectsdk.service.command.ServiceCommand;
@@ -87,6 +90,15 @@ public class DIALService extends DeviceService implements Launcher {
         HttpParams params = httpClient.getParams();
         httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
     }
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(Launcher.class)) {
+            return getLauncherCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.VERY_LOW;
+    }
+
 
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:dial-multiscreen-org:service:dial:1");

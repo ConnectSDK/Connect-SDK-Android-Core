@@ -589,36 +589,23 @@ public class ConnectableDevice implements DeviceServiceListener {
         return getCapability(KeyControl.class);
     }
 
-    private <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
+    public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
         T foundController = null;
+        int foundControllerPriority = 0;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
                 continue;
 
             T controller = service.getAPI(controllerClass);
+            int controllerPriority = service.getPriorityLevel(controllerClass).getValue();
 
             if (foundController == null) {
                 foundController = controller;
+                foundControllerPriority = controllerPriority;
             }
             else {
-                Method method;
-                try {
-                    method = controllerClass.getMethod(priorityMethod);
-                    CapabilityMethods.CapabilityPriorityLevel controllerProirity = 
-                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(controller);
-                    CapabilityMethods.CapabilityPriorityLevel foundControllerProirity = 
-                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(foundController);
-                    if (controllerProirity.getValue() > foundControllerProirity.getValue()) {
-                        foundController = controller;
-                    }
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (RuntimeException e) {
-                    e.printStackTrace();
+                if (controllerPriority > foundControllerPriority) {
+                    foundController = controller;
                 }
             }
         }
@@ -626,28 +613,6 @@ public class ConnectableDevice implements DeviceServiceListener {
         return foundController;
     }
 
-    /**
-     * get the highest priority capability of a service
-     * @param clazz
-     * @return
-     */
-    public <T extends CapabilityMethods> T getCapability(Class<T> clazz) {
-        Map<Class, String> methods = new HashMap<Class, String>();
-        methods.put(Launcher.class, "getLauncherCapabilityLevel");
-        methods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
-        methods.put(MediaControl.class, "getMediaControlCapabilityLevel");
-        methods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
-        methods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
-        methods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
-        methods.put(TVControl.class, "getTVControlCapabilityLevel");
-        methods.put(ToastControl.class, "getToastControlCapabilityLevel");
-        methods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
-        methods.put(MouseControl.class, "getMouseControlCapabilityLevel");
-        methods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
-        methods.put(PowerControl.class, "getPowerControlCapabilityLevel");
-        methods.put(KeyControl.class, "getKeyControlCapabilityLevel");
-        return getApiController(clazz, methods.get(clazz));
-    }
 
     /** 
      * Sets the IP address of the ConnectableDevice.

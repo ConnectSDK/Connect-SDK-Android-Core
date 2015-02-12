@@ -214,6 +214,10 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
             return null;
     }
 
+    public CapabilityMethods.CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        return CapabilityMethods.CapabilityPriorityLevel.VERY_LOW;
+    }
+
     public static DiscoveryFilter discoveryFilter() {
         return null;
     }

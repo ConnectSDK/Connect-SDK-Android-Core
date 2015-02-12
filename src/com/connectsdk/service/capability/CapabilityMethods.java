@@ -25,8 +25,10 @@ import java.util.regex.Pattern;
 public interface CapabilityMethods {
     // @cond INTERNAL
     public final static Pattern ANY_PATTERN = Pattern.compile(".+\\.(?=Any)");
-    // @endcond
 
+    // @endcond
+    
+    
     /**
      * CapabilityPriorityLevel values are used by ConnectableDevice to find the most suitable DeviceService capability to be presented to the user. Values of VeryLow and VeryHigh are not in use internally the SDK. Connect SDK uses Low, Normal, and High internally.
      *

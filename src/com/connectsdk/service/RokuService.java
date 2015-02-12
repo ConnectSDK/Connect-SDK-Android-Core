@@ -70,11 +70,17 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.MouseControl;
+import com.connectsdk.service.capability.PowerControl;
+import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
+import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceSubscription;
 import com.connectsdk.service.command.ServiceCommand;
@@ -132,6 +138,27 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         return new DiscoveryFilter(ID, "roku:ecp");
     }
 
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        if (clazz.equals(Launcher.class)) {
+            return getLauncherCapabilityLevel();
+        }
+        if (clazz.equals(TextInputControl.class)) {
+            return getTextInputControlCapabilityLevel();
+        }
+        if (clazz.equals(KeyControl.class)) {
+            return getKeyControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.VERY_LOW;
+    }
+    
     @Override
     public Launcher getLauncher() {
         return this;

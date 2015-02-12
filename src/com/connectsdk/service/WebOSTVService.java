@@ -41,6 +41,7 @@ import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -221,6 +222,48 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         mWebAppSessions = new ConcurrentHashMap<String, WebOSWebAppSession>();
     }
 
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        if (clazz.equals(Launcher.class)) {
+            return getLauncherCapabilityLevel();
+        }
+        if (clazz.equals(TVControl.class)) {
+            return getTVControlCapabilityLevel();
+        }
+        if (clazz.equals(VolumeControl.class)) {
+            return getVolumeControlCapabilityLevel();
+        }
+        if (clazz.equals(ExternalInputControl.class)) {
+            return getExternalInputControlPriorityLevel();
+        }
+        if (clazz.equals(MouseControl.class)) {
+            return getMouseControlCapabilityLevel();
+        }
+        if (clazz.equals(TextInputControl.class)) {
+            return getTextInputControlCapabilityLevel();
+        }
+        if (clazz.equals(PowerControl.class)) {
+            return getPowerControlCapabilityLevel();
+        }
+        if (clazz.equals(KeyControl.class)) {
+            return getKeyControlCapabilityLevel();
+        }
+        if (clazz.equals(ToastControl.class)) {
+            return getToastControlCapabilityLevel();
+        }
+        if (clazz.equals(WebAppLauncher.class)) {
+            return getWebAppLauncherCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.VERY_LOW;
+    }
+    
     @Override
     public void setServiceDescription(ServiceDescription serviceDescription) {
         super.setServiceDescription(serviceDescription);

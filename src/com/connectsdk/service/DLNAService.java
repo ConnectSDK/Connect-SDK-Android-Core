@@ -31,6 +31,7 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.PlaylistControl;
@@ -136,6 +137,24 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
     }
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        if (clazz.equals(VolumeControl.class)) {
+            return getVolumeControlCapabilityLevel();
+        }
+        if (clazz.equals(PlaylistControl.class)) {
+            return getPlaylistControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.VERY_LOW;
+    }
+
 
     @Override
     public void setServiceDescription(ServiceDescription serviceDescription) {
