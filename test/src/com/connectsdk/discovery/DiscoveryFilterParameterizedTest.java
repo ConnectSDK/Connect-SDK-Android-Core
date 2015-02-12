@@ -21,7 +21,6 @@ public class DiscoveryFilterParameterizedTest {
     private final String mIdB;
     private final String mFilterB;
     private final Boolean mResult;
-    private Map<String, String> parameters;
     
     @Parameterized.Parameters
     public static Collection<Object[]> configs() {
