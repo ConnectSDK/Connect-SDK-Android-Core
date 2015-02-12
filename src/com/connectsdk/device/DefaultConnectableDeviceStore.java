@@ -25,9 +25,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -92,9 +92,8 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     // @cond INTERNAL
     private String fileFullPath;
 
-    private JSONObject deviceStore;
     private JSONObject storedDevices;
-    private Map<String, ConnectableDevice> activeDevices = new HashMap<String, ConnectableDevice>();
+    private Map<String, ConnectableDevice> activeDevices = new ConcurrentHashMap<String, ConnectableDevice>();
 
     private boolean waitToWrite = false;
 
@@ -132,7 +131,9 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             updateDevice(device);
         } else {
             try {
-                storedDevices.put(device.getId(), device.toJSONObject());
+                synchronized (storedDevices) {
+                    storedDevices.put(device.getId(), device.toJSONObject());
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -147,7 +148,9 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             return;
 
         activeDevices.remove(device.getId());
-        storedDevices.remove(device.getId());
+        synchronized (storedDevices) {
+            storedDevices.remove(device.getId());
+        }
 
         store();
     }
@@ -182,7 +185,9 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
             storedDevice.put(ConnectableDevice.KEY_SERVICES, services);
 
-            storedDevices.put(device.getId(), storedDevice);
+            synchronized (storedDevices) {
+                storedDevices.put(device.getId(), storedDevice);
+            }
             activeDevices.put(device.getId(), device);
 
             store();
@@ -348,7 +353,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
         updated = Util.getTime();
 
-        deviceStore = new JSONObject();
+        JSONObject deviceStore = new JSONObject();
         try {
             deviceStore.put(KEY_VERSION, version);
             deviceStore.put(KEY_CREATED, created);
@@ -359,10 +364,10 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
         }
 
         if (!waitToWrite)
-            writeStoreToDisk();
+            writeStoreToDisk(deviceStore);
     }
 
-    private void writeStoreToDisk() {
+    private void writeStoreToDisk(final JSONObject deviceStore) {
         final double lastUpdate = updated;
         waitToWrite = true;
 
@@ -387,7 +392,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                 }
 
                 if (lastUpdate != updated)
-                    writeStoreToDisk();
+                    writeStoreToDisk(deviceStore);
             }
         });
     }
