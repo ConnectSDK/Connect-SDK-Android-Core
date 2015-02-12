@@ -32,10 +32,9 @@ public class DiscoveryFilter {
 
         DiscoveryFilter that = (DiscoveryFilter) o;
 
-        if (serviceFilter != null ? !serviceFilter.equals(that.serviceFilter) : that.serviceFilter != null)
+        if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null) {
             return false;
-        if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null)
-            return false;
+        }
 
         return true;
     }
@@ -43,7 +42,6 @@ public class DiscoveryFilter {
     @Override
     public int hashCode() {
         int result = serviceId != null ? serviceId.hashCode() : 0;
-        result = 31 * result + (serviceFilter != null ? serviceFilter.hashCode() : 0);
         return result;
     }
 }
