@@ -136,7 +136,7 @@ public class SSDPDiscoveryProviderTest{
         DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
         dp.serviceFilters.add(filter);
         dp.removeDeviceFilter(new DiscoveryFilter("DLNA", null));
-        Assert.assertFalse(dp.serviceFilters.contains(filter));
+        Assert.assertTrue(dp.serviceFilters.contains(filter));
     }
 
     @Test
