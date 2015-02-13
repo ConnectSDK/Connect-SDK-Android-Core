@@ -427,11 +427,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * @param discoveryClass Class for DiscoveryProvider that is discovering DeviceServices of deviceClass type
      */
     public void unregisterDeviceService(Class<?> deviceClass, Class<?> discoveryClass) {
-        if (!deviceClass.isAssignableFrom(DeviceService.class)) {
+        if (!DeviceService.class.isAssignableFrom(deviceClass)) {
             return;
         }
 
-        if (!discoveryClass.isAssignableFrom(DiscoveryProvider.class)) {
+        if (!DiscoveryProvider.class.isAssignableFrom(discoveryClass)) {
             return;
         }
 
