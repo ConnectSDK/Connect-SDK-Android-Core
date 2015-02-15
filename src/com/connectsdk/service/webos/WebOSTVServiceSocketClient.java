@@ -473,6 +473,11 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
             }
 
+            if (mService.getPairingType()!=null&&mService.getPairingType().equals(PairingType.PIN_CODE)){
+				payload.put("forcePairing", false);
+				payload.put("pairingType", "PIN");
+			}
+            
             if (manifest != null) {
                 payload.put("manifest", manifest);
             }
@@ -493,7 +498,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 state = State.INITIAL;
                 
                 if (mListener != null)
-                    mListener.onFailWithError(error);
+                    mListener.onRegistrationFailed(error);
             }
 
             @Override

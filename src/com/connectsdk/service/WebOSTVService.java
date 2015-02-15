@@ -328,7 +328,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 @Override
                 public void run() {
                     if (listener != null)
-                        listener.onConnectionFailure(WebOSTVService.this, error);
+                        listener.onPairingFailed(WebOSTVService.this, error);
                 }
             });
         }
@@ -2307,7 +2307,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     private void notifyPairingRequired() {
         if (listener != null) {
-            listener.onPairingRequired(this, PairingType.FIRST_SCREEN, null);
+            listener.onPairingRequired(this, pairingType, null);
         }
     }
 
@@ -2835,6 +2835,14 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 disconnect();
             }
         }
+    }
+    
+    public PairingType getPairingType(){
+    	return pairingType;
+    }
+    
+    public void setPairingType(PairingType pairingType){
+    	this.pairingType=pairingType;
     }
 
     private ChannelInfo parseRawChannelData(JSONObject channelRawData) {
