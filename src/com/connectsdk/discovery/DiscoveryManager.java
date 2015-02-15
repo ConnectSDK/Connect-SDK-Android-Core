@@ -403,6 +403,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             deviceClasses.put(serviceId, deviceClass);
 
             discoveryProvider.addDeviceFilter(discoveryFilter);
+            if (mSearching){
+            	discoveryProvider.restart();
+            }
         } catch (SecurityException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
