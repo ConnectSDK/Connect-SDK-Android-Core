@@ -484,12 +484,12 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
             }
 
             String httpVersion="HTTP/1.1";
-            String requestHeader = serviceCommand.getHttpMethod()+" "+serviceCommand.getTarget()+" "+httpVersion+"\n" +
-                    (contentType!=null?(HttpMessage.CONTENT_TYPE_HEADER + ": "+contentType +"\n"):"") +
-                    HTTP.USER_AGENT + ": MediaControl/1.0\n" +
-                    HTTP.CONTENT_LEN + ": " + contentLength + "\n" +
-                    X_APPLE_SESSION_ID + ": " + mSessionId + "\n" +
-                    "\n";
+            String requestHeader = serviceCommand.getHttpMethod()+" "+serviceCommand.getTarget()+" "+httpVersion+ HttpMessage.NEW_LINE +
+                    (contentType!=null?(HttpMessage.CONTENT_TYPE_HEADER + ": "+contentType + HttpMessage.NEW_LINE):"") +
+                    HTTP.USER_AGENT + ": MediaControl/1.0" + HttpMessage.NEW_LINE +
+                    HTTP.CONTENT_LEN + ": " + contentLength + HttpMessage.NEW_LINE +
+                    X_APPLE_SESSION_ID + ": " + mSessionId + HttpMessage.NEW_LINE +
+                    HttpMessage.NEW_LINE;
 
             StringBuilder request=new StringBuilder();
             request.append(requestHeader);
