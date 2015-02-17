@@ -360,7 +360,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     }
 
     private synchronized void writeStoreToDisk(final JSONObject deviceStore) {
-        final double lastUpdate = updated;
+        final long lastUpdate = updated;
         waitToWrite = true;
 
         Util.runInBackground(new Runnable() {
@@ -383,7 +383,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                     waitToWrite = false;
                 }
 
-                if (lastUpdate != updated)
+                if (lastUpdate < updated)
                     writeStoreToDisk(deviceStore);
             }
         });
