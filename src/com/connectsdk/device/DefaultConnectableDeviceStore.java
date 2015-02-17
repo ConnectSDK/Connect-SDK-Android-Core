@@ -25,11 +25,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -92,7 +92,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     // @cond INTERNAL
     private String fileFullPath;
 
-    private JSONObject storedDevices;
+    private Map<String, JSONObject> storedDevices = new ConcurrentHashMap<String, JSONObject>();
     private Map<String, ConnectableDevice> activeDevices = new ConcurrentHashMap<String, ConnectableDevice>();
 
     private boolean waitToWrite = false;
@@ -125,18 +125,12 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
         if (!activeDevices.containsKey(device.getId()))
             activeDevices.put(device.getId(), device);
 
-        JSONObject storedDevice = storedDevices.optJSONObject(device.getId());
+        JSONObject storedDevice = getStoredDevice(device.getId());
 
         if (storedDevice != null) {
             updateDevice(device);
         } else {
-            try {
-                synchronized (storedDevices) {
-                    storedDevices.put(device.getId(), device.toJSONObject());
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            storedDevices.put(device.getId(), device.toJSONObject());
 
             store();
         }
@@ -148,9 +142,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             return;
 
         activeDevices.remove(device.getId());
-        synchronized (storedDevices) {
-            storedDevices.remove(device.getId());
-        }
+        storedDevices.remove(device.getId());
 
         store();
     }
@@ -185,9 +177,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
             storedDevice.put(ConnectableDevice.KEY_SERVICES, services);
 
-            synchronized (storedDevices) {
-                storedDevices.put(device.getId(), storedDevice);
-            }
+            storedDevices.put(device.getId(), storedDevice);
             activeDevices.put(device.getId(), device);
 
             store();
@@ -199,14 +189,23 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     @Override
     public void removeAll() {
         activeDevices.clear();
-        storedDevices = new JSONObject();
+        storedDevices.clear();
 
         store();
     }
 
     @Override
     public JSONObject getStoredDevices() {
-        return storedDevices;
+        JSONObject ret = new JSONObject();
+
+        for (java.util.Map.Entry<String, JSONObject> entry: storedDevices.entrySet()) {
+            try {
+                ret.put(entry.getKey(), entry.getValue());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return ret;
     }
 
     @Override
@@ -242,15 +241,10 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     }
 
     private JSONObject getStoredDevice(String uuid) {
-        JSONObject foundDevice = storedDevices.optJSONObject(uuid);
+        JSONObject foundDevice = storedDevices.get(uuid);
 
         if (foundDevice == null) {
-            @SuppressWarnings("unchecked")
-            Iterator<String> iter = storedDevices.keys();
-            while (iter.hasNext()) {
-                String key = iter.next();
-                JSONObject device = storedDevices.optJSONObject(key);
-
+            for (JSONObject device: storedDevices.values()) {
                 JSONObject services = device.optJSONObject(ConnectableDevice.KEY_SERVICES);
 
                 if (services != null && services.has(uuid))
@@ -274,7 +268,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
         if (device != null) {
             JSONObject services = device.optJSONObject(ConnectableDevice.KEY_SERVICES);
             if (services != null) {
-                JSONObject service = services.optJSONObject(serviceDescription.getServiceID());
+                JSONObject service = services.optJSONObject(uuid);
                 if (service != null) {
                     JSONObject serviceConfigInfo = service.optJSONObject(DeviceService.KEY_CONFIG);
                     if (serviceConfigInfo != null) {
@@ -300,8 +294,6 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
             created = Util.getTime();
             updated = Util.getTime();
-
-            storedDevices = new JSONObject();
         } else {
             boolean encounteredException = false;
 
@@ -317,9 +309,11 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                 in.close();
 
                 JSONObject data = new JSONObject(sb.toString());
-                storedDevices = data.optJSONObject(KEY_DEVICES);
-                if (storedDevices == null)
-                    storedDevices = new JSONObject();
+                JSONArray deviceArray = data.optJSONArray(KEY_DEVICES);
+                for (int i = 0; i < deviceArray.length(); i++) {
+                    JSONObject device = deviceArray.getJSONObject(i);
+                    storedDevices.put(device.getString(ConnectableDevice.KEY_ID), device);
+                }
 
                 version = data.optInt(KEY_VERSION, CURRENT_VERSION);
                 created = data.optLong(KEY_CREATED, 0);
@@ -343,14 +337,11 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
                 created = Util.getTime();
                 updated = Util.getTime();
-
-                storedDevices = new JSONObject();
             }
         }
     }
 
     private void store() {
-
         updated = Util.getTime();
 
         JSONObject deviceStore = new JSONObject();
@@ -358,7 +349,8 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             deviceStore.put(KEY_VERSION, version);
             deviceStore.put(KEY_CREATED, created);
             deviceStore.put(KEY_UPDATED, updated);
-            deviceStore.put(KEY_DEVICES, storedDevices);
+            JSONArray deviceArray = new JSONArray(storedDevices.values());
+            deviceStore.put(KEY_DEVICES, deviceArray);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -367,7 +359,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             writeStoreToDisk(deviceStore);
     }
 
-    private void writeStoreToDisk(final JSONObject deviceStore) {
+    private synchronized void writeStoreToDisk(final JSONObject deviceStore) {
         final double lastUpdate = updated;
         waitToWrite = true;
 
