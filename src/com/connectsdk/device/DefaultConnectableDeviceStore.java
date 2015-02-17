@@ -172,7 +172,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                 JSONObject serviceInfo = service.toJSONObject();
 
                 if (serviceInfo != null)
-                    services.put(service.getServiceDescription().getServiceID(), serviceInfo);
+                    services.put(service.getServiceDescription().getUUID(), serviceInfo);
             }
 
             storedDevice.put(ConnectableDevice.KEY_SERVICES, services);
