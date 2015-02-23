@@ -310,9 +310,11 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
                 JSONObject data = new JSONObject(sb.toString());
                 JSONArray deviceArray = data.optJSONArray(KEY_DEVICES);
-                for (int i = 0; i < deviceArray.length(); i++) {
-                    JSONObject device = deviceArray.getJSONObject(i);
-                    storedDevices.put(device.getString(ConnectableDevice.KEY_ID), device);
+                if (deviceArray != null) {
+                    for (int i = 0; i < deviceArray.length(); i++) {
+                        JSONObject device = deviceArray.getJSONObject(i);
+                        storedDevices.put(device.getString(ConnectableDevice.KEY_ID), device);
+                    }
                 }
 
                 version = data.optInt(KEY_VERSION, CURRENT_VERSION);
