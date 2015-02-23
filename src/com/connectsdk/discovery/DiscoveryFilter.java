@@ -3,6 +3,7 @@ package com.connectsdk.discovery;
 public class DiscoveryFilter {
     String serviceId = null;
     String serviceFilter = null;
+    Object option = null;
 
     public DiscoveryFilter(String serviceId, String serviceFilter) {
         this.serviceId = serviceId;
@@ -24,6 +25,14 @@ public class DiscoveryFilter {
     public void setServiceFilter(String serviceFilter) {
         this.serviceFilter = serviceFilter;
     }
+    
+    public Object getOption() {
+        return option;
+    }
+    
+    public void setOption(Object option) {
+        this.option = option;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -36,6 +45,8 @@ public class DiscoveryFilter {
             return false;
         if (serviceId != null ? !serviceId.equals(that.serviceId) : that.serviceId != null)
             return false;
+        if (option != null ? !option.equals(that.option) : that.option != null)
+            return false;
 
         return true;
     }
@@ -44,6 +55,7 @@ public class DiscoveryFilter {
     public int hashCode() {
         int result = serviceId != null ? serviceId.hashCode() : 0;
         result = 31 * result + (serviceFilter != null ? serviceFilter.hashCode() : 0);
+        result = 31 * result + (option != null ? option.hashCode() : 0);
         return result;
     }
 }
