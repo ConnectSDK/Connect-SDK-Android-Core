@@ -89,6 +89,13 @@ public interface DiscoveryProvider {
     public void setFilters(List<DiscoveryFilter> filters);
 
     /**
+     * Set Property for DeviceService discovery
+     *
+     * @param parameters Parameters to be used for discovery property
+     */
+    public void setProperty(Object property);
+
+    /**
      * Whether or not the DiscoveryProvider has any services it is supposed to be searching for. If YES, then the DiscoveryProvider will be stopped and de-referenced by the DiscoveryManager.
      */
     public boolean isEmpty();
