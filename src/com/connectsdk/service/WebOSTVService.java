@@ -1862,8 +1862,28 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void sendKeyCode(int keyCode, ResponseListener<Object> listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
+    public void sendKeyCode(KeyCode keycode, ResponseListener<Object> listener) {
+        switch (keycode) {
+            case NUM_0:
+            case NUM_1:
+            case NUM_2:
+            case NUM_3:
+            case NUM_4:
+            case NUM_5:
+            case NUM_6:
+            case NUM_7:
+            case NUM_8:
+            case NUM_9:
+                sendSpecialKey(String.valueOf(keycode.getCode()), listener);
+                break;
+            case DASH:
+                sendSpecialKey("DASH", listener);
+                break;
+            case ENTER:
+                sendSpecialKey("ENTER", listener);
+            default:
+                Util.postError(listener, new ServiceCommandError(0, "The keycode is not available", null));
+        }
     }
 
     @Override
@@ -1934,12 +1954,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return CapabilityPriorityLevel.HIGH;
     }
 
-    private void sendSpecialKey(final String key) {
+    private void sendSpecialKey(final String key, final ResponseListener<Object> listener) {
         if (mouseSocket != null) {
             mouseSocket.button(key);
         }
         else {
-            ResponseListener<Object> listener = new ResponseListener<Object>() {
+            ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
                 @Override
                 public void onSuccess(Object response) {
@@ -1949,6 +1969,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                         mouseSocket = new WebOSTVMouseSocketConnection(socketPath);
 
                         mouseSocket.button(key);
+                        
+                        Util.postSuccess(listener, response);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -1956,31 +1978,32 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 @Override
                 public void onError(ServiceCommandError error) {
+                    Util.postError(listener, error);
                 }
             };
 
-            connectMouse(listener);
+            connectMouse(responseListener);
         }
     }
 
     @Override
     public void up(ResponseListener<Object> listener) {
-        sendSpecialKey("UP");
+        sendSpecialKey("UP", listener);
     }
 
     @Override
     public void down(ResponseListener<Object> listener) {
-        sendSpecialKey("DOWN");
+        sendSpecialKey("DOWN", listener);
     }
 
     @Override
     public void left(ResponseListener<Object> listener) {
-        sendSpecialKey("LEFT");
+        sendSpecialKey("LEFT", listener);
     }
 
     @Override
     public void right(ResponseListener<Object> listener) {
-        sendSpecialKey("RIGHT");
+        sendSpecialKey("RIGHT", listener);
     }
 
     @Override
@@ -2015,12 +2038,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void back(ResponseListener<Object> listener) {
-        sendSpecialKey("BACK");
+        sendSpecialKey("BACK", listener);
     }
 
     @Override
     public void home(ResponseListener<Object> listener) {
-        sendSpecialKey("HOME");
+        sendSpecialKey("HOME", listener);
     }
 
 
