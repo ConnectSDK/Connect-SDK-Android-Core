@@ -22,6 +22,7 @@ package com.connectsdk.service;
 
 import android.content.Context;
 import android.text.Html;
+import android.util.Log;
 import android.util.Xml;
 
 import com.connectsdk.core.ImageInfo;
@@ -625,6 +626,12 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 else if (payload.contains(CONNECTION_MANAGER_URN)) {
                     targetURL = connectionControlURL;
                     serviceURN = CONNECTION_MANAGER_URN;
+                }
+
+                if (targetURL == null) {
+                    Log.w("Connect SDK", "Cannot process the command, \"" + serviceURN + "\" is missed");
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"" + serviceURN + "\" is missed", null));
+                    return;
                 }
 
                 HttpPost post = new HttpPost(targetURL);
