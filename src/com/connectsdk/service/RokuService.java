@@ -21,12 +21,10 @@
 package com.connectsdk.service;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
@@ -875,7 +873,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void sendKeyCode(int keyCode, ResponseListener<Object> listener) {
+    public void sendKeyCode(KeyCode keyCode, ResponseListener<Object> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
@@ -1054,9 +1052,14 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        for (String capability : KeyControl.Capabilities) {
-            capabilities.add(capability);
-        }
+        capabilities.add(Up);
+        capabilities.add(Down);
+        capabilities.add(Left);
+        capabilities.add(Right);
+        capabilities.add(OK);
+        capabilities.add(Back);
+        capabilities.add(Home);
+        capabilities.add(Send_Key);
 
         capabilities.add(Application);
 
