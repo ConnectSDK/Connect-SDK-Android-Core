@@ -20,6 +20,19 @@
 
 package com.connectsdk.service;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.java_websocket.client.WebSocketClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -35,6 +48,7 @@ import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.ExternalInputInfo;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.ProgramInfo;
 import com.connectsdk.core.ProgramList;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
@@ -71,19 +85,6 @@ import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
-
-import org.java_websocket.client.WebSocketClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressLint("DefaultLocale")
 public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
@@ -1546,6 +1547,46 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return (ServiceSubscription<ChannelListListener>) getChannelList(true, listener);
     }
 
+    private ServiceCommand<ResponseListener<Object>> getChannelCurrentProgramInfo(boolean isSubscription, final ProgramInfoListener listener) {
+        String uri ="ssap://tv/getChannelCurrentProgramInfo";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject)response;
+                ProgramInfo programInfo = parseRawProgramInfo(jsonObj);
+
+                Util.postSuccess(listener, programInfo);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+    
+    public void getChannelCurrentProgramInfo(ProgramInfoListener listener) {
+        getChannelCurrentProgramInfo(false, listener);
+    }
+
+    @SuppressWarnings("unchecked")
+    public ServiceSubscription<ProgramInfoListener> subscribeChannelCurrentProgramInfo(ProgramInfoListener listener) {
+        return (ServiceSubscription<ProgramInfoListener>) getChannelCurrentProgramInfo(true, listener);
+    }
+
     private ServiceCommand<ResponseListener<Object>> getProgramList(boolean isSubscription, final ProgramListListener listener) {
         ServiceCommand<ResponseListener<Object>> request;
 
@@ -2858,6 +2899,24 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 disconnect();
             }
         }
+    }
+
+    private ProgramInfo parseRawProgramInfo(JSONObject programRawData) {
+        String programId;
+        String programName;
+
+        ProgramInfo programInfo = new ProgramInfo();
+        programInfo.setRawData(programRawData);
+        
+        programId = programRawData.optString("programId");
+        programName = programRawData.optString("programName");
+        ChannelInfo channelInfo = parseRawChannelData(programRawData);
+
+        programInfo.setId(programId);
+        programInfo.setName(programName);
+        programInfo.setChannelInfo(channelInfo);
+
+        return programInfo;
     }
 
     private ChannelInfo parseRawChannelData(JSONObject channelRawData) {
