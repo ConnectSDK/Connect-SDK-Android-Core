@@ -241,6 +241,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     public void setFilters(List<DiscoveryFilter> filters) {
         serviceFilters = filters;
     }
+    
+    @Override
+    public void setProperty(Object property) {}
 
     @Override
     public boolean isEmpty() {

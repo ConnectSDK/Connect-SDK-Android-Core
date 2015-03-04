@@ -106,6 +106,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     private ConcurrentHashMap<String, ConnectableDevice> allDevices;
     private ConcurrentHashMap<String, ConnectableDevice> compatibleDevices;
 
+    private Map<Class, Object> properties;
+
     ConcurrentHashMap<String, Class<? extends DeviceService>> deviceClasses;
     CopyOnWriteArrayList<DiscoveryProvider> discoveryProviders;
 
@@ -184,6 +186,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         allDevices = new ConcurrentHashMap<String, ConnectableDevice>(8, 0.75f, 2);
         compatibleDevices = new ConcurrentHashMap<String, ConnectableDevice>(8, 0.75f, 2);
+
+        properties = new HashMap<Class, Object>();
 
         deviceClasses = new ConcurrentHashMap<String, Class<? extends DeviceService>>(4, 0.75f, 2);
         discoveryProviders = new CopyOnWriteArrayList<DiscoveryProvider>();
@@ -316,6 +320,15 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         return capabilityFilters;
     }
 
+    public void setProperty(Class<? extends DeviceService> deviceClass, Object property) {
+        if (!DeviceService.class.isAssignableFrom(deviceClass)) {
+            Log.w("Connect SDK", "Invalid Class Type");
+            return;
+        }
+
+        properties.put(deviceClass, property);
+    }
+
     public boolean deviceIsCompatible(ConnectableDevice device) {
         if (capabilityFilters == null || capabilityFilters.size() == 0) {
             return true;
@@ -403,6 +416,10 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             deviceClasses.put(serviceId, deviceClass);
 
             discoveryProvider.addDeviceFilter(discoveryFilter);
+
+            Object property = properties.get(deviceClass);
+            discoveryProvider.setProperty(property);
+
             if (mSearching){
             	discoveryProvider.restart();
             }

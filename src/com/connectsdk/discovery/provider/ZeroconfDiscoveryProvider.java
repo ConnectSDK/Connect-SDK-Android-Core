@@ -288,6 +288,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     }
 
     @Override
+    public void setProperty(Object property) {}
+
+    @Override
     public boolean isEmpty() {
         return serviceFilters.size() == 0;
     }
