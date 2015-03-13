@@ -88,10 +88,10 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         if (clazz.equals(MediaPlayer.class)) {
             return getMediaPlayerCapabilityLevel();
         }
-        if (clazz.equals(MediaControl.class)) {
+        else if (clazz.equals(MediaControl.class)) {
             return getMediaControlCapabilityLevel();
         }
-        return CapabilityPriorityLevel.VERY_LOW;
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
     interface PlaybackPositionListener {

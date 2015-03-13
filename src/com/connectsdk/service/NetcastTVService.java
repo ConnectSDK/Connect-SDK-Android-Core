@@ -90,8 +90,8 @@ import com.connectsdk.service.netcast.NetcastAppNumberParser;
 import com.connectsdk.service.netcast.NetcastApplicationsParser;
 import com.connectsdk.service.netcast.NetcastChannelParser;
 import com.connectsdk.service.netcast.NetcastHttpServer;
-import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.netcast.NetcastVirtualKeycodes;
+import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
@@ -176,34 +176,34 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         if (clazz.equals(MediaPlayer.class)) {
             return getMediaPlayerCapabilityLevel();
         }
-        if (clazz.equals(MediaControl.class)) {
+        else if (clazz.equals(MediaControl.class)) {
             return getMediaControlCapabilityLevel();
         }
-        if (clazz.equals(Launcher.class)) {
+        else if (clazz.equals(Launcher.class)) {
             return getLauncherCapabilityLevel();
         }
-        if (clazz.equals(TVControl.class)) {
+        else if (clazz.equals(TVControl.class)) {
             return getTVControlCapabilityLevel();
         }
-        if (clazz.equals(VolumeControl.class)) {
+        else if (clazz.equals(VolumeControl.class)) {
             return getVolumeControlCapabilityLevel();
         }
-        if (clazz.equals(ExternalInputControl.class)) {
+        else if (clazz.equals(ExternalInputControl.class)) {
             return getExternalInputControlPriorityLevel();
         }
-        if (clazz.equals(MouseControl.class)) {
+        else if (clazz.equals(MouseControl.class)) {
             return getMouseControlCapabilityLevel();
         }
-        if (clazz.equals(TextInputControl.class)) {
+        else if (clazz.equals(TextInputControl.class)) {
             return getTextInputControlCapabilityLevel();
         }
-        if (clazz.equals(PowerControl.class)) {
+        else if (clazz.equals(PowerControl.class)) {
             return getPowerControlCapabilityLevel();
         }
-        if (clazz.equals(KeyControl.class)) {
+        else if (clazz.equals(KeyControl.class)) {
             return getKeyControlCapabilityLevel();
         }
-        return CapabilityPriorityLevel.VERY_LOW;
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
     @Override
@@ -1607,7 +1607,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
-        return CapabilityPriorityLevel.NORMAL;
+        return CapabilityPriorityLevel.HIGH;
     }
 
     @Override

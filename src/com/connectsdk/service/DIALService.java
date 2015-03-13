@@ -51,8 +51,6 @@ import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.Launcher;
-import com.connectsdk.service.capability.MediaControl;
-import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceSubscription;
 import com.connectsdk.service.command.ServiceCommand;
@@ -96,7 +94,7 @@ public class DIALService extends DeviceService implements Launcher {
         if (clazz.equals(Launcher.class)) {
             return getLauncherCapabilityLevel();
         }
-        return CapabilityPriorityLevel.VERY_LOW;
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
 

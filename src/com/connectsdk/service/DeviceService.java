@@ -38,16 +38,17 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.DeviceServiceReachability.DeviceServiceReachabilityListener;
 import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.CapabilityMethods.CapabilityPriorityLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.WebAppLauncher;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
-import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
@@ -215,7 +216,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     }
 
     public CapabilityMethods.CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
-        return CapabilityMethods.CapabilityPriorityLevel.VERY_LOW;
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
     public static DiscoveryFilter discoveryFilter() {

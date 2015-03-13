@@ -20,11 +20,8 @@
 
 package com.connectsdk.device;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +31,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.DeviceServiceListener;
 import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.CapabilityMethods.CapabilityPriorityLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -591,28 +591,32 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
         T foundController = null;
-        int foundControllerPriority = 0;
+        CapabilityPriorityLevel foundControllerPriority = CapabilityPriorityLevel.NOT_SUPPORTED;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
                 continue;
 
             T controller = service.getAPI(controllerClass);
-            int controllerPriority = service.getPriorityLevel(controllerClass).getValue();
+            CapabilityPriorityLevel controllerPriority = service.getPriorityLevel(controllerClass);
 
             if (foundController == null) {
                 foundController = controller;
+ 
+                if (controllerPriority == null || controllerPriority == CapabilityPriorityLevel.NOT_SUPPORTED) {
+                    Log.w("Connect SDK", "We found a mathcing capability class, but no priority level for the class. Please check \"getPriorityLevel()\" in your class");
+                }
                 foundControllerPriority = controllerPriority;
             }
             else {
-                if (controllerPriority > foundControllerPriority) {
+                if (controllerPriority.getValue() > foundControllerPriority.getValue()) {
                     foundController = controller;
+                    foundControllerPriority = controllerPriority;
                 }
             }
         }
 
         return foundController;
     }
-
 
     /** 
      * Sets the IP address of the ConnectableDevice.
