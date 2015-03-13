@@ -20,33 +20,18 @@
 
 package com.connectsdk.service;
 
-import android.content.Context;
-import android.text.Html;
-import android.util.Log;
-import android.util.Xml;
-
-import com.connectsdk.core.ImageInfo;
-import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.Util;
-import com.connectsdk.discovery.DiscoveryFilter;
-import com.connectsdk.discovery.DiscoveryManager;
-import com.connectsdk.discovery.provider.ssdp.Service;
-import com.connectsdk.etc.helper.DeviceServiceReachability;
-import com.connectsdk.service.capability.MediaControl;
-import com.connectsdk.service.capability.MediaPlayer;
-import com.connectsdk.service.capability.PlaylistControl;
-import com.connectsdk.service.capability.VolumeControl;
-import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.command.ServiceCommand;
-import com.connectsdk.service.command.ServiceCommandError;
-import com.connectsdk.service.command.ServiceSubscription;
-import com.connectsdk.service.command.URLServiceSubscription;
-import com.connectsdk.service.config.ServiceConfig;
-import com.connectsdk.service.config.ServiceDescription;
-import com.connectsdk.service.sessions.LaunchSession;
-import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
-import com.connectsdk.service.upnp.DLNAHttpServer;
-import com.connectsdk.service.upnp.DLNAMediaInfoParser;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -65,18 +50,34 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import android.content.Context;
+import android.text.Html;
+import android.util.Log;
+import android.util.Xml;
+
+import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.discovery.provider.ssdp.Service;
+import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.MediaControl;
+import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.PlaylistControl;
+import com.connectsdk.service.capability.VolumeControl;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommandError;
+import com.connectsdk.service.command.ServiceSubscription;
+import com.connectsdk.service.command.URLServiceSubscription;
+import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.sessions.LaunchSession;
+import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
+import com.connectsdk.service.upnp.DLNAHttpServer;
+import com.connectsdk.service.upnp.DLNAMediaInfoParser;
 
 
 public class DLNAService extends DeviceService implements PlaylistControl, MediaControl, MediaPlayer, VolumeControl {
@@ -137,6 +138,24 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
     }
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        else if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        else if (clazz.equals(VolumeControl.class)) {
+            return getVolumeControlCapabilityLevel();
+        }
+        else if (clazz.equals(PlaylistControl.class)) {
+            return getPlaylistControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
+    }
+
 
     @Override
     public void setServiceDescription(ServiceDescription serviceDescription) {

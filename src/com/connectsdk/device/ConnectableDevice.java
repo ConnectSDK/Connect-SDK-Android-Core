@@ -20,11 +20,8 @@
 
 package com.connectsdk.device;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +31,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.util.Log;
+
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.DeviceServiceListener;
 import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.CapabilityMethods.CapabilityPriorityLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -589,64 +589,33 @@ public class ConnectableDevice implements DeviceServiceListener {
         return getCapability(KeyControl.class);
     }
 
-    private <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
+    public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
         T foundController = null;
+        CapabilityPriorityLevel foundControllerPriority = CapabilityPriorityLevel.NOT_SUPPORTED;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
                 continue;
 
             T controller = service.getAPI(controllerClass);
+            CapabilityPriorityLevel controllerPriority = service.getPriorityLevel(controllerClass);
 
             if (foundController == null) {
                 foundController = controller;
+ 
+                if (controllerPriority == null || controllerPriority == CapabilityPriorityLevel.NOT_SUPPORTED) {
+                    Log.w("Connect SDK", "We found a mathcing capability class, but no priority level for the class. Please check \"getPriorityLevel()\" in your class");
+                }
+                foundControllerPriority = controllerPriority;
             }
             else {
-                Method method;
-                try {
-                    method = controllerClass.getMethod(priorityMethod);
-                    CapabilityMethods.CapabilityPriorityLevel controllerProirity = 
-                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(controller);
-                    CapabilityMethods.CapabilityPriorityLevel foundControllerProirity = 
-                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(foundController);
-                    if (controllerProirity.getValue() > foundControllerProirity.getValue()) {
-                        foundController = controller;
-                    }
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (RuntimeException e) {
-                    e.printStackTrace();
+                if (controllerPriority.getValue() > foundControllerPriority.getValue()) {
+                    foundController = controller;
+                    foundControllerPriority = controllerPriority;
                 }
             }
         }
 
         return foundController;
-    }
-
-    /**
-     * get the highest priority capability of a service
-     * @param clazz
-     * @return
-     */
-    public <T extends CapabilityMethods> T getCapability(Class<T> clazz) {
-        Map<Class, String> methods = new HashMap<Class, String>();
-        methods.put(Launcher.class, "getLauncherCapabilityLevel");
-        methods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
-        methods.put(MediaControl.class, "getMediaControlCapabilityLevel");
-        methods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
-        methods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
-        methods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
-        methods.put(TVControl.class, "getTVControlCapabilityLevel");
-        methods.put(ToastControl.class, "getToastControlCapabilityLevel");
-        methods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
-        methods.put(MouseControl.class, "getMouseControlCapabilityLevel");
-        methods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
-        methods.put(PowerControl.class, "getPowerControlCapabilityLevel");
-        methods.put(KeyControl.class, "getKeyControlCapabilityLevel");
-        return getApiController(clazz, methods.get(clazz));
     }
 
     /** 

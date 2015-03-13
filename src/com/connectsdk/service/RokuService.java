@@ -68,6 +68,7 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
@@ -130,6 +131,27 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         return new DiscoveryFilter(ID, "roku:ecp");
     }
 
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        else if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        else if (clazz.equals(Launcher.class)) {
+            return getLauncherCapabilityLevel();
+        }
+        else if (clazz.equals(TextInputControl.class)) {
+            return getTextInputControlCapabilityLevel();
+        }
+        else if (clazz.equals(KeyControl.class)) {
+            return getKeyControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
+    }
+    
     @Override
     public Launcher getLauncher() {
         return this;

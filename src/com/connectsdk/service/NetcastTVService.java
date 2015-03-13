@@ -66,6 +66,7 @@ import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -89,8 +90,8 @@ import com.connectsdk.service.netcast.NetcastAppNumberParser;
 import com.connectsdk.service.netcast.NetcastApplicationsParser;
 import com.connectsdk.service.netcast.NetcastChannelParser;
 import com.connectsdk.service.netcast.NetcastHttpServer;
-import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.netcast.NetcastVirtualKeycodes;
+import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
@@ -168,6 +169,41 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:schemas-upnp-org:device:MediaRenderer:1");
+    }
+
+    @Override
+    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
+        if (clazz.equals(MediaPlayer.class)) {
+            return getMediaPlayerCapabilityLevel();
+        }
+        else if (clazz.equals(MediaControl.class)) {
+            return getMediaControlCapabilityLevel();
+        }
+        else if (clazz.equals(Launcher.class)) {
+            return getLauncherCapabilityLevel();
+        }
+        else if (clazz.equals(TVControl.class)) {
+            return getTVControlCapabilityLevel();
+        }
+        else if (clazz.equals(VolumeControl.class)) {
+            return getVolumeControlCapabilityLevel();
+        }
+        else if (clazz.equals(ExternalInputControl.class)) {
+            return getExternalInputControlPriorityLevel();
+        }
+        else if (clazz.equals(MouseControl.class)) {
+            return getMouseControlCapabilityLevel();
+        }
+        else if (clazz.equals(TextInputControl.class)) {
+            return getTextInputControlCapabilityLevel();
+        }
+        else if (clazz.equals(PowerControl.class)) {
+            return getPowerControlCapabilityLevel();
+        }
+        else if (clazz.equals(KeyControl.class)) {
+            return getKeyControlCapabilityLevel();
+        }
+        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
     @Override
@@ -1571,7 +1607,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
-        return CapabilityPriorityLevel.NORMAL;
+        return CapabilityPriorityLevel.HIGH;
     }
 
     @Override

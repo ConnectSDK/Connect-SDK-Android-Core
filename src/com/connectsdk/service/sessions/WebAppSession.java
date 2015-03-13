@@ -25,8 +25,17 @@ import org.json.JSONObject;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
+import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.ExternalInputControl;
+import com.connectsdk.service.capability.KeyControl;
+import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.MouseControl;
+import com.connectsdk.service.capability.PowerControl;
+import com.connectsdk.service.capability.TVControl;
+import com.connectsdk.service.capability.TextInputControl;
+import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
@@ -102,6 +111,7 @@ public class WebAppSession implements MediaControl, MediaPlayer {
      */
     protected void setService(DeviceService service) {
     }
+
 
     /**
      * Subscribes to changes in the web app's status.
