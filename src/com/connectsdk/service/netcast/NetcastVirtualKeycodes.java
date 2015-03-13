@@ -20,7 +20,8 @@
 
 package com.connectsdk.service.netcast;
 
-public enum VirtualKeycodes {
+public enum NetcastVirtualKeycodes {
+    // reference for code number (http://developer.lge.com/resource/tv/RetrieveDocDevLibrary.dev, search "Annex A URL Encoding Reference")
     POWER (1),
     NUMBER_0 (2),
     NUMBER_1 (3),
@@ -102,7 +103,7 @@ public enum VirtualKeycodes {
 
     private final int code;
 
-    private VirtualKeycodes (int code) {
+    private NetcastVirtualKeycodes (int code) {
         this.code = code;
     }
 

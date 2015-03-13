@@ -106,8 +106,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     private ConcurrentHashMap<String, ConnectableDevice> allDevices;
     private ConcurrentHashMap<String, ConnectableDevice> compatibleDevices;
 
-    private ConcurrentHashMap<String, Class<? extends DeviceService>> deviceClasses;
-    private CopyOnWriteArrayList<DiscoveryProvider> discoveryProviders;
+    ConcurrentHashMap<String, Class<? extends DeviceService>> deviceClasses;
+    CopyOnWriteArrayList<DiscoveryProvider> discoveryProviders;
 
     private CopyOnWriteArrayList<DiscoveryManagerListener> discoveryListeners;
     List<CapabilityFilter> capabilityFilters;
@@ -403,6 +403,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             deviceClasses.put(serviceId, deviceClass);
 
             discoveryProvider.addDeviceFilter(discoveryFilter);
+            if (mSearching){
+            	discoveryProvider.restart();
+            }
         } catch (SecurityException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
@@ -427,11 +430,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * @param discoveryClass Class for DiscoveryProvider that is discovering DeviceServices of deviceClass type
      */
     public void unregisterDeviceService(Class<?> deviceClass, Class<?> discoveryClass) {
-        if (!deviceClass.isAssignableFrom(DeviceService.class)) {
+        if (!DeviceService.class.isAssignableFrom(deviceClass)) {
             return;
         }
 
-        if (!discoveryClass.isAssignableFrom(DiscoveryProvider.class)) {
+        if (!DiscoveryProvider.class.isAssignableFrom(discoveryClass)) {
             return;
         }
 
@@ -453,7 +456,10 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             DiscoveryFilter discoveryFilter = (DiscoveryFilter) result;
             String serviceId = discoveryFilter.getServiceId();
 
-            deviceClasses.remove(serviceId);
+            // do not remove provider if there is no such service
+            if (null == deviceClasses.remove(serviceId)) {
+                return;
+            }
 
             discoveryProvider.removeDeviceFilter(discoveryFilter);
 

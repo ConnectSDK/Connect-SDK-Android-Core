@@ -91,7 +91,7 @@ import com.connectsdk.service.netcast.NetcastApplicationsParser;
 import com.connectsdk.service.netcast.NetcastChannelParser;
 import com.connectsdk.service.netcast.NetcastHttpServer;
 import com.connectsdk.service.netcast.NetcastVolumeParser;
-import com.connectsdk.service.netcast.VirtualKeycodes;
+import com.connectsdk.service.netcast.NetcastVirtualKeycodes;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
@@ -1056,12 +1056,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void channelUp(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.CHANNEL_UP.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.CHANNEL_UP.getCode(), listener);
     }
 
     @Override
     public void channelDown(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.CHANNEL_DOWN.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.CHANNEL_DOWN.getCode(), listener);
     }
 
     @Override
@@ -1211,7 +1211,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             @Override
             public void onSuccess(Boolean isEnabled) {
                 if (enabled != isEnabled) {
-                    sendKeyCode(VirtualKeycodes.VIDEO_3D.getCode(), listener);
+                    sendVirtualKeyCode(NetcastVirtualKeycodes.VIDEO_3D.getCode(), listener);
                 }
             }
 
@@ -1277,12 +1277,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void volumeUp(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.VOLUME_UP.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.VOLUME_UP.getCode(), listener);
     }
 
     @Override
     public void volumeDown(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.VOLUME_DOWN.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.VOLUME_DOWN.getCode(), listener);
     }
 
     @Override
@@ -1320,7 +1320,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             @Override
             public void onSuccess(VolumeStatus status) {
                 if (isMute != status.isMute) {
-                    sendKeyCode(VirtualKeycodes.MUTE.getCode(), listener);
+                    sendVirtualKeyCode(NetcastVirtualKeycodes.MUTE.getCode(), listener);
                 }
             }
 
@@ -1454,7 +1454,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void closeInputPicker(LaunchSession launchSession, ResponseListener<Object> listener) {
-        this.getKeyControl().sendKeyCode(VirtualKeycodes.EXIT.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.EXIT.getCode(), listener);
     }
 
     @Override
@@ -1612,37 +1612,37 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void play(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.PLAY.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.PLAY.getCode(), listener);
     }
 
     @Override
     public void pause(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.PAUSE.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.PAUSE.getCode(), listener);
     }
 
     @Override
     public void stop(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.STOP.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.STOP.getCode(), listener);
     }
 
     @Override
     public void rewind(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.REWIND.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.REWIND.getCode(), listener);
     }
 
     @Override
     public void fastForward(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.FAST_FORWARD.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.FAST_FORWARD.getCode(), listener);
     }
 
     @Override
     public void previous(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.SKIP_BACKWARD.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.SKIP_BACKWARD.getCode(), listener);
     }
 
     @Override
     public void next(ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.SKIP_FORWARD.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.SKIP_FORWARD.getCode(), listener);
     }
 
     @Override
@@ -1915,7 +1915,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             }
         };
         handleKeyboardInput("EditEnd", keyboardString.toString());
-        sendKeyCode(VirtualKeycodes.RED.getCode(), responseListener);       // Send RED Key to enter the "ENTER" button
+        sendVirtualKeyCode(NetcastVirtualKeycodes.RED.getCode(), responseListener);       // Send RED Key to enter the "ENTER" button
     }
 
     @Override
@@ -1984,37 +1984,37 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void up(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.KEY_UP.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.KEY_UP.getCode(), listener);
     }
 
     @Override
     public void down(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.KEY_DOWN.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.KEY_DOWN.getCode(), listener);
     }
 
     @Override
     public void left(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.KEY_LEFT.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.KEY_LEFT.getCode(), listener);
     }
 
     @Override
     public void right(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.KEY_RIGHT.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.KEY_RIGHT.getCode(), listener);
     }
 
     @Override
     public void ok(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.OK.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.OK.getCode(), listener);
     }
 
     @Override
     public void back(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.BACK.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.BACK.getCode(), listener);
     }
 
     @Override
     public void home(final ResponseListener<Object> listener) {
-        sendKeyCode(VirtualKeycodes.HOME.getCode(), listener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.HOME.getCode(), listener);
     }
 
 
@@ -2046,7 +2046,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             }
         };
 
-        sendKeyCode(VirtualKeycodes.POWER.getCode(), responseListener);
+        sendVirtualKeyCode(NetcastVirtualKeycodes.POWER.getCode(), responseListener);
     }
 
     @Override
@@ -2126,7 +2126,50 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void sendKeyCode(final int keycode, final ResponseListener<Object> listener) {
+    public void sendKeyCode(KeyCode keycode, ResponseListener<Object> listener) {
+        switch (keycode) {
+            case NUM_0:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_0.getCode(), listener);
+                break;
+            case NUM_1:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_1.getCode(), listener);
+                break;
+            case NUM_2:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_2.getCode(), listener);
+                break;
+            case NUM_3:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_3.getCode(), listener);
+                break;
+            case NUM_4:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_4.getCode(), listener);
+                break;
+            case NUM_5:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_5.getCode(), listener);
+                break;
+            case NUM_6:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_6.getCode(), listener);
+                break;
+            case NUM_7:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_7.getCode(), listener);
+                break;
+            case NUM_8:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_8.getCode(), listener);
+                break;
+            case NUM_9:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.NUMBER_9.getCode(), listener);
+                break;
+            case DASH:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.DASH.getCode(), listener);
+                break;
+            case ENTER:
+                sendVirtualKeyCode(NetcastVirtualKeycodes.OK.getCode(), listener);
+                break;
+            default:
+                Util.postError(listener, new ServiceCommandError(0, "The keycode is not available", null));
+        }
+    }
+    
+    private void sendVirtualKeyCode(final int keycode, final ResponseListener<Object> listener) {
         ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
             @Override

@@ -37,6 +37,7 @@ public class HttpMessage {
     public final static String USER_AGENT = "User-Agent";
     public final static String SOAP_ACTION = "\"urn:schemas-upnp-org:service:AVTransport:1#%s\"";
     public final static String SOAP_HEADER = "Soapaction";
+    public final static String NEW_LINE = "\r\n";
 
     public static HttpPost getHttpPost(String uri) {
         HttpPost post = null;

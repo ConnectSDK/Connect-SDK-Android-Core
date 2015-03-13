@@ -279,26 +279,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void removeDeviceFilter(DiscoveryFilter filter) {
-        String removalServiceId;
-        boolean shouldRemove = false;
-        int removalIndex = -1;
-
-        removalServiceId = filter.getServiceId();
-
-        for (int i = 0; i < serviceFilters.size(); i++) {
-            DiscoveryFilter serviceFilter = serviceFilters.get(i);
-            String serviceId = serviceFilter.getServiceId();
-
-            if (serviceId.equals(removalServiceId)) {
-                shouldRemove = true;
-                removalIndex = i;
-                break;
-            }
-        }
-
-        if (shouldRemove) {
-            serviceFilters.remove(removalIndex);
-        }
+        serviceFilters.remove(filter);
     }
 
     @Override

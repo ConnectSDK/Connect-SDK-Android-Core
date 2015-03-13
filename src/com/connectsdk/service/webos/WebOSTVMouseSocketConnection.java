@@ -147,21 +147,6 @@ public class WebOSTVMouseSocketConnection {
     }
 
     public void button(String keyName) {
-        if (keyName != null) {
-            if (keyName.equals("HOME")
-                    || keyName.equals("BACK")
-                    || keyName.equals("UP")
-                    || keyName.equals("DOWN")
-                    || keyName.equals("LEFT")
-                    || keyName.equals("RIGHT")
-                    || keyName.equals("3D_MODE")) {
-
-                sendSpecialKey(keyName);
-            }
-        }
-    }
-
-    private void sendSpecialKey(String keyName) {
         if (isConnected()) {
             StringBuilder sb = new StringBuilder();
 

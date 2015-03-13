@@ -310,13 +310,12 @@ public class WebOSWebAppSession extends WebAppSession {
             final ResponseListener<Object> connectionListener) {
         if (socket != null
                 && socket.getState() == WebOSTVServiceSocketClient.State.CONNECTING) {
-            if (connectionListener != null)
-                ;
-            connectionListener
-            .onError(new ServiceCommandError(
-                    0,
-                    "You have a connection request pending,  please wait until it has finished",
-                    null));
+            if (connectionListener != null) {
+                connectionListener.onError(new ServiceCommandError(
+                        0,
+                        "You have a connection request pending,  please wait until it has finished",
+                        null));
+            }
 
             return;
         }

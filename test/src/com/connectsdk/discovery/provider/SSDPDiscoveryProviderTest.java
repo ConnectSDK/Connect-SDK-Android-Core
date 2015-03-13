@@ -113,7 +113,30 @@ public class SSDPDiscoveryProviderTest{
         dp.serviceFilters.add(filter);
         dp.removeDeviceFilter(filter);
         Assert.assertFalse(dp.serviceFilters.contains(filter));
+    }
 
+    @Test
+    public void testRemoveDeviceFiltersWithEmptyFilterString() throws JSONException {
+        DiscoveryFilter filter = new DiscoveryFilter("DLNA", null);
+        dp.serviceFilters.add(filter);
+        dp.removeDeviceFilter(filter);
+        Assert.assertFalse(dp.serviceFilters.contains(filter));
+    }
+
+    @Test
+    public void testRemoveDeviceFiltersWithEmptyId() throws JSONException {
+        DiscoveryFilter filter = new DiscoveryFilter(null, "urn:schemas-upnp-org:device:MediaRenderer:1");
+        dp.serviceFilters.add(filter);
+        dp.removeDeviceFilter(filter);
+        Assert.assertFalse(dp.serviceFilters.contains(filter));
+    }
+
+    @Test
+    public void testRemoveDeviceFiltersWithDifferentFilterStrings() throws JSONException {
+        DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
+        dp.serviceFilters.add(filter);
+        dp.removeDeviceFilter(new DiscoveryFilter("DLNA", null));
+        Assert.assertTrue(dp.serviceFilters.contains(filter));
     }
 
     @Test
