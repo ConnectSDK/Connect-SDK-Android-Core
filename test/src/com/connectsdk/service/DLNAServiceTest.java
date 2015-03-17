@@ -20,9 +20,22 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.w3c.dom.DocumentFragment;
+import org.w3c.dom.Node;
 
+import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * Created by oleksii.frolov on 1/13/2015.
@@ -96,5 +109,83 @@ public class DLNAServiceTest {
         }
         Assert.assertEquals("", value);
     }
+
+    @Test
+    public void testGetMetadata() throws Exception {
+        String title = "<title>";
+        String description = "description";
+        String mime = "audio/mpeg";
+        String mediaURL = "http://host.com/media";
+
+        String expectedXml =
+                "&lt;DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title&gt;&amp;lt;title&amp;gt;&lt;/dc:title&gt;" +
+                "&lt;dc:description&gt;" + description + "&lt;/dc:description&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;" + mediaURL + "&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI&gt;&lt;/upnp:albumArtURI&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;/item&gt;" +
+                "&lt;/DIDL-Lite&gt;";
+
+        String fragment = service.getMetadata(mediaURL, mime, title, description, "");
+        Assert.assertEquals(expectedXml, (fragment));
+    }
+
+
+    @Test
+    public void testGetMessageXml() throws Exception {
+        String method = "GetPosition";
+        String serviceURN = "http://serviceurn/";
+
+        String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+        "<s:Body>" +
+        "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+        "<key>value</key>" +
+        "</u:" + method + ">" +
+        "</s:Body>" +
+        "</s:Envelope>";
+
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("key", "value");
+        String source = service.getMessageXml(serviceURN, method, null, params);
+        Assert.assertEquals(expectedXml, (source));
+    }
+
+    @Test
+    public void testGetMessageXmlWithMetadata() throws Exception {
+        String method = "SetAVTransportUri";
+        String serviceURN = "http://serviceurn/";
+
+        String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+                "<s:Body>" +
+                "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+                "<CurrentURIMetaData>" +
+
+                "&lt;DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title&gt;&amp;amp;\"title\"&lt;/dc:title&gt;" +
+                "&lt;dc:description&gt;&amp;amp;&lt;/dc:description&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;http://url/t&amp;amp;t&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI&gt;&lt;/upnp:albumArtURI&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;/item&gt;" +
+                "&lt;/DIDL-Lite&gt;" +
+
+                "</CurrentURIMetaData>" +
+                "</u:" + method + ">" +
+                "</s:Body>" +
+                "</s:Envelope>";
+
+        String metadata = service.getMetadata("http://url/t&t", "audio/mpeg", "&\"title\"", "&", "");
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("CurrentURIMetaData", metadata);
+
+        String source = service.getMessageXml(serviceURN, method, null, params);
+        Assert.assertEquals(expectedXml, (source));
+    }
+
 
 }
