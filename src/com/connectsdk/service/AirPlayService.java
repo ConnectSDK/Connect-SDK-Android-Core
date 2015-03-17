@@ -539,7 +539,10 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
+        capabilities.add(Display_Image);
+        capabilities.add(Play_Video);
+        capabilities.add(Play_Audio);
+        capabilities.add(Close);
 
         capabilities.add(Play);
         capabilities.add(Pause);
