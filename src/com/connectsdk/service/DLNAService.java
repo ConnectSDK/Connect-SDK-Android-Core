@@ -20,36 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-
 import android.content.Context;
 import android.text.Html;
 import android.util.Log;
@@ -78,6 +48,53 @@ import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.upnp.DLNAHttpServer;
 import com.connectsdk.service.upnp.DLNAMediaInfoParser;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xmlpull.v1.XmlPullParser;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 
 public class DLNAService extends DeviceService implements PlaylistControl, MediaControl, MediaPlayer, VolumeControl {
@@ -280,9 +297,18 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
         String method = "SetAVTransportURI";
         String metadata = getMetadata(url, mMimeType, title, description, iconSrc);
+        if (metadata == null) {
+            Util.postError(listener, ServiceCommandError.getError(500));
+            return;
+        }
 
         Map<String, String> params = new LinkedHashMap<String, String>();
-        params.put("CurrentURI", url);
+        try {
+            params.put("CurrentURI", encodeURL(url));
+        } catch (Exception e) {
+            Util.postError(listener, ServiceCommandError.getError(500));
+            return;
+        }
         params.put("CurrentURIMetaData", metadata);
 
         String payload = getMessageXml(AV_TRANSPORT_URN, method, instanceId, params);
@@ -558,64 +584,114 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     protected String getMessageXml(String serviceURN, String method, String instanceId, Map<String, String> params) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        sb.append("<s:Envelope s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">");
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.newDocument();
+            doc.setXmlStandalone(true);
+            doc.setXmlVersion("1.0");
 
-        sb.append("<s:Body>");
-        sb.append("<u:" + method + " xmlns:u=\""+ serviceURN + "\">");
-        if (instanceId != null) sb.append("<InstanceID>" + instanceId + "</InstanceID>");
+            Element root = doc.createElement("s:Envelope");
+            Element bodyElement = doc.createElement("s:Body");
+            Element methodElement = doc.createElementNS(serviceURN, "u:" + method);
+            Element instanceElement = doc.createElement("InstanceID");
 
-        if (params != null) {
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
+            root.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
+            root.setAttribute("xmlns:s", "http://schemas.xmlsoap.org/soap/envelope/");
 
-                String str = String.format("<%s>%s</%s>", key, value, key);
-                sb.append(str);
+            doc.appendChild(root);
+            root.appendChild(bodyElement);
+            bodyElement.appendChild(methodElement);
+            if (instanceId != null) {
+                instanceElement.setTextContent(instanceId);
+                methodElement.appendChild(instanceElement);
             }
+
+            if (params != null) {
+                for (Map.Entry<String, String> entry : params.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    Element element = doc.createElement(key);
+                    element.setTextContent(value);
+                    methodElement.appendChild(element);
+                }
+            }
+            return xmlToString(doc, true);
+        } catch (Exception e) {
+            return null;
         }
-
-        sb.append("</u:" + method + ">");
-        sb.append("</s:Body>");
-        sb.append("</s:Envelope>");
-
-        return sb.toString();
     }
 
     protected String getMetadata(String mediaURL, String mime, String title, String description, String iconUrl) {
-        String id = "1000";
-        String parentID = "0";
-        String restricted = "0";
-        String objectClass = null;
-        StringBuilder sb = new StringBuilder();
+        try {
+            String objectClass = "";
+            if (mime.startsWith("image")) {
+                objectClass = "object.item.imageItem";
+            } else if (mime.startsWith("video")) {
+                objectClass = "object.item.videoItem";
+            } else if (mime.startsWith("audio")) {
+                objectClass = "object.item.audioItem";
+            }
 
-        sb.append("&lt;DIDL-Lite xmlns=&quot;urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/&quot; ");
-        sb.append("xmlns:upnp=&quot;urn:schemas-upnp-org:metadata-1-0/upnp/&quot; ");
-        sb.append("xmlns:dc=&quot;http://purl.org/dc/elements/1.1/&quot;&gt;");
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.newDocument();
 
-        sb.append("&lt;item id=&quot;" + id + "&quot; parentID=&quot;" + parentID + "&quot; restricted=&quot;" + restricted + "&quot;&gt;");
-        sb.append("&lt;dc:title&gt;" + title + "&lt;/dc:title&gt;");
+            Element didlRoot = doc.createElement("DIDL-Lite");
+            Element itemElement = doc.createElement("item");
+            Element titleElement = doc.createElement("dc:title");
+            Element descriptionElement = doc.createElement("dc:description");
+            Element resElement = doc.createElement("res");
+            Element albumArtElement = doc.createElement("upnp:albumArtURI");
+            Element clazzElement = doc.createElement("upnp:class");
 
-        sb.append("&lt;dc:description&gt;" + description + "&lt;/dc:description&gt;");
+            didlRoot.appendChild(itemElement);
+            itemElement.appendChild(titleElement);
+            itemElement.appendChild(descriptionElement);
+            itemElement.appendChild(resElement);
+            itemElement.appendChild(albumArtElement);
+            itemElement.appendChild(clazzElement);
 
-        if (mime.startsWith("image")) {
-            objectClass = "object.item.imageItem";
+            didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/");
+            didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:upnp", "urn:schemas-upnp-org:metadata-1-0/upnp/");
+            didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dc", "http://purl.org/dc/elements/1.1/");
+
+            titleElement.setTextContent(title);
+            descriptionElement.setTextContent(description);
+            resElement.setTextContent(encodeURL(mediaURL));
+            albumArtElement.setTextContent(encodeURL(iconUrl));
+            clazzElement.setTextContent(objectClass);
+
+            itemElement.setAttribute("id", "1000");
+            itemElement.setAttribute("parentID", "0");
+            itemElement.setAttribute("restricted", "0");
+
+            resElement.setAttribute("protocolInfo", "http-get:*:" + mime + ":DLNA.ORG_OP=01");
+
+            doc.appendChild(didlRoot);
+            return xmlToString(doc, false);
+        } catch (Exception e) {
+            return null;
         }
-        else if (mime.startsWith("video")) {
-            objectClass = "object.item.videoItem";
-        }
-        else if (mime.startsWith("audio")) {
-            objectClass = "object.item.audioItem";
-        }
-        sb.append("&lt;res protocolInfo=&quot;http-get:*:" + mime + ":DLNA.ORG_OP=01&quot;&gt;" + mediaURL + "&lt;/res&gt;");
-        sb.append("&lt;upnp:albumArtURI&gt;" + iconUrl + "&lt;/upnp:albumArtURI&gt;");
-        sb.append("&lt;upnp:class&gt;" + objectClass + "&lt;/upnp:class&gt;");
+    }
 
-        sb.append("&lt;/item&gt;");
-        sb.append("&lt;/DIDL-Lite&gt;");
+    String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException {
+        URL url = new URL(mediaURL);
+        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+        return uri.toASCIIString();
+    }
 
-        return sb.toString();
+    String xmlToString(Node source, boolean xmlDeclaration) throws TransformerException {
+        DOMSource domSource = new DOMSource(source);
+        StringWriter writer = new StringWriter();
+        StreamResult result = new StreamResult(writer);
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        if (!xmlDeclaration) {
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        }
+        transformer.transform(domSource, result);
+        return writer.toString();
     }
 
 
@@ -657,6 +733,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 post.setHeader("Content-Type", "text/xml; charset=utf-8");
                 post.setHeader("SOAPAction", String.format("\"%s#%s\"", serviceURN, method));
 
+                Log.d("", "DLNA: " + payload);
                 try {
                     post.setEntity(new StringEntity(payload));
                 } catch (UnsupportedEncodingException e) {
