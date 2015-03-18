@@ -21,7 +21,9 @@
 package com.connectsdk.service;
 
 import android.content.Context;
+import android.net.Uri;
 import android.text.Html;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.Xml;
 
@@ -66,9 +68,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -240,6 +246,12 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
         mediaFormat = "mp3".equals(mediaFormat) ? "mpeg" : mediaFormat;
         String mMimeType = String.format("%s/%s", mediaType, mediaFormat);
+
+        int pos = url.lastIndexOf('/') + 1;
+        url = url.substring(0, pos) + Uri.encode(url.substring(pos), "utf-8");
+
+        pos = iconSrc.lastIndexOf('/') + 1;
+        iconSrc = iconSrc.substring(0, pos) + Uri.encode(iconSrc.substring(pos), "utf-8");
 
         ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
@@ -594,10 +606,10 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         sb.append("xmlns:dc=\"http://purl.org/dc/elements/1.1/\" ");
         sb.append("xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">");
 
-        sb.append("<item id=\"" + encodeAttribute(id) + "\" parentID=\"" + encodeAttribute(parentID) + "\" restricted=\"" + encodeAttribute(restricted) + "\">");
-        sb.append("<dc:title>" + encode(title) + "</dc:title>");
+        sb.append("<item id=\"" + id + "\" parentID=\"" + parentID + "\" restricted=\"" + restricted + "\">");
+        sb.append("<dc:title>" + title + "</dc:title>");
 
-        sb.append("<dc:description>" + encode(description) + "</dc:description>");
+        sb.append("<dc:description>" + description + "</dc:description>");
 
         if (mime.startsWith("image")) {
             objectClass = "object.item.imageItem";
@@ -608,24 +620,15 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         else if (mime.startsWith("audio")) {
             objectClass = "object.item.audioItem";
         }
-        sb.append("<res protocolInfo=\"http-get:*:" + encodeAttribute(mime) + ":DLNA.ORG_OP=01\">" + encode(mediaURL) + "</res>");
-        sb.append("<upnp:albumArtURI>" + encode(iconUrl) + "</upnp:albumArtURI>");
-        sb.append("<upnp:class>" + encode(objectClass) + "</upnp:class>");
+        sb.append("<res protocolInfo=\"http-get:*:" + mime + ":DLNA.ORG_OP=01\">" + mediaURL + "</res>");
+        sb.append("<upnp:albumArtURI>" + iconUrl + "</upnp:albumArtURI>");
+        sb.append("<upnp:class>" + objectClass + "</upnp:class>");
 
         sb.append("</item>");
         sb.append("</DIDL-Lite>");
 
-        return encode(sb.toString());
+        return TextUtils.htmlEncode(sb.toString());
     }
-
-    private String encode(String text) {
-        return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    }
-
-    private String encodeAttribute(String text) {
-        return text.replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    }
-
 
     @Override
     public void sendCommand(final ServiceCommand<?> mCommand) {
