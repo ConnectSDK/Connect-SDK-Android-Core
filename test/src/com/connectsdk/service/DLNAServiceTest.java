@@ -105,6 +105,7 @@ public class DLNAServiceTest {
         String description = "description";
         String mime = "audio/mpeg";
         String mediaURL = "http://host.com/media";
+        String iconURL = "http://host.com/icon";
 
         String expectedXml =
                 "<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">" +
@@ -112,13 +113,13 @@ public class DLNAServiceTest {
                 "<dc:title>&lt;title&gt;</dc:title>" +
                 "<dc:description>" + description + "</dc:description>" +
                 "<res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\">" + mediaURL + "</res>" +
-                "<upnp:albumArtURI/>" +
+                "<upnp:albumArtURI>" + iconURL + "</upnp:albumArtURI>" +
                 "<upnp:class>object.item.audioItem</upnp:class>" +
                 "</item>" +
                 "</DIDL-Lite>";
 
-        String fragment = service.getMetadata(mediaURL, mime, title, description, "");
-        Assert.assertEquals(expectedXml, (fragment));
+        String fragment = service.getMetadata(mediaURL, mime, title, description, iconURL);
+        Assert.assertEquals(expectedXml, fragment);
     }
 
 
@@ -158,7 +159,7 @@ public class DLNAServiceTest {
                 "&lt;dc:title&gt;&amp;amp;\"title\"&lt;/dc:title&gt;" +
                 "&lt;dc:description&gt;&amp;amp;&lt;/dc:description&gt;" +
                 "&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;http://url/t&amp;amp;t&lt;/res&gt;" +
-                "&lt;upnp:albumArtURI/&gt;" +
+                "&lt;upnp:albumArtURI&gt;http://host/image&lt;/upnp:albumArtURI&gt;" +
                 "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
                 "&lt;/item&gt;" +
                 "&lt;/DIDL-Lite&gt;" +
@@ -168,7 +169,7 @@ public class DLNAServiceTest {
                 "</s:Body>" +
                 "</s:Envelope>";
 
-        String metadata = service.getMetadata("http://url/t&t", "audio/mpeg", "&\"title\"", "&", "");
+        String metadata = service.getMetadata("http://url/t&t", "audio/mpeg", "&\"title\"", "&", "http://host/image");
         Map<String, String> params = new LinkedHashMap<String, String>();
         params.put("CurrentURIMetaData", metadata);
 
