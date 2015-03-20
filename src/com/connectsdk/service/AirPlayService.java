@@ -20,6 +20,40 @@
 
 package com.connectsdk.service;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+
+import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.etc.helper.HttpMessage;
+import com.connectsdk.service.airplay.PListBuilder;
+import com.connectsdk.service.airplay.PListParser;
+import com.connectsdk.service.airplay.PersistentHttpClient;
+import com.connectsdk.service.airplay.PersistentHttpClient.Response;
+import com.connectsdk.service.airplay.PersistentHttpClient.ResponseReceiver;
+import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.MediaControl;
+import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommandError;
+import com.connectsdk.service.command.ServiceSubscription;
+import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.sessions.LaunchSession;
+import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,38 +70,6 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
-
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-
-import com.connectsdk.core.ImageInfo;
-import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.Util;
-import com.connectsdk.discovery.DiscoveryFilter;
-import com.connectsdk.etc.helper.DeviceServiceReachability;
-import com.connectsdk.etc.helper.HttpMessage;
-import com.connectsdk.service.airplay.PListBuilder;
-import com.connectsdk.service.airplay.PersistentHttpClient;
-import com.connectsdk.service.airplay.PersistentHttpClient.Response;
-import com.connectsdk.service.airplay.PersistentHttpClient.ResponseReceiver;
-import com.connectsdk.service.capability.CapabilityMethods;
-import com.connectsdk.service.capability.MediaControl;
-import com.connectsdk.service.capability.MediaPlayer;
-import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.command.ServiceCommand;
-import com.connectsdk.service.command.ServiceCommandError;
-import com.connectsdk.service.command.ServiceSubscription;
-import com.connectsdk.service.config.ServiceConfig;
-import com.connectsdk.service.config.ServiceDescription;
-import com.connectsdk.service.sessions.LaunchSession;
-import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
 
@@ -219,8 +221,23 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
             @Override
             public void onSuccess(Object object) {
-                // TODO need to handle play state
-//                Util.postSuccess(listener, object);
+                PlayStateStatus playState = PlayStateStatus.Unknown;
+                try {
+                    JSONObject response = new PListParser().parse(object.toString());
+                    if (!response.has("rate")) {
+                        playState = PlayStateStatus.Finished;
+                    } else {
+                        int rate = response.getInt("rate");
+                        if (rate == 0) {
+                            playState = PlayStateStatus.Paused;
+                        } else if (rate == 1) {
+                            playState = PlayStateStatus.Playing;
+                        }
+                    }
+                    Util.postSuccess(listener, playState);
+                } catch (Exception e) {
+                    Util.postError(listener, new ServiceCommandError(500, e.getMessage(), null));
+                }
             }
 
             @Override

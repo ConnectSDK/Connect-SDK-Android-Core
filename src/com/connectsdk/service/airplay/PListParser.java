@@ -20,18 +20,31 @@
 
 package com.connectsdk.service.airplay;
 
-import java.io.IOException;
-import java.io.InputStream;
+import android.util.Log;
+import android.util.Xml;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.util.Xml;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 
 public class PListParser {
     private static final String ns = null;
+
+    public JSONObject parse(String text) throws XmlPullParserException, IOException, JSONException {
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        Reader stream = new StringReader(text);
+        parser.setInput(stream);
+        parser.nextTag();
+        return readPlist(parser);
+    }
 
     public JSONObject parse(InputStream in) throws XmlPullParserException, IOException, JSONException {
         try {
@@ -79,6 +92,7 @@ public class PListParser {
 
             if (name.equals("key")) {
                 key = readKey(parser);
+                Log.d("", "plist " + key);
             }
             else if (key != null) {
                 if (name.equals("data")) {
@@ -93,6 +107,12 @@ public class PListParser {
                 else if (name.equals("real")) {
                     plist.put(key, readReal(parser));
                 }
+                else if (name.equals("array")) {
+                    plist.put(key, readArray(parser));
+                }
+                else if (name.equals("dict")) {
+                    plist.put(key, readDict(parser));
+                }
                 else if (name.equals("true") || name.equals("false")) {
                     plist.put(key, Boolean.valueOf(name));
                     skip(parser);
@@ -102,6 +122,22 @@ public class PListParser {
             }
         }
 
+        return plist;
+    }
+
+    private JSONArray readArray(XmlPullParser parser) throws IOException, XmlPullParserException, JSONException {
+        JSONArray plist = new JSONArray();
+        parser.require(XmlPullParser.START_TAG, ns, "array");
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            String name = parser.getName();
+            if (name.equals("dict")) {
+                plist.put(readDict(parser));
+            }
+        }
         return plist;
     }
 
