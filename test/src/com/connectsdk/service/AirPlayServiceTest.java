@@ -1,7 +1,5 @@
 package com.connectsdk.service;
 
-import android.content.Context;
-
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
@@ -14,13 +12,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Oleksii Frolov on 3/19/2015.
@@ -33,8 +28,6 @@ public class AirPlayServiceTest {
 
     class StubAirPlayService extends AirPlayService {
 
-        private Map<String, String> lastParams;
-        private String lastMethod;
         private Object response;
 
         public StubAirPlayService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) throws IOException {
@@ -50,10 +43,6 @@ public class AirPlayServiceTest {
             serviceCommand.getResponseListener().onSuccess(response);
         }
 
-        Context getContext() {
-            return Robolectric.application;
-        }
-
     }
 
     @Before
@@ -63,7 +52,6 @@ public class AirPlayServiceTest {
 
     @Test
     public void testGetPlayStateFinished() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
         service.setResponse(
                 "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
                 "<plist version=\"1.0\">" +
@@ -75,20 +63,17 @@ public class AirPlayServiceTest {
             @Override
             public void onSuccess(MediaControl.PlayStateStatus object) {
                 Assert.assertEquals(MediaControl.PlayStateStatus.Finished, object);
-                latch.countDown();
             }
 
             @Override
             public void onError(ServiceCommandError error) {
-                latch.countDown();
+                Assert.fail();
             }
         });
-        latch.await();
     }
 
     @Test
     public void testGetPlayStatePlaying() throws InterruptedException {
-        final CountDownLatch latch = new CountDownLatch(1);
         service.setResponse(
                 "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" +
                 "<plist version=\"1.0\">" +
@@ -102,14 +87,12 @@ public class AirPlayServiceTest {
             @Override
             public void onSuccess(MediaControl.PlayStateStatus object) {
                 Assert.assertEquals(MediaControl.PlayStateStatus.Playing, object);
-                latch.countDown();
             }
 
             @Override
             public void onError(ServiceCommandError error) {
-                latch.countDown();
+                Assert.fail();
             }
         });
-        latch.await();
     }
 }
