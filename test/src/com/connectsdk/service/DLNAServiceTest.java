@@ -1,10 +1,5 @@
 package com.connectsdk.service;
 
-import android.content.Context;
-import android.util.SparseArray;
-
-import com.connectsdk.discovery.DiscoveryManager;
-import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
@@ -14,16 +9,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -33,28 +24,12 @@ import java.util.Map;
 @Config(manifest=Config.NONE)
 public class DLNAServiceTest {
 
-    private StubDLNAService service;
-
-    class StubDLNAService extends DLNAService {
-
-        private Map<String, String> lastParams;
-        private String lastMethod;
-
-        public StubDLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
-            super(serviceDescription, serviceConfig);
-        }
-
-        Context getContext() {
-            return Robolectric.application;
-        }
-
-    }
+    DLNAService service;
 
     @Before
     public void setUp() {
-        service = new StubDLNAService(Mockito.mock(ServiceDescription.class), Mockito.mock(ServiceConfig.class));
+        service = new DLNAService(Mockito.mock(ServiceDescription.class), Mockito.mock(ServiceConfig.class), Robolectric.application);
     }
-
 
     @Test
     public void testParseData() {
@@ -181,6 +156,13 @@ public class DLNAServiceTest {
     public void testUrlEncode() throws Exception {
         String expected = "http://192.168.1.100:8000/ph&o't'o%20with%20symbols.jpg";
         String urlStr = "http://192.168.1.100:8000/ph&o't'o with symbols.jpg";
+        Assert.assertEquals(expected, service.encodeURL(urlStr));
+    }
+
+    @Test
+    public void testUrlEncodeAlreadyEncoded() throws Exception {
+        String expected = "http://192.168.1.100:8000/ph&o't'o%20with%20symbols.jpg";
+        String urlStr = "http://192.168.1.100:8000/ph&o't'o%20with%20symbols.jpg";
         Assert.assertEquals(expected, service.encodeURL(urlStr));
     }
 

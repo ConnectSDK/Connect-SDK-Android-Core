@@ -22,7 +22,6 @@ package com.connectsdk.service;
 
 import android.content.Context;
 import android.text.Html;
-import android.util.Log;
 import android.util.Xml;
 
 import com.connectsdk.core.ImageInfo;
@@ -77,6 +76,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -132,24 +132,20 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     public DLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
+        this(serviceDescription, serviceConfig, DiscoveryManager.getInstance().getContext());
+    }
+
+    public DLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig, Context context) {
         super(serviceDescription, serviceConfig);
 
         httpClient = new DefaultHttpClient();
         ClientConnectionManager mgr = httpClient.getConnectionManager();
         HttpParams params = httpClient.getParams();
         httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
-
-        context = getContext();
-
+        this.context = context;
         SIDList = new HashMap<String, String>();
-
         updateControlURL();
-
         httpServer = new DLNAHttpServer();
-    }
-
-    Context getContext() {
-        return DiscoveryManager.getInstance().getContext();
     }
 
     public static DiscoveryFilter discoveryFilter() {
@@ -217,14 +213,16 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         getPositionInfo(new PositionInfoListener() {
 
             @Override
-            public void onGetPositionInfoSuccess(String positionInfoXml) {
-
-                String trackMetaData = parseData(positionInfoXml, "TrackMetaData");
-
-                MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
-
-                Util.postSuccess(listener, info);
-
+            public void onGetPositionInfoSuccess(final String positionInfoXml) {
+                Util.runInBackground(new Runnable() {
+                    @Override
+                    public void run() {
+                        String baseUrl = "http://" + getServiceDescription().getIpAddress() + ":" + getServiceDescription().getPort();
+                        String trackMetaData = parseData(positionInfoXml, "TrackMetaData");
+                        MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData, baseUrl);
+                        Util.postSuccess(listener, info);
+                    }
+                });
             }
 
             @Override
@@ -675,10 +673,14 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         }
     }
 
-    String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException {
-        URL url = new URL(mediaURL);
-        URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-        return uri.toASCIIString();
+    String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException, UnsupportedEncodingException {
+        String decodedURL = URLDecoder.decode(mediaURL, "UTF-8");
+        if (decodedURL.equals(mediaURL)) {
+            URL url = new URL(mediaURL);
+            URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
+            return uri.toASCIIString();
+        }
+        return mediaURL;
     }
 
     String xmlToString(Node source, boolean xmlDeclaration) throws TransformerException {
@@ -710,6 +712,11 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 String targetURL = null;
                 String serviceURN = null;
 
+                if (payload == null) {
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"payload\" is missed", null));
+                    return;
+                }
+
                 if (payload.contains(AV_TRANSPORT_URN)) {
                     targetURL = avTransportURL;
                     serviceURN = AV_TRANSPORT_URN;
@@ -723,9 +730,13 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                     serviceURN = CONNECTION_MANAGER_URN;
                 }
 
+                if (serviceURN == null) {
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"serviceURN\" is missed", null));
+                    return;
+                }
+
                 if (targetURL == null) {
-                    Log.w("Connect SDK", "Cannot process the command, \"" + serviceURN + "\" is missed");
-                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"" + serviceURN + "\" is missed", null));
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"targetURL\" is missed", null));
                     return;
                 }
 
@@ -733,7 +744,6 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 post.setHeader("Content-Type", "text/xml; charset=utf-8");
                 post.setHeader("SOAPAction", String.format("\"%s#%s\"", serviceURN, method));
 
-                Log.d("", "DLNA: " + payload);
                 try {
                     post.setEntity(new StringEntity(payload));
                 } catch (UnsupportedEncodingException e) {
@@ -758,7 +768,6 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                         //TODO: throw DLNA error code and description insteadof HTTP
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
-
                     response.getEntity().consumeContent();
                 } catch (ClientProtocolException e) {
                     e.printStackTrace();

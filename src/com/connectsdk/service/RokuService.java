@@ -730,14 +730,6 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
             param = String.format("15985?t=p&u=%s&h=%s&tr=crossfade",
                     HttpMessage.encode(url), HttpMessage.encode(host));
         } else if (mimeType.contains("video")) {
-            // TODO: check for previous Roku versions
-            // update since Roku 6.1: it supports only m3u8 playlist instead of video link
-            mediaFormat = "hls";
-            try {
-                url = playListURLFromURL(url, mediaFormat);
-            } catch (IOException e) {
-                Util.postError(listener, null);
-            }
             param = String.format(
                     "15985?t=v&u=%s&k=(null)&h=%s&videoName=%s&videoFormat=%s",
                     HttpMessage.encode(url), HttpMessage.encode(host),
@@ -758,45 +750,6 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(
                 this, uri, null, responseListener);
         request.send();
-    }
-
-    private String playListURLFromURL(final String url, final String mimeType) throws IOException {
-        // start a web server and return a link to it
-        final String playlist = String.format("#EXTM3U \n #EXT-X-TARGETDURATION:10 \n #EXTINF:10,\n %s \n #EXT-X-ENDLIST \n", url);
-        final ServerSocket server = new ServerSocket(0);
-        Util.runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Socket socket = server.accept();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                    String line;
-                    StringBuilder sb = new StringBuilder();
-                    while (null != (line = reader.readLine()) && !line.isEmpty()) {
-                        sb.append(line);
-                    }
-
-                    if (sb.length() > 0 && sb.toString().contains("GET / HTTP/1.1")) {
-                        writer.println("HTTP/1.1 200 OK");
-                        writer.println("Date: " + new Date().toString());
-                        writer.println("Server: ConnectSDK");
-                        writer.println("Content-Length: " + playlist.getBytes().length);
-                        writer.println("Content-Type: " + mimeType);
-                        writer.println("");
-                        writer.println(playlist);
-                        writer.println("");
-                        writer.println("");
-                    }
-
-                    socket.close();
-                    server.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        return "http:/" + Util.getIpAddress(DiscoveryManager.getInstance().getContext()) + ":" + server.getLocalPort() + "/";
     }
 
     @Override
