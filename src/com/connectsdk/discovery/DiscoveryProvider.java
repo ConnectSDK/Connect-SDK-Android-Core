@@ -35,6 +35,9 @@ import java.util.List;
  * See CastDiscoveryProvider and SSDPDiscoveryProvider for implementations.
  */
 public interface DiscoveryProvider {
+    public final static int RESCAN_INTERVAL = 10000;
+    public final static int RESCAN_ATTEMPTS = 6;
+    public final static int TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
 
     /**
      * Starts the DiscoveryProvider.
@@ -70,21 +73,21 @@ public interface DiscoveryProvider {
     /**
      * Adds a device filter for a particular DeviceService.
      *
-     * @param parameters Parameters to be used for discovering a particular DeviceService
+     * @param filter filter to be used for discovering a particular DeviceService
      */
     public void addDeviceFilter(DiscoveryFilter filter);
 
     /**
      * Removes a device filter for a particular DeviceService. If the DiscoveryProvider has no other devices to be searching for, the DiscoveryProvider will be stopped and de-referenced.
      *
-     * @param parameters Parameters to be used for discovering a particular DeviceService
+     * @param filter filter to be used for discovering a particular DeviceService
      */
     public void removeDeviceFilter(DiscoveryFilter filter);
 
     /**
      * Set filters for a list of particular DeviceServices
      *
-     * @param parameters Parameters to be used for discovering a list of particular DeviceServices
+     * @param filters filters to be used for discovering a list of particular DeviceServices
      */
     public void setFilters(List<DiscoveryFilter> filters);
 
