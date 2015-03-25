@@ -50,7 +50,7 @@ public class SSDPDiscoveryProviderTest{
             return ssdpClient;
         }
 
-    };
+    }
 
     @Before
     public void setUp() throws Exception {

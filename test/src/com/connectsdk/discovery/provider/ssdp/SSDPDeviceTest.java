@@ -4,17 +4,12 @@ import com.connectsdk.TestUtil;
 
 import junit.framework.Assert;
 
-import org.apache.tools.ant.filters.StringInputStream;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
 import java.net.UnknownHostException;
 
 import javax.xml.parsers.ParserConfigurationException;

@@ -59,7 +59,7 @@ public interface KeyControl extends CapabilityMethods {
         public int getCode() {
             return code;
         }
-    };
+    }
 
     public final static String[] Capabilities = {
         Up,

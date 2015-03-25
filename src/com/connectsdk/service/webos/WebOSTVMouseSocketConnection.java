@@ -107,12 +107,7 @@ public class WebOSTVMouseSocketConnection {
 
     public void click() {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:click\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:click\n" + "\n");
         }
     }
 
@@ -148,54 +143,25 @@ public class WebOSTVMouseSocketConnection {
 
     public void button(String keyName) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:button\n");
-            sb.append("name:" + keyName + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:button\n" + "name:" + keyName + "\n" + "\n");
         }
     }
 
     public void move(double dx, double dy) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:move\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("down:0\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:0\n" + "\n");
         }
     }
 
     public void move(double dx, double dy, boolean drag) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:move\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("down:" + (drag ? 1 : 0) + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:" + (drag ? 1 : 0) + "\n" + "\n");
         }
     }
 
     public void scroll(double dx, double dy) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:scroll\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:scroll\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "\n");
         }
     }
 }

@@ -74,18 +74,17 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
                 return;
             }
 
-            String uuid = ipAddress;
             String friendlyName = ev.getInfo().getName();
             int port = ev.getInfo().getPort();
 
-            ServiceDescription foundService = foundServices.get(uuid);
+            ServiceDescription foundService = foundServices.get(ipAddress);
 
             boolean isNew = foundService == null;
             boolean listUpdateFlag = false;
 
             if (isNew) {
                 foundService = new ServiceDescription();
-                foundService.setUUID(uuid);
+                foundService.setUUID(ipAddress);
                 foundService.setServiceFilter(ev.getInfo().getType());
                 foundService.setIpAddress(ipAddress);
                 foundService.setServiceID(serviceIdForFilter(ev.getInfo().getType()));
@@ -104,7 +103,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (foundService != null)
                 foundService.setLastDetection(new Date().getTime());
 
-            foundServices.put(uuid, foundService);
+            foundServices.put(ipAddress, foundService);
 
             if (listUpdateFlag) {
                 for (DiscoveryProviderListener listener: serviceListeners) {

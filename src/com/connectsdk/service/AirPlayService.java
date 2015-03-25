@@ -520,10 +520,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                     X_APPLE_SESSION_ID + ": " + mSessionId + HttpMessage.NEW_LINE +
                     HttpMessage.NEW_LINE;
 
-            StringBuilder request=new StringBuilder();
-            request.append(requestHeader);
-            request.append(requestBody);
-            String requestData=request.toString();
+            String requestData= requestHeader + requestBody;
 
             Log.d(ID, "#################################");
             Log.d(ID, requestData);

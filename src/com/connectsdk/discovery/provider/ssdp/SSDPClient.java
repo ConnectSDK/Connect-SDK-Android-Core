@@ -148,8 +148,8 @@ public class SSDPClient {
         sb.append(MSEARCH + NEWLINE);
         sb.append("HOST: " + MULTICAST_ADDRESS + ":" + PORT + NEWLINE);
         sb.append("MAN: \"ssdp:discover\"" + NEWLINE);
-        sb.append("ST: " + ST + NEWLINE);
-        sb.append("MX: " +  MX + NEWLINE);
+        sb.append("ST: ").append(ST).append(NEWLINE);
+        sb.append("MX: ").append(MX).append(NEWLINE);
         if (ST.contains("udap")) {
             sb.append("USER-AGENT: UDAP/2.0" + NEWLINE);
         }
