@@ -1056,7 +1056,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
                         String eventSubURL = serviceList.get(i).eventSubURL;
-                        if(eventSubURL == null) continue;
+                        if (eventSubURL == null) {
+                            continue;
+                        }
                         
                         BasicHttpRequest request = new BasicHttpRequest(SUBSCRIBE, eventSubURL);
 
@@ -1106,10 +1108,12 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                         if (serviceList != null) {
                             for (int i = 0; i < serviceList.size(); i++) {
                                 String eventSubURL = serviceList.get(i).eventSubURL;
+                                if (eventSubURL == null) {
+                                    continue;
+                                }
+
                                 String SID = SIDList.get(serviceList.get(i).serviceType);
-
                                 BasicHttpRequest request = new BasicHttpRequest(SUBSCRIBE, eventSubURL);
-
                                 request.setHeader("TIMEOUT", "Second-" + TIMEOUT);
                                 request.setHeader("SID", SID);
 
@@ -1143,7 +1147,11 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
-                        BasicHttpRequest request = new BasicHttpRequest(UNSUBSCRIBE, serviceList.get(i).eventSubURL);
+                        String eventSubURL = serviceList.get(i).eventSubURL;
+                        if (eventSubURL == null) {
+                            continue;
+                        }
+                        BasicHttpRequest request = new BasicHttpRequest(UNSUBSCRIBE, eventSubURL);
 
                         String sid = SIDList.get(serviceList.get(i).serviceType);
                         request.setHeader("SID", sid);
