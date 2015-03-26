@@ -1055,9 +1055,12 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
-                        BasicHttpRequest request = new BasicHttpRequest(SUBSCRIBE, serviceList.get(i).eventSubURL);
+                        String eventSubURL = serviceList.get(i).eventSubURL;
+                        if(eventSubURL == null) return;
+                        
+                        BasicHttpRequest request = new BasicHttpRequest(SUBSCRIBE, eventSubURL);
 
-                        request.setHeader("CALLBACK", "<http://" + myIpAddress + ":" + httpServer.getPort() + serviceList.get(i).eventSubURL + ">");
+                        request.setHeader("CALLBACK", "<http://" + myIpAddress + ":" + httpServer.getPort() + eventSubURL + ">");
                         request.setHeader("NT", "upnp:event");
                         request.setHeader("TIMEOUT", "Second-" + TIMEOUT);
                         request.setHeader("Connection", "close");
