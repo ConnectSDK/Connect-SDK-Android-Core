@@ -216,7 +216,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 timer.schedule(task, i * 1000);
             }
         }
-        ;
+
     }
 
     @Override

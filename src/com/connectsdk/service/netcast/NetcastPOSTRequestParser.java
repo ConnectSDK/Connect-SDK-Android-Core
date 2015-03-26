@@ -112,7 +112,7 @@ public class NetcastPOSTRequestParser extends DefaultHandler {
                 object.put("inputSourceIndex", value);
             }
             else if (qName.equalsIgnoreCase(VALUE)) {
-                if (keyboardVisibleMode == true) {
+                if (keyboardVisibleMode) {
                     if (value.equalsIgnoreCase("true"))
                         subObject.put("focus", true);
                     else 
@@ -124,7 +124,7 @@ public class NetcastPOSTRequestParser extends DefaultHandler {
                 }
             }
             else if (qName.equalsIgnoreCase(MODE)) {
-                if (keyboardVisibleMode == true) {
+                if (keyboardVisibleMode) {
                     if (value.equalsIgnoreCase("default"))
                         subObject.put("hiddenText", false);
                     else 

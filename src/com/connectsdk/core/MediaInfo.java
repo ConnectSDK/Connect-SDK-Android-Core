@@ -27,6 +27,7 @@ import java.util.ArrayList;
  * 
  */
 
+import java.util.Collections;
 import java.util.List;
 
 public class MediaInfo {
@@ -186,9 +187,7 @@ public class MediaInfo {
     public void addImages(ImageInfo... images) {
 
         List<ImageInfo> list = new ArrayList<ImageInfo>();
-        for (int i = 0; i < images.length; i++) {
-            list.add(images[i]);
-        }
+        Collections.addAll(list, images);
 
         this.setImages(list);
 

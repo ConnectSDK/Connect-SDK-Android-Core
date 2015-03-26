@@ -1,20 +1,8 @@
 package com.connectsdk.device;
 
 import com.connectsdk.service.DeviceService;
-import com.connectsdk.service.capability.CapabilityMethods;
-import com.connectsdk.service.capability.ExternalInputControl;
-import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
-import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
-import com.connectsdk.service.capability.MouseControl;
-import com.connectsdk.service.capability.PlaylistControl;
-import com.connectsdk.service.capability.PowerControl;
-import com.connectsdk.service.capability.TVControl;
-import com.connectsdk.service.capability.TextInputControl;
-import com.connectsdk.service.capability.ToastControl;
-import com.connectsdk.service.capability.VolumeControl;
-import com.connectsdk.service.capability.WebAppLauncher;
 
 import junit.framework.Assert;
 
@@ -25,7 +13,6 @@ import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 

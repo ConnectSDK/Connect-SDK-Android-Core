@@ -22,6 +22,7 @@ package com.connectsdk.service;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             LAUNCH_WEB,
             APP_TO_APP,
             CONTROL_AUDIO,
-            CONTROL_INPUT_MEDIA_PLAYBACK;
+            CONTROL_INPUT_MEDIA_PLAYBACK
         }
 
         public static final WebOSTVServicePermission[] OPEN = {
@@ -139,7 +140,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             CONTROL_INPUT_TEXT,
             CONTROL_MOUSE_AND_KEYBOARD,
             READ_CURRENT_CHANNEL,
-            READ_RUNNING_APPS;
+            READ_RUNNING_APPS
         }
 
         public static final WebOSTVServicePermission[] PERSONAL_ACTIVITY = {
@@ -443,7 +444,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public Launcher getLauncher() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getLauncherCapabilityLevel() {
@@ -805,7 +806,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public ToastControl getToastControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getToastControlCapabilityLevel() {
@@ -939,7 +940,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public VolumeControl getVolumeControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getVolumeControlCapabilityLevel() {
@@ -1145,7 +1146,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public MediaPlayer getMediaPlayer() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
@@ -1355,7 +1356,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public MediaControl getMediaControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
@@ -1434,7 +1435,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public TVControl getTVControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getTVControlCapabilityLevel() {
@@ -1692,7 +1693,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public void set3DEnabled(final boolean enabled, final ResponseListener<Object> listener) {
         String uri; 
-        if (enabled == true)
+        if (enabled)
             uri = "ssap://com.webos.service.tv.display/set3DOn";
         else
             uri = "ssap://com.webos.service.tv.display/set3DOff";
@@ -1729,7 +1730,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         };
 
         ServiceCommand<State3DModeListener> request;
-        if (isSubscription == true) 
+        if (isSubscription)
             request = new URLServiceSubscription<State3DModeListener>(this, uri, null, true, responseListener);
         else 
             request = new ServiceCommand<State3DModeListener>(this, uri, null, true, responseListener);
@@ -1757,7 +1758,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public ExternalInputControl getExternalInput() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getExternalInputControlPriorityLevel() {
@@ -1834,7 +1835,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public MouseControl getMouseControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMouseControlCapabilityLevel() {
@@ -1925,7 +1926,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public TextInputControl getTextInputControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getTextInputControlCapabilityLevel() {
@@ -1991,7 +1992,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public PowerControl getPowerControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getPowerControlCapabilityLevel() {
@@ -2270,26 +2271,23 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 ex.printStackTrace();
             }
 
-            if (closeCommand != null && serviceCommand != null) {
-                webAppSession.sendMessage(closeCommand, new ResponseListener<Object>() {
+            webAppSession.sendMessage(closeCommand, new ResponseListener<Object>() {
 
-                    @Override
-                    public void onError(ServiceCommandError error) {
-                        webAppSession.disconnectFromWebApp();
+                @Override
+                public void onError(ServiceCommandError error) {
+                    webAppSession.disconnectFromWebApp();
 
-                        Util.postError(listener, error);
-                    }
+                    Util.postError(listener, error);
+                }
 
-                    @Override
-                    public void onSuccess(Object object) {
-                        webAppSession.disconnectFromWebApp();
+                @Override
+                public void onSuccess(Object object) {
+                    webAppSession.disconnectFromWebApp();
 
-                        Util.postSuccess(listener, object);
-                    }
-                });
-            }
-        } else
-        {
+                    Util.postSuccess(listener, object);
+                }
+            });
+        } else {
             if (webAppSession != null)
                 webAppSession.disconnectFromWebApp();
 
@@ -2317,7 +2315,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
         if (webAppSession == null || webAppSession.launchSession == null) {
             Util.postError(connectionListener, new ServiceCommandError(0, "You must provide a valid LaunchSession object", null));
-
             return;
         }
 
@@ -2393,7 +2390,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                     appChannelDidClose = error.getPayload().toString().contains("app channel closed");
 
                 if (appChannelDidClose) {
-                    if (webAppSession != null && webAppSession.getWebAppSessionListener() != null) {
+                    if (webAppSession.getWebAppSessionListener() != null) {
                         Util.runOnUI(new Runnable() {
 
                             @Override
@@ -2539,7 +2536,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         };
 
         ServiceCommand<WebAppPinStatusListener> request;
-        if (isSubscription == true) 
+        if (isSubscription)
             request = new URLServiceSubscription<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
         else 
             request = new ServiceCommand<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
@@ -2668,8 +2665,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             payload.put("type", "p2p");
             payload.put("to", fullAppId);
             payload.put("payload", message);
-
-            Object payTest = payload.get("payload");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -2846,20 +2841,20 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         List<String> capabilities = new ArrayList<String>();
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            for (String capability : TextInputControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : MouseControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : KeyControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
-            for (String capability : Launcher.Capabilities) { capabilities.add(capability); }
-            for (String capability : TVControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : ExternalInputControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : VolumeControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : ToastControl.Capabilities) { capabilities.add(capability); }
+            Collections.addAll(capabilities, TextInputControl.Capabilities);
+            Collections.addAll(capabilities, MouseControl.Capabilities);
+            Collections.addAll(capabilities, KeyControl.Capabilities);
+            Collections.addAll(capabilities, MediaPlayer.Capabilities);
+            Collections.addAll(capabilities, Launcher.Capabilities);
+            Collections.addAll(capabilities, TVControl.Capabilities);
+            Collections.addAll(capabilities, ExternalInputControl.Capabilities);
+            Collections.addAll(capabilities, VolumeControl.Capabilities);
+            Collections.addAll(capabilities, ToastControl.Capabilities);
 
             capabilities.add(PowerControl.Off);
         } else {
-            for (String capability : VolumeControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
+            Collections.addAll(capabilities, VolumeControl.Capabilities);
+            Collections.addAll(capabilities, MediaPlayer.Capabilities);
 
             capabilities.add(Application);
             capabilities.add(Application_Params);
@@ -2892,7 +2887,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 capabilities.add(WebAppLauncher.Close);
             } else {
-                for (String capability : WebAppLauncher.Capabilities) { capabilities.add(capability); }
+                Collections.addAll(capabilities, WebAppLauncher.Capabilities);
                 for (String capability : MediaControl.Capabilities) {
                     if (capability.equalsIgnoreCase(MediaControl.Previous) || capability.equalsIgnoreCase(MediaControl.Next))
                         continue;
@@ -2910,18 +2905,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             return permissions;
 
         List<String> defaultPermissions = new ArrayList<String>();
-        for (String perm: kWebOSTVServiceOpenPermissions) {
-            defaultPermissions.add(perm);
-        }
+        Collections.addAll(defaultPermissions, kWebOSTVServiceOpenPermissions);
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            for (String perm: kWebOSTVServiceProtectedPermissions) {
-                defaultPermissions.add(perm);
-            }
-
-            for (String perm: kWebOSTVServicePersonalActivityPermissions) {
-                defaultPermissions.add(perm);
-            }
+            Collections.addAll(defaultPermissions, kWebOSTVServiceProtectedPermissions);
+            Collections.addAll(defaultPermissions, kWebOSTVServicePersonalActivityPermissions);
         }
 
         permissions = defaultPermissions;

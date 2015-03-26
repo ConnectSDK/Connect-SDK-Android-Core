@@ -124,7 +124,7 @@ public interface MediaControl extends CapabilityMethods {
             }
             return status;
         }
-    };
+    }
 
     public MediaControl getMediaControl();
     public CapabilityPriorityLevel getMediaControlCapabilityLevel();

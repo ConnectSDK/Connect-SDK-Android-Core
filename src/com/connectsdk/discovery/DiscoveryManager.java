@@ -250,7 +250,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     // @endcond
 
     private void registerBroadcastReceiver() {
-        if (isBroadcastReceiverRegistered == false) {
+        if (!isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = true;
 
             IntentFilter intentFilter = new IntentFilter();
@@ -260,7 +260,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     private void unregisterBroadcastReceiver() {
-        if (isBroadcastReceiverRegistered == true) {
+        if (isBroadcastReceiverRegistered) {
             isBroadcastReceiverRegistered = false;
 
             context.unregisterReceiver(receiver);
@@ -389,7 +389,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
             if (discoveryProvider == null) {
                 Constructor<? extends DiscoveryProvider> myConstructor = discoveryClass.getConstructor(Context.class);
-                Object myObj = myConstructor.newInstance(new Object[]{context});
+                Object myObj = myConstructor.newInstance(context);
                 discoveryProvider = (DiscoveryProvider) myObj;
 
                 discoveryProvider.addListener(this);
@@ -617,7 +617,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         if (modelName != null && modelName.toUpperCase(Locale.US).equals("LG TV")) {
             if (modelDescription != null && !(modelDescription.toUpperCase(Locale.US).contains("WEBOS"))) {
-                if (description.getServiceID().equals(NetcastTVService.ID)); {
+                if (description.getServiceID().equals(NetcastTVService.ID)) {
                     isNetcastTV = true;
                 }
             }
@@ -738,7 +738,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             // we get here when a non-LG DLNA TV is found
 
             allDevices.remove(serviceDescription.getIpAddress());
-            device = null;
 
             return;
         }
@@ -785,7 +784,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     public void addServiceDescriptionToDevice(ServiceDescription desc, ConnectableDevice device) {
         Log.d("Connect SDK", "Adding service " + desc.getServiceID() + " to device with address " + device.getIpAddress() + " and id " + device.getId());
 
-        Class<? extends DeviceService> deviceServiceClass = (Class<DeviceService>) deviceClasses.get(desc.getServiceID());
+        Class<? extends DeviceService> deviceServiceClass = deviceClasses.get(desc.getServiceID());
 
         if (deviceServiceClass == null)
             return;

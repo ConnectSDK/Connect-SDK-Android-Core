@@ -63,7 +63,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         REGISTERING,
         REGISTERED,
         DISCONNECTING
-    };
+    }
 
     WebOSTVServiceSocketClientListener mListener;
     WebOSTVService mService;
@@ -291,8 +291,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 if (id != null)
                     requests.remove(id);
             }
-        } else if ("error".equals(type) && message instanceof JSONObject) {
-            String error = ((JSONObject) message).optString("error");
+        } else if ("error".equals(type)) {
+            String error = message.optString("error");
             if (error.length() == 0)
                 return;
 
@@ -332,9 +332,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             if (mService.getServiceConfig().getServiceUUID() != null) {
                 if (!mService.getServiceConfig().getServiceUUID().equals(jsonObj.optString("deviceUUID"))) {
                     ((WebOSTVServiceConfig)mService.getServiceConfig()).setClientKey(null);
-                    String cert = null;
-                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate(cert);
-                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServiceUUID(null);
+                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate((String)null);
+                    mService.getServiceConfig().setServiceUUID(null);
                     mService.getServiceDescription().setIpAddress(null);
                     mService.getServiceDescription().setUUID(null);
 
@@ -613,7 +612,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             // ignore
         }
 
-        if (payloadType == "p2p")
+        if (payloadType.equals("p2p"))
         {
             Iterator<?> iterator = payload.keys();
 
@@ -632,7 +631,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
             this.sendMessage(headers, null);
         } 
-        else if (payloadType == "hello") {
+        else if (payloadType.equals("hello")) {
             this.send(payload.toString());
         }
         else {

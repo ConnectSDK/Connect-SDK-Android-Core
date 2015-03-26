@@ -455,7 +455,7 @@ public class DIALService extends DeviceService implements Launcher {
                             entity = new StringEntity((String) payload);
 
                         } else if (payload instanceof JSONObject) {
-                            entity = new StringEntity((String) payload);
+                            entity = new StringEntity(payload.toString());
                         }
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();

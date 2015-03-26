@@ -201,7 +201,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     @Override
     public MediaPlayer getMediaPlayer() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
@@ -354,7 +354,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     @Override
     public MediaControl getMediaControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
@@ -825,7 +825,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     @Override
     public LaunchSession decodeLaunchSession(String type, JSONObject sessionObj) throws JSONException {
-        if (type == "dlna") {
+        if (type.equals("dlna")) {
             LaunchSession launchSession = LaunchSession.launchSessionFromJSONObject(sessionObj);
             launchSession.setService(this);
 
@@ -871,9 +871,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         String[] tokens = strTime.split(":");
         long time = 0;
 
-        for (int i = 0; i < tokens.length; i++) {
+        for (String token : tokens) {
             time *= 60;
-            time += Integer.parseInt(tokens[i]);
+            time += Integer.parseInt(token);
         }
 
         return time;
@@ -915,7 +915,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     private void addSubscription(URLServiceSubscription<?> subscription) {
-        if (httpServer.isRunning() == false) {
+        if (!httpServer.isRunning()) {
             Util.runInBackground(new Runnable() {
 
                 @Override
@@ -1114,11 +1114,6 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                                 try {
                                     response = httpClient.execute(host, request);
-
-                                    int code = response.getStatusLine().getStatusCode();
-
-                                    if (code == 200) {
-                                    }
                                     response.getEntity().consumeContent();
                                 } catch (ClientProtocolException e) {
                                     e.printStackTrace();

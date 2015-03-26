@@ -116,6 +116,8 @@ public class DLNAHttpServer {
                     connectionSocket.close();
                 } catch (IOException ex) {
                     ex.printStackTrace();
+                } catch (NullPointerException ex) {
+                    ex.printStackTrace();
                 }
             }
 
@@ -205,7 +207,7 @@ public class DLNAHttpServer {
             boolean mute;
 
             try {
-                mute = (Integer.parseInt(muteStatus) == 1) ? true : false;
+                mute = (Integer.parseInt(muteStatus) == 1);
             } catch(NumberFormatException e) {
                 mute = Boolean.parseBoolean(muteStatus);
             }

@@ -73,6 +73,7 @@ public class NetcastHttpServer {
     }
 
     public void start() {
+        //TODO: this method is too complex and should be refactored
         if (running)
             return;
 
@@ -245,10 +246,7 @@ public class NetcastHttpServer {
                     String enabled = (String) handler.getJSONObject().get("value");
                     boolean bEnabled;
 
-                    if (enabled.equalsIgnoreCase("true"))
-                        bEnabled = true;
-                    else
-                        bEnabled = false;
+                    bEnabled = enabled.equalsIgnoreCase("true");
 
                     for (URLServiceSubscription<?> sub: subscriptions) {
                         if (sub.getTarget().equalsIgnoreCase("3DMode")) {
