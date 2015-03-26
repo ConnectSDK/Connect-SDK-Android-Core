@@ -1056,7 +1056,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
                         String eventSubURL = serviceList.get(i).eventSubURL;
-                        if(eventSubURL == null) return;
+                        if(eventSubURL == null) continue;
                         
                         BasicHttpRequest request = new BasicHttpRequest(SUBSCRIBE, eventSubURL);
 
