@@ -22,6 +22,7 @@ package com.connectsdk.service;
 
 import android.content.Context;
 import android.text.Html;
+import android.util.Log;
 import android.util.Xml;
 
 import com.connectsdk.core.ImageInfo;
@@ -78,7 +79,10 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -556,7 +560,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 MediaInfo info = DLNAMediaInfoParser.getMediaInfo(trackMetaData);
                 // Check if duration we get not equals 0 or media is image, otherwise wait 1 second and try again
                 if ((!strDuration.equals("0:00:00")) || (info.getMimeType().contains("image"))) {
-                    long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
+                    long milliTimes = convertStrTimeFormatToLong(strDuration);
 
                     Util.postSuccess(listener, milliTimes);}
                 else new Timer().schedule(new TimerTask() {
@@ -585,7 +589,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             public void onGetPositionInfoSuccess(String positionInfoXml) {
                 String strDuration = parseData(positionInfoXml, "RelTime");
 
-                long milliTimes = convertStrTimeFormatToLong(strDuration) * 1000;
+                long milliTimes = convertStrTimeFormatToLong(strDuration);
 
                 Util.postSuccess(listener, milliTimes);
             }
@@ -898,12 +902,18 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     private long convertStrTimeFormatToLong(String strTime) {
-        String[] tokens = strTime.split(":");
         long time = 0;
+        SimpleDateFormat df = new SimpleDateFormat("hh:mm:ss");
 
-        for (String token : tokens) {
-            time *= 60;
-            time += Integer.parseInt(token);
+        try {
+            Date d = df.parse(strTime);
+            Date d2 = df.parse("00:00:00");
+
+            time = d.getTime() - d2.getTime();
+        } catch (ParseException e) {
+//            e.printStackTrace();
+            Log.w("Connect SDK", "Invalid Time Format: " + strTime);
+            return 0;
         }
 
         return time;
