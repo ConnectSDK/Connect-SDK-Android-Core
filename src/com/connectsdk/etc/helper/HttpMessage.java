@@ -43,10 +43,10 @@ public class HttpMessage {
         HttpPost post = null;
         try {
             post = new HttpPost(uri);
+            post.setHeader("Content-Type", CONTENT_TYPE_TEXT_XML);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
-        post.setHeader("Content-Type", CONTENT_TYPE_TEXT_XML);
 
         return post;
     }

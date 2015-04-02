@@ -8,7 +8,6 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Created by oleksii.frolov on 2/12/2015.

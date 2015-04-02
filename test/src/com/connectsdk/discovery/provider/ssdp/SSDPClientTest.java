@@ -106,7 +106,7 @@ public class SSDPClientTest {
 
     @Test
     public void testSetTimeout() throws Exception {
-        Integer testTimeout = 1 * 1000;
+        Integer testTimeout = 1000;
         ssdpClient.setTimeout(testTimeout);
 
         ArgumentCaptor<Integer> argument = ArgumentCaptor.forClass(Integer.class);

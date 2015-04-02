@@ -232,7 +232,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             for (ConnectableDevice device : activeDevices.values()) {
                 for (DeviceService service : device.getServices()) {
                     if (uuid.equals(service.getServiceDescription().getUUID())) {
-                        return foundDevice;
+                        return device;
                     }
                 }
             }

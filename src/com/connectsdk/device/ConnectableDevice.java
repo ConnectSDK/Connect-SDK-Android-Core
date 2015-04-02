@@ -272,7 +272,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * @param listener ConnectableDeviceListener to listen to device events (connect, disconnect, ready, etc)
      */
     public void addListener(ConnectableDeviceListener listener) {
-        if (listeners.contains(listener) == false) {
+        if (!listeners.contains(listener)) {
             listeners.add(listener);
         }
     }
