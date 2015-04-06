@@ -59,8 +59,8 @@ public class PersistentHttpClient {
         requestWorker.start();
     }
 
-    public void executeAsync(final String reqestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
-        requestWorker.add(reqestData, requestPayload, responseReceiver);
+    public void executeAsync(final String requestData, final InputStream requestPayload, final ResponseReceiver responseReceiver) throws InterruptedException {
+        requestWorker.add(requestData, requestPayload, responseReceiver);
     }
 
     public void disconnect() {
@@ -98,12 +98,12 @@ public class PersistentHttpClient {
         socket = null;
     }
 
-    private synchronized Response executeSync(String reqestData, InputStream requestPayload) throws IOException {
+    private synchronized Response executeSync(String requestData, InputStream requestPayload) throws IOException {
         if (socket == null) {
             initSocket();
         }
 
-        bos.write(reqestData.getBytes(CHARSET));
+        bos.write(requestData.getBytes(CHARSET));
         if(requestPayload!=null) {
             copyData(requestPayload, bos);
         }
@@ -115,7 +115,7 @@ public class PersistentHttpClient {
             initSocket();       // reinitialize socket
 
             // re-do its task
-            bos.write(reqestData.getBytes(CHARSET));
+            bos.write(requestData.getBytes(CHARSET));
             if(requestPayload!=null) {
                 copyData(requestPayload, bos);
             }
@@ -198,13 +198,13 @@ public class PersistentHttpClient {
 
     private class RequestWorker extends Thread {
         private class Request {
-            public Request(String reqestData, InputStream requestPayload,
+            public Request(String requestData, InputStream requestPayload,
                     ResponseReceiver responseReceiver) {
-                this.reqestData = reqestData;
+                this.requestData = requestData;
                 this.requestPayload = requestPayload;
                 this.responseReceiver = responseReceiver;
             }
-            private final String reqestData;
+            private final String requestData;
             private final InputStream requestPayload;
             private final ResponseReceiver responseReceiver;
         }
@@ -215,9 +215,9 @@ public class PersistentHttpClient {
             this.setDaemon(true);
             requestQueue=new ArrayBlockingQueue<Request>(maxQueuedRequests);
         }
-        public void add(String reqestData, InputStream requestPayload,
+        public void add(String requestData, InputStream requestPayload,
                 ResponseReceiver responseReceiver) throws InterruptedException {
-            requestQueue.put(new Request(reqestData, requestPayload, responseReceiver));
+            requestQueue.put(new Request(requestData, requestPayload, responseReceiver));
         }
         public void terminate() throws InterruptedException {
             requestQueue.clear();
@@ -231,7 +231,7 @@ public class PersistentHttpClient {
                     if(request==terminationRequest) {
                         break;
                     }
-                    Response response=executeSync(request.reqestData, request.requestPayload);
+                    Response response=executeSync(request.requestData, request.requestPayload);
                     request.responseReceiver.receiveResponse(response);
                 } catch (IOException e) {
                     e.printStackTrace();
