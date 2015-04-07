@@ -1,5 +1,6 @@
 package com.connectsdk.service;
 
+import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
@@ -13,8 +14,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -177,4 +180,40 @@ public class DLNAServiceTest {
         Assert.assertEquals("", service.encodeURL(""));
     }
 
+    @Test
+    public void testServiceControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0/", "/controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongBase() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0", "/controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0/", "controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongBaseAndControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0", "controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    private DLNAService makeServiceWithControlURL(String base, String controlURL) {
+        List<Service> services = new ArrayList<Service>();
+        Service service = new Service();
+        service.baseURL = base;
+        service.controlURL = controlURL;
+        service.serviceType = DLNAService.AV_TRANSPORT;
+        services.add(service);
+
+        ServiceDescription description = Mockito.mock(ServiceDescription.class);
+        Mockito.when(description.getServiceList()).thenReturn(services);
+        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application);
+    }
 }
