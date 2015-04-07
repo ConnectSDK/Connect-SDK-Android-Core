@@ -166,4 +166,15 @@ public class DLNAServiceTest {
         Assert.assertEquals(expected, service.encodeURL(urlStr));
     }
 
+    @Test
+    public void testNullUrlEncode() throws Exception {
+        Assert.assertEquals("", service.encodeURL(null));
+    }
+
+
+    @Test
+    public void testEmptyUrlEncode() throws Exception {
+        Assert.assertEquals("", service.encodeURL(""));
+    }
+
 }

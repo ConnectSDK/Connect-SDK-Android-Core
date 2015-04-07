@@ -189,18 +189,25 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if(!serviceList.get(i).baseURL.endsWith("/")) {
                     serviceList.get(i).baseURL += "/";
                 }
-                
+
                 if (serviceList.get(i).serviceType.contains(AV_TRANSPORT)) {
-                    avTransportURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
+                    avTransportURL = makeControlURL(serviceList.get(i).baseURL, serviceList.get(i).controlURL);
                 }
                 else if ((serviceList.get(i).serviceType.contains(RENDERING_CONTROL)) && !(serviceList.get(i).serviceType.contains(GROUP_RENDERING_CONTROL))) {
-                    renderingControlURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
+                    renderingControlURL = makeControlURL(serviceList.get(i).baseURL, serviceList.get(i).controlURL);
                 }
                 else if ((serviceList.get(i).serviceType.contains(CONNECTION_MANAGER)) ) {
-                    connectionControlURL = String.format("%s%s", serviceList.get(i).baseURL, serviceList.get(i).controlURL);
+                    connectionControlURL = makeControlURL(serviceList.get(i).baseURL, serviceList.get(i).controlURL);
                 }
             }
         }
+    }
+
+    String makeControlURL(String base, String path) {
+        if (path.startsWith("/")) {
+            return base + path.substring(1);
+        }
+        return base + path;
     }
 
     /******************
@@ -712,6 +719,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException, UnsupportedEncodingException {
+        if (mediaURL == null || mediaURL.isEmpty()) {
+            return "";
+        }
         String decodedURL = URLDecoder.decode(mediaURL, "UTF-8");
         if (decodedURL.equals(mediaURL)) {
             URL url = new URL(mediaURL);
@@ -777,7 +787,6 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                     Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Cannot process the command, \"targetURL\" is missed", null));
                     return;
                 }
-
                 HttpPost post = new HttpPost(targetURL);
                 post.setHeader("Content-Type", "text/xml; charset=utf-8");
                 post.setHeader("SOAPAction", String.format("\"%s#%s\"", serviceURN, method));
