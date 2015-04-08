@@ -520,7 +520,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                     urlConnection.setRequestMethod(serviceCommand.getHttpMethod());
                     urlConnection.setDoInput(true);
 
-                    urlConnection.setRequestProperty(HTTP.USER_AGENT, "MediaControl/1.0");
+                    urlConnection.setRequestProperty(HTTP.USER_AGENT, "ConnectSDK MediaControl/1.0");
                     urlConnection.setRequestProperty(X_APPLE_SESSION_ID, mSessionId);
 
                     if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
