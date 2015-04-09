@@ -57,6 +57,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +78,10 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     private String mSessionId;
 
     private Timer timer;
+
+    ServiceCommand pendingCommand = null;
+    String authenticate = null;
+    String password = null;
 
     @Override
     public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
@@ -514,7 +520,11 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                 HttpURLConnection urlConnection = null;
 
                 try {
-                    URL url = new URL(serviceCommand.getTarget());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("http://").append(serviceDescription.getIpAddress()).append(":").append(serviceDescription.getPort());
+                    sb.append(serviceCommand.getTarget());
+
+                    URL url = new URL(sb.toString());
                     urlConnection = (HttpURLConnection) url.openConnection();
 
                     urlConnection.setRequestMethod(serviceCommand.getHttpMethod());
@@ -522,30 +532,30 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
                     urlConnection.setRequestProperty(HTTP.USER_AGENT, "ConnectSDK MediaControl/1.0");
                     urlConnection.setRequestProperty(X_APPLE_SESSION_ID, mSessionId);
+                    if (password != null) {
+                        String authorization = getAuthenticate(serviceCommand.getHttpMethod(), serviceCommand.getTarget(), authenticate);
+                        urlConnection.setRequestProperty("Authorization", authorization);
+                    }
 
-                    if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                        String payload = (String) serviceCommand.getPayload();
-                        if (payload != null)
+                    if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)
+                            || serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_PUT)) {
+                        byte[] output = null;
+                        Object payload = serviceCommand.getPayload();
+
+                        if (payload instanceof String) {
+                            String str = (String) payload;
+                            output = str.getBytes(CHARSET);
                             urlConnection.setRequestProperty(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_APPLICATION_PLIST);
+                        } else if (payload instanceof byte[]) {
+                            output = (byte[]) payload;
+                        }
                         urlConnection.setDoOutput(true);
                         urlConnection.connect();
 
                         OutputStream outputStream = urlConnection.getOutputStream();
 
-                        if (payload != null)
-                            outputStream.write(payload.getBytes(CHARSET));
-                        outputStream.flush();
-                        outputStream.close();
-                    } else if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_PUT)) {
-                        byte[] payload = (byte[]) serviceCommand.getPayload();
-
-                        urlConnection.setDoInput(true);
-                        urlConnection.connect();
-
-                        OutputStream outputStream = urlConnection.getOutputStream();
-
-                        if (payload != null)
-                            outputStream.write(payload);
+                        if (output != null)
+                            outputStream.write(output);
                         outputStream.flush();
                         outputStream.close();
                     } else if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_GET)) {
@@ -568,6 +578,18 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
                         Util.postSuccess(serviceCommand.getResponseListener(), response);
                     }
+                    else if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        authenticate = urlConnection.getHeaderField("WWW-Authenticate");
+                        pendingCommand = serviceCommand;
+
+                        Util.runOnUI(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (listener != null)
+                                    listener.onPairingRequired(AirPlayService.this, PairingType.PIN_CODE, null);
+                            }
+                        });
+                    }
                     else {
                         Util.postError(serviceCommand.getResponseListener(), new ServiceCommandError(urlConnection.getResponseCode(), urlConnection.getResponseMessage(), null));
                     }
@@ -581,6 +603,67 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                 }
             }
         });
+    }
+
+    @Override
+    public void sendPairingKey(String pairingKey) {
+        password = pairingKey;
+
+        if (pendingCommand != null)
+            pendingCommand.send();
+        pendingCommand = null;
+    }
+
+    private String getAuthenticate(String method, String digestURI, String authStr) {
+        String realm = null;
+        String nonce = null;
+
+        StringTokenizer st = new StringTokenizer(authStr, "=\", ");
+        while (st.hasMoreTokens()) {
+            String str = st.nextToken();
+            if (str.equalsIgnoreCase("realm")) {     // Digest realm
+                realm = st.nextToken();
+            } else if (str.equalsIgnoreCase("nonce")) {
+                nonce = st.nextToken();
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("AirPlay").append(":").append(realm).append(":").append(password);
+        String HA1 = digestAuthentication(sb.toString());
+
+        sb = new StringBuilder();
+        sb.append(method).append(":").append(digestURI);
+        String HA2 = digestAuthentication(sb.toString());
+
+        sb = new StringBuilder();
+        sb.append(HA1).append(":").append(nonce).append(":").append(HA2);
+
+        String response = digestAuthentication(sb.toString());
+
+        sb = new StringBuilder();
+        sb.append("Digest username").append("=").append("\"").append("AirPlay").append("\"").append(", ");
+        sb.append("realm").append("=").append("\"").append(realm).append("\"").append(", ");
+        sb.append("nonce").append("=").append("\"").append(nonce).append("\"").append(", ");
+        sb.append("uri").append("=").append("\"").append(digestURI).append("\"").append(", ");
+        sb.append("response").append("=").append("\"").append(response).append("\"");
+
+        return sb.toString();
+    }
+
+    private String digestAuthentication(String md5) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] array = md.digest(md5.getBytes());
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < array.length; ++i) {
+                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -611,7 +694,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
     private String getRequestURL(String command, Map<String, String> params) {
         StringBuilder sb = new StringBuilder();
-        sb.append("http://").append(serviceDescription.getIpAddress()).append(":").append(serviceDescription.getPort());
         sb.append("/").append(command);
 
         if (params != null) {
@@ -645,6 +727,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     public void disconnect() {
         stopTimer();
         connected=false;
+        password = null;
 
         if (mServiceReachability != null)
             mServiceReachability.stop();
