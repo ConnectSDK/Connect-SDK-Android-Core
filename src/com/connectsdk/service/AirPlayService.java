@@ -614,7 +614,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         pendingCommand = null;
     }
 
-    private String getAuthenticate(String method, String digestURI, String authStr) {
+    String getAuthenticate(String method, String digestURI, String authStr) {
         String realm = null;
         String nonce = null;
 
@@ -651,16 +651,18 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         return sb.toString();
     }
 
-    private String digestAuthentication(String md5) {
+    String digestAuthentication(String md5) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] array = md.digest(md5.getBytes());
+            byte[] digest = md.digest(md5.getBytes());
             StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < array.length; ++i) {
-                sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b & 0xFF));
             }
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
             e.printStackTrace();
         }
         return null;
