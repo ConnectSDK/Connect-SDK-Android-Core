@@ -204,6 +204,17 @@ public class DLNAServiceTest {
         Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
     }
 
+    @Test
+    public void testInitialPairingType() {
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
+    public void testPairingTypeSetter() {
+        service.setPairingType(DeviceService.PairingType.PIN_CODE);
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
     private DLNAService makeServiceWithControlURL(String base, String controlURL) {
         List<Service> services = new ArrayList<Service>();
         Service service = new Service();
@@ -216,4 +227,5 @@ public class DLNAServiceTest {
         Mockito.when(description.getServiceList()).thenReturn(services);
         return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application);
     }
+
 }

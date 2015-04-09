@@ -22,6 +22,7 @@ package com.connectsdk.device;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,17 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.serviceDescription = serviceDescription;
     }
     // @endcond
+
+    /**
+     * set desirable pairing type for all services
+     * @param pairingType
+     */
+    public void setPairingType(PairingType pairingType) {
+        Collection<DeviceService> services = getServices();
+        for (DeviceService service : services) {
+            service.setPairingType(pairingType);
+        }
+    }
 
     /**
      * Adds a DeviceService to the ConnectableDevice instance. Only one instance of each DeviceService type (webOS, Netcast, etc) may be attached to a single ConnectableDevice instance. If a device contains your service type already, your service will not be added.

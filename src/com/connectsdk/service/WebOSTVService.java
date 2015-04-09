@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.java_websocket.client.WebSocketClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -202,20 +201,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     WebOSTVMouseSocketConnection mouseSocket;
 
-    WebSocketClient mouseWebSocket;
     WebOSTVKeyboardInput keyboardInput;
 
     ConcurrentHashMap<String, String> mAppToAppIdMappings;
+
     ConcurrentHashMap<String, WebOSWebAppSession> mWebAppSessions;
 
     WebOSTVServiceSocketClient socket;
-    PairingType pairingType;
 
     List<String> permissions;
 
     public WebOSTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
-
         setServiceDescription(serviceDescription);
 
         pairingType = PairingType.FIRST_SCREEN;
@@ -224,6 +221,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         mWebAppSessions = new ConcurrentHashMap<String, WebOSWebAppSession>();
     }
 
+    @Override
+    public void setPairingType(PairingType pairingType) {
+        this.pairingType = pairingType;
+    }
 
     @Override
     public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
@@ -2441,7 +2442,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     private void notifyPairingRequired() {
         if (listener != null) {
-            listener.onPairingRequired(this, PairingType.FIRST_SCREEN, null);
+            listener.onPairingRequired(this, pairingType, null);
         }
     }
 
