@@ -276,16 +276,11 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                 StringTokenizer st = new StringTokenizer(strResponse);
                 while (st.hasMoreTokens()) {
                     String str = st.nextToken();
-                    String value;
                     if (str.contains("duration")) {
-                        value = st.nextToken();
-                        float f = Float.valueOf(value);
-                        duration = (long) f * 1000;
+                        duration = parseTimeValueFromString(st.nextToken());
                     }
                     else if (str.contains("position")) {
-                        value = st.nextToken();
-                        float f = Float.valueOf(value);
-                        position = (long) f * 1000;
+                        position = parseTimeValueFromString(st.nextToken());
                     }
                 }
 
@@ -306,6 +301,17 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, responseListener);
         request.setHttpMethod(ServiceCommand.TYPE_GET);
         request.send();
+    }
+
+    private long parseTimeValueFromString(String value) {
+        long duration = 0L;
+        try {
+            float f = Float.valueOf(value);
+            duration = (long) f * 1000;
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
+        return duration;
     }
 
     private void getPlaybackInfo(ResponseListener<Object> listener) {

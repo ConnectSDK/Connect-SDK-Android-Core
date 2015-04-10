@@ -205,16 +205,38 @@ public class DLNAServiceTest {
     }
 
     @Test
-    public void testTimeToLong() {
+    public void testTimeToLongNullValue() {
         Assert.assertEquals(0L, service.convertStrTimeFormatToLong(null));
+    }
+
+    @Test
+    public void testTimeToLongWrongValue() {
         Assert.assertEquals(0L, service.convertStrTimeFormatToLong("abc"));
+    }
+
+    @Test
+    public void testTimeToLongZeroValue() {
         Assert.assertEquals(0L, service.convertStrTimeFormatToLong("00:00:00"));
+    }
+
+    @Test
+    public void testTimeToLong() {
         Assert.assertEquals(10000L, service.convertStrTimeFormatToLong("00:00:10"));
-        Assert.assertEquals(60000L, service.convertStrTimeFormatToLong("00:01:00"));
-        Assert.assertEquals(3600000L, service.convertStrTimeFormatToLong("01:00:00"));
+    }
+
+    @Test
+    public void testTimeToLong12Hours() {
         Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00"));
+    }
+
+    @Test
+    public void testTimeToLong20Hours() {
         Assert.assertEquals(72000000L, service.convertStrTimeFormatToLong("20:00:00"));
-        Assert.assertEquals(432000000L, service.convertStrTimeFormatToLong("120:00:00"));
+    }
+
+    @Test
+    public void testTimeToLongBigValue() {
+       Assert.assertEquals(432000000L, service.convertStrTimeFormatToLong("120:00:00"));
     }
 
     private DLNAService makeServiceWithControlURL(String base, String controlURL) {

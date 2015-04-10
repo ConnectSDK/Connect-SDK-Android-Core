@@ -95,4 +95,57 @@ public class AirPlayServiceTest {
             }
         });
     }
+
+    @Test
+    public void testGetDuration() {
+        service.setResponse(
+                "duration: 83.124794\n" +
+                "position: 14.467000");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(83000, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
+    @Test
+    public void testGetDurationWithComma() {
+        service.setResponse(
+                "duration: 83,124794\n" +
+                "position: 14,467000");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(0, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
+    @Test
+    public void testGetDurationWithWrongData() {
+        service.setResponse("zxcmnb");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(0, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
 }
