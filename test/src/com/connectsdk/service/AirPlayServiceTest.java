@@ -97,6 +97,15 @@ public class AirPlayServiceTest {
     }
 
     @Test
+    public void testInitialPairingType() {
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
+    public void testPairingTypeSetter() {
+        service.setPairingType(DeviceService.PairingType.PIN_CODE);
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
     public void testGetDuration() {
         service.setResponse(
                 "duration: 83.124794\n" +
