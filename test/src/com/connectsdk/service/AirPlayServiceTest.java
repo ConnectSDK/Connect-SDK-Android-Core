@@ -111,4 +111,55 @@ public class AirPlayServiceTest {
         Assert.assertEquals("Digest username=\"AirPlay\", realm=\"AirPlay\", nonce=\"MTMzMTMwODI0MCDEJP5Jo7HFo81rbAcKNKw2\", uri=\"/play\", response=\"85c25341d6e62d402f6600340fc44ce0\"",
                 service.getAuthenticate("Digest", "/play", "Digest realm=\"AirPlay\", nonce=\"MTMzMTMwODI0MCDEJP5Jo7HFo81rbAcKNKw2\""));
     }
+    public void testGetDuration() {
+        service.setResponse(
+                "duration: 83.124794\n" +
+                "position: 14.467000");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(83000, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
+    @Test
+    public void testGetDurationWithComma() {
+        service.setResponse(
+                "duration: 83,124794\n" +
+                "position: 14,467000");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(0, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
+    @Test
+    public void testGetDurationWithWrongData() {
+        service.setResponse("zxcmnb");
+        service.getDuration(new MediaControl.DurationListener() {
+            @Override
+            public void onSuccess(Long duration) {
+                Assert.assertEquals(0, duration.longValue());
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Assert.fail();
+            }
+        });
+    }
+
 }

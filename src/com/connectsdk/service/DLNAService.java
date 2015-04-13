@@ -914,19 +914,17 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         return "";
     }
 
-    private long convertStrTimeFormatToLong(String strTime) {
+    long convertStrTimeFormatToLong(String strTime) {
         long time = 0;
-        SimpleDateFormat df = new SimpleDateFormat("hh:mm:ss");
-
+        SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
         try {
             Date d = df.parse(strTime);
             Date d2 = df.parse("00:00:00");
-
             time = d.getTime() - d2.getTime();
         } catch (ParseException e) {
-//            e.printStackTrace();
             Log.w("Connect SDK", "Invalid Time Format: " + strTime);
-            return 0;
+        } catch (NullPointerException e) {
+            Log.w("Connect SDK", "Null time argument");
         }
 
         return time;
