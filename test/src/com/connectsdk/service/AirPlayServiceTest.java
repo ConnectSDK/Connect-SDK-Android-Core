@@ -111,6 +111,19 @@ public class AirPlayServiceTest {
         Assert.assertEquals("Digest username=\"AirPlay\", realm=\"AirPlay\", nonce=\"MTMzMTMwODI0MCDEJP5Jo7HFo81rbAcKNKw2\", uri=\"/play\", response=\"85c25341d6e62d402f6600340fc44ce0\"",
                 service.getAuthenticate("Digest", "/play", "Digest realm=\"AirPlay\", nonce=\"MTMzMTMwODI0MCDEJP5Jo7HFo81rbAcKNKw2\""));
     }
+
+    @Test
+    public void testInitialPairingType() {
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
+    public void testPairingTypeSetter() {
+        service.setPairingType(DeviceService.PairingType.PIN_CODE);
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
     public void testGetDuration() {
         service.setResponse(
                 "duration: 83.124794\n" +

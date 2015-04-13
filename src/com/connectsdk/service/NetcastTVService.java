@@ -150,6 +150,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     public NetcastTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
 
+        pairingType = PairingType.PIN_CODE;
+
         if (serviceDescription.getPort() != 8080)
             serviceDescription.setPort(8080);
 
@@ -322,7 +324,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             @Override
             public void onSuccess(Object response) {
                 if (listener != null)
-                    listener.onPairingRequired(NetcastTVService.this, PairingType.PIN_CODE, null);
+                    listener.onPairingRequired(NetcastTVService.this, pairingType, null);
             }
 
             @Override
