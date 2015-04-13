@@ -721,8 +721,21 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     @Override
     public void connect() {
         mSessionId = UUID.randomUUID().toString();
-        connected = true;
-        reportConnected(true);
+
+        getPlaybackInfo(new ResponseListener<Object>() {
+            @Override
+            public void onSuccess(Object object) {
+                connected = true;
+                reportConnected(true);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                if (listener != null) {
+                    listener.onConnectionFailure(AirPlayService.this, error);
+                }
+            }
+        });
     }
 
     @Override
