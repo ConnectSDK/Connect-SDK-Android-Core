@@ -102,6 +102,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     public AirPlayService(ServiceDescription serviceDescription,
             ServiceConfig serviceConfig) throws IOException {
         super(serviceDescription, serviceConfig);
+        pairingType = PairingType.PIN_CODE;
     }
 
     public static DiscoveryFilter discoveryFilter() {
@@ -592,7 +593,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                             @Override
                             public void run() {
                                 if (listener != null)
-                                    listener.onPairingRequired(AirPlayService.this, PairingType.PIN_CODE, null);
+                                    listener.onPairingRequired(AirPlayService.this, pairingType, null);
                             }
                         });
                     }

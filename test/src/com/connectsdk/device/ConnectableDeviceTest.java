@@ -98,7 +98,7 @@ public class ConnectableDeviceTest {
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DLNAService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DIALService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(RokuService.ID).getPairingType());
-        Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(AirPlayService.ID).getPairingType());
+        Assert.assertEquals(DeviceService.PairingType.PIN_CODE, device.getServiceByName(AirPlayService.ID).getPairingType());
     }
 
     @Test
@@ -115,7 +115,7 @@ public class ConnectableDeviceTest {
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DLNAService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DIALService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(RokuService.ID).getPairingType());
-        Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(AirPlayService.ID).getPairingType());
+        Assert.assertEquals(DeviceService.PairingType.PIN_CODE, device.getServiceByName(AirPlayService.ID).getPairingType());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class ConnectableDeviceTest {
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DLNAService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(DIALService.ID).getPairingType());
         Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(RokuService.ID).getPairingType());
-        Assert.assertEquals(DeviceService.PairingType.NONE, device.getServiceByName(AirPlayService.ID).getPairingType());
+        Assert.assertEquals(DeviceService.PairingType.PIN_CODE, device.getServiceByName(AirPlayService.ID).getPairingType());
     }
 
     private void addAllCoreServicesToDevice() throws IOException {

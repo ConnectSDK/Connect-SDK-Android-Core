@@ -114,13 +114,13 @@ public class AirPlayServiceTest {
 
     @Test
     public void testInitialPairingType() {
-        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+        Assert.assertEquals(DeviceService.PairingType.PIN_CODE, service.getPairingType());
     }
 
     @Test
     public void testPairingTypeSetter() {
         service.setPairingType(DeviceService.PairingType.PIN_CODE);
-        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+        Assert.assertEquals(DeviceService.PairingType.PIN_CODE, service.getPairingType());
     }
 
     @Test
