@@ -214,7 +214,8 @@ public class DLNAServiceTest {
         service.setPairingType(DeviceService.PairingType.PIN_CODE);
         Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
     }
-    
+
+    @Test
     public void testTimeToLongNullValue() {
         Assert.assertEquals(0L, service.convertStrTimeFormatToLong(null));
     }
