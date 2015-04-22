@@ -20,38 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xml.sax.SAXException;
-
 import android.graphics.PointF;
 import android.util.Log;
 
@@ -66,6 +34,7 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
@@ -95,6 +64,26 @@ import com.connectsdk.service.netcast.NetcastVirtualKeycodes;
 import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xml.sax.SAXException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 public class NetcastTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, TVControl, VolumeControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl {
 
@@ -130,7 +119,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         DISCONNECTING
     }
 
-    HttpClient httpClient;
     NetcastHttpServer httpServer;
 
     DLNAService dlnaService;
@@ -159,11 +147,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         subscriptions = new ArrayList<URLServiceSubscription<?>>();
 
         keyboardString = new StringBuilder();
-
-        httpClient = new DefaultHttpClient();
-        ClientConnectionManager mgr = httpClient.getConnectionManager();
-        HttpParams params = httpClient.getParams();
-        httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
 
         state = State.INITIAL;
 
@@ -2310,61 +2293,36 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void sendCommand(final ServiceCommand<?> mCommand) {
-        Thread thread = new Thread(new Runnable() {
+        Util.runInBackground(new Runnable() {
 
             @SuppressWarnings("unchecked")
             @Override
             public void run() {
                 final ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
-
                 Object payload = command.getPayload();
 
-                HttpRequestBase request = command.getRequest();
-                request.addHeader(HttpMessage.USER_AGENT, HttpMessage.UDAP_USER_AGENT);
-                request.addHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_TEXT_XML);
-                HttpResponse response = null;
-
-                if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                    HttpEntity entity = null;
-
-                    try {
-                        if (payload instanceof String) {
-                            entity = new StringEntity((String) payload);
-                        } else if (payload instanceof JSONObject) {
-                            entity = new StringEntity(payload.toString());
-                        }
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-
-                    ((HttpPost) request).setEntity(entity);
-                }
-
                 try {
-                    response = httpClient.execute(request);
-
-                    final int code = response.getStatusLine().getStatusCode();
-
-                    if (code == 200) { 
-                        HttpEntity entity = response.getEntity();
-                        final String message = EntityUtils.toString(entity, "UTF-8");
-
-                        Util.postSuccess(command.getResponseListener(), message);
+                    HttpConnection connection = HttpConnection.newInstance(URI.create(command.getTarget()));
+                    connection.setHeader(HttpMessage.USER_AGENT, HttpMessage.UDAP_USER_AGENT);
+                    connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_TEXT_XML);
+                    if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
+                        connection.setMethod(HttpConnection.Method.POST);
+                        connection.setPayload(payload.toString());
                     }
-                    else {
+                    connection.execute();
+                    int code = connection.getResponseCode();
+                    Log.d("", "RESP " + code);
+                    if (code == 200) {
+                        Util.postSuccess(command.getResponseListener(), connection.getResponseString());
+                    } else {
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
-
-                    response.getEntity().consumeContent();
-                } catch (ClientProtocolException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
                 }
             }
         });
-
-        thread.start();
     }
 
     private void addSubscription(URLServiceSubscription<?> subscription) {

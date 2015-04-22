@@ -29,6 +29,7 @@ import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.airplay.PListBuilder;
 import com.connectsdk.service.airplay.PListParser;
@@ -47,15 +48,12 @@ import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
+import java.net.URI;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -149,7 +147,6 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         // TODO This is temp fix for issue https://github.com/ConnectSDK/Connect-SDK-Android/issues/66
         request.send();
         request.send();
-//        persistentHttpClient.disconnect();
         stopTimer();
     }
 
@@ -524,89 +521,58 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         Util.runInBackground(new Runnable() {
             @Override
             public void run() {
-                HttpURLConnection urlConnection = null;
-
                 try {
                     StringBuilder sb = new StringBuilder();
                     sb.append("http://").append(serviceDescription.getIpAddress()).append(":").append(serviceDescription.getPort());
                     sb.append(serviceCommand.getTarget());
 
-                    URL url = new URL(sb.toString());
-                    urlConnection = (HttpURLConnection) url.openConnection();
-
-                    urlConnection.setRequestMethod(serviceCommand.getHttpMethod());
-                    urlConnection.setDoInput(true);
-
-                    urlConnection.setRequestProperty(HTTP.USER_AGENT, "ConnectSDK MediaControl/1.0");
-                    urlConnection.setRequestProperty(X_APPLE_SESSION_ID, mSessionId);
+                    HttpConnection connection = HttpConnection.newInstance(URI.create(sb.toString()));
+                    connection.setHeader(HTTP.USER_AGENT, "ConnectSDK MediaControl/1.0");
+                    connection.setHeader(X_APPLE_SESSION_ID, mSessionId);
                     if (password != null) {
                         String authorization = getAuthenticate(serviceCommand.getHttpMethod(), serviceCommand.getTarget(), authenticate);
-                        urlConnection.setRequestProperty("Authorization", authorization);
+                        connection.setHeader("Authorization", authorization);
                     }
-
+                    Object payload = serviceCommand.getPayload();
                     if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)
                             || serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_PUT)) {
-                        byte[] output = null;
-                        Object payload = serviceCommand.getPayload();
-
-                        if (payload instanceof String) {
-                            String str = (String) payload;
-                            output = str.getBytes(CHARSET);
-                            urlConnection.setRequestProperty(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_APPLICATION_PLIST);
-                        } else if (payload instanceof byte[]) {
-                            output = (byte[]) payload;
+                        if (payload != null) {
+                            if (payload instanceof String) {
+                                connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_APPLICATION_PLIST);
+                                connection.setPayload(payload.toString());
+                            } else if (payload instanceof byte[]) {
+                                connection.setPayload((byte[])payload);
+                            }
                         }
-                        urlConnection.setDoOutput(true);
-                        urlConnection.connect();
-
-                        OutputStream outputStream = urlConnection.getOutputStream();
-
-                        if (output != null)
-                            outputStream.write(output);
-                        outputStream.flush();
-                        outputStream.close();
-                    } else if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_GET)) {
-                        urlConnection.connect();
                     }
-
-                    int code = urlConnection.getResponseCode();
+                    if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
+                        connection.setMethod(HttpConnection.Method.POST);
+                    } else if (serviceCommand.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_PUT)) {
+                        connection.setMethod(HttpConnection.Method.PUT);
+                    } else {
+                        connection.setHeader("Content-Length", "0");
+                    }
+                    connection.execute();
+                    int code = connection.getResponseCode();
                     if (code == HttpURLConnection.HTTP_OK) {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-
-                        String line;
-                        StringBuffer buffer = new StringBuffer();
-                        while ((line = reader.readLine()) != null) {
-                            buffer.append(line);
-                            buffer.append("\r\n");
-                        }
-                        reader.close();
-
-                        String response = buffer.toString();
-
-                        Util.postSuccess(serviceCommand.getResponseListener(), response);
-                    }
-                    else if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        authenticate = urlConnection.getHeaderField("WWW-Authenticate");
+                        Util.postSuccess(serviceCommand.getResponseListener(), connection.getResponseString());
+                    } else if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        authenticate = connection.getResponseHeader("WWW-Authenticate");
                         pendingCommand = serviceCommand;
-
                         Util.runOnUI(new Runnable() {
                             @Override
                             public void run() {
-                                if (listener != null)
+                                if (listener != null) {
                                     listener.onPairingRequired(AirPlayService.this, pairingType, null);
+                                }
                             }
                         });
+                    } else {
+                        Util.postError(serviceCommand.getResponseListener(), ServiceCommandError.getError(code));
                     }
-                    else {
-                        Util.postError(serviceCommand.getResponseListener(), new ServiceCommandError(urlConnection.getResponseCode(), urlConnection.getResponseMessage(), null));
-                    }
-                } catch (ProtocolException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    if (urlConnection != null)
-                        urlConnection.disconnect();
+                    Util.postError(serviceCommand.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
                 }
             }
         });
