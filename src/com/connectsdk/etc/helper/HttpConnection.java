@@ -77,7 +77,6 @@ public abstract class HttpConnection {
         private byte[] payload;
         private String response;
         private int responseCode;
-        private byte[] payloadBytes;
 
         private HttpURLConnectionClient(URI uri) throws IOException {
             this.connection = (HttpURLConnection) uri.toURL().openConnection();
