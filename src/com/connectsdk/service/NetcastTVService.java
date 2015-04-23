@@ -1475,7 +1475,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1487,7 +1487,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
             return null;
         }
     }
@@ -1665,7 +1665,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().seek(position, listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1675,7 +1675,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().getDuration(listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1685,7 +1685,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().getPosition(listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1696,7 +1696,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
 
     }
