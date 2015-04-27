@@ -1474,7 +1474,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     public void channelUp() {
-        channelDown(null);
+        channelUp(null);
     }
 
     @Override
