@@ -181,6 +181,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 else if ((serviceList.get(i).serviceType.contains(CONNECTION_MANAGER)) ) {
                     connectionControlURL = makeControlURL(serviceList.get(i).baseURL, serviceList.get(i).controlURL);
                 }
+
             }
         }
     }
@@ -1044,6 +1045,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 }
             }
         });
+
     }
 
     @Override
@@ -1071,7 +1073,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
-                        String eventSubURL = serviceList.get(i).eventSubURL;
+                        String eventSubURL = makeControlURL("/", serviceList.get(i).eventSubURL);
                         if (eventSubURL == null) {
                             continue;
                         }
@@ -1093,6 +1095,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+
                     }
                 }
             }
@@ -1115,7 +1118,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                         if (serviceList != null) {
                             for (int i = 0; i < serviceList.size(); i++) {
-                                String eventSubURL = serviceList.get(i).eventSubURL;
+                                String eventSubURL = makeControlURL("/", serviceList.get(i).eventSubURL);
                                 if (eventSubURL == null) {
                                     continue;
                                 }
@@ -1151,7 +1154,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
                 if (serviceList != null) {
                     for (int i = 0; i < serviceList.size(); i++) {
-                        String eventSubURL = serviceList.get(i).eventSubURL;
+                        String eventSubURL = makeControlURL("/", serviceList.get(i).eventSubURL);
                         if (eventSubURL == null) {
                             continue;
                         }
