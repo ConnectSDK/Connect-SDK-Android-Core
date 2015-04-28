@@ -123,15 +123,15 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     public DLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
-        this(serviceDescription, serviceConfig, DiscoveryManager.getInstance().getContext());
+        this(serviceDescription, serviceConfig, DiscoveryManager.getInstance().getContext(), new DLNAHttpServer());
     }
 
-    public DLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig, Context context) {
+    public DLNAService(ServiceDescription serviceDescription, ServiceConfig serviceConfig, Context context, DLNAHttpServer dlnaServer) {
         super(serviceDescription, serviceConfig);
         this.context = context;
         SIDList = new HashMap<String, String>();
         updateControlURL();
-        httpServer = new DLNAHttpServer();
+        httpServer = dlnaServer;
     }
 
     public static DiscoveryFilter discoveryFilter() {
@@ -952,7 +952,6 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
         if (httpServer.getSubscriptions().isEmpty()) {
             unsubscribeServices();
-            httpServer.stop();
         }
     }
 
@@ -1043,6 +1042,13 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if (listener != null) {
                     listener.onDisconnect(DLNAService.this, null);
                 }
+            }
+        });
+
+        Util.runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                httpServer.stop();
             }
         });
 
@@ -1143,8 +1149,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     public void unsubscribeServices() {
-        if (resubscriptionTimer != null)
+        if (resubscriptionTimer != null) {
             resubscriptionTimer.cancel();
+        }
 
         Util.runInBackground(new Runnable() {
 

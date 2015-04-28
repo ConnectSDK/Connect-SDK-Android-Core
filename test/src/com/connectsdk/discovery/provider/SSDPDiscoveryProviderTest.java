@@ -2,7 +2,7 @@ package com.connectsdk.discovery.provider;
 
 import android.content.Context;
 
-import com.connectsdk.TestUtil;
+import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.service.config.ServiceDescription;

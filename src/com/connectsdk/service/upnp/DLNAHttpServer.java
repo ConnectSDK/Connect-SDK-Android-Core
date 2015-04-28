@@ -1,5 +1,7 @@
 package com.connectsdk.service.upnp;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -25,11 +27,11 @@ import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.URLServiceSubscription;
 
 public class DLNAHttpServer {
-    ServerSocket welcomeSocket;
+    final int port = 49291;
 
-    int port = 49291;
+    volatile ServerSocket welcomeSocket;
 
-    boolean running = false;
+    volatile boolean running = false;
 
     CopyOnWriteArrayList<URLServiceSubscription<?>> subscriptions;
 
@@ -37,21 +39,55 @@ public class DLNAHttpServer {
         subscriptions = new CopyOnWriteArrayList<URLServiceSubscription<?>>();
     }
 
-    public void start() {
-        if (running)
+    public synchronized void start() {
+        if (running) {
             return;
+        }
 
         running = true;
+        Log.d("", "SubServer start");
 
         try {
             welcomeSocket = new ServerSocket(this.port);
         } catch (IOException ex) {
             ex.printStackTrace();
+            return;
         }
 
+        Util.runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                processRequests();
+            }
+        }, true);
+    }
+
+    public synchronized void stop() {
+        if (!running) {
+            return;
+        }
+
+        Log.d("", "SubServer stop");
+        for (URLServiceSubscription<?> sub : subscriptions) {
+            sub.unsubscribe();
+        }
+        subscriptions.clear();
+
+        if (welcomeSocket != null && !welcomeSocket.isClosed()) {
+            try {
+                welcomeSocket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        welcomeSocket = null;
+        running = false;
+    }
+
+    private void processRequests() {
         while (running) {
             if (welcomeSocket == null || welcomeSocket.isClosed()) {
-                stop();
                 break;
             }
 
@@ -64,8 +100,7 @@ public class DLNAHttpServer {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 // this socket may have been closed, so we'll stop
-                stop();
-                return;
+                break;
             }
 
             int c = 0;
@@ -241,27 +276,6 @@ public class DLNAHttpServer {
 
         }
 
-    }
-
-    public void stop() {
-        if (!running)
-            return;
-
-        for (URLServiceSubscription<?> sub: subscriptions) {
-            sub.unsubscribe();
-        }
-        subscriptions.clear();
-
-        if (welcomeSocket != null && !welcomeSocket.isClosed()) {
-            try {
-                welcomeSocket.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        welcomeSocket = null;
-        running = false;
     }
 
     public int getPort() {
