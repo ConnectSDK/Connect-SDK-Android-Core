@@ -1875,31 +1875,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void connectMouse() {
-        if (mouseSocket != null) 
-            return;
-
-        ResponseListener<Object> listener = new ResponseListener<Object>() {
-
+        connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
             @Override
-            public void onSuccess(Object response) {
-                try {
-                    JSONObject jsonObj = (JSONObject)response;
-                    String socketPath = (String) jsonObj.get("socketPath");
-                    mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
-                        @Override
-                        public void onConnected() {}
-                    });
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+            public void onConnected() {
+                // intentionally left empty
             }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-            }
-        };
-
-        connectMouse(listener);
+        });
     }
 
     @Override
@@ -1911,6 +1892,32 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         mouseSocket = null;
     }
 
+    private void connectMouse(final WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener successHandler) {
+        if (mouseSocket != null)
+            return;
+
+        ResponseListener<Object> listener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                try {
+                    JSONObject jsonObj = (JSONObject)response;
+                    String socketPath = (String) jsonObj.get("socketPath");
+                    mouseSocket = new WebOSTVMouseSocketConnection(socketPath, successHandler);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Log.w("Connect SDK", "Connect mouse error: " + error.getMessage());
+            }
+        };
+
+        connectMouse(listener);
+    }
+
     private void connectMouse(ResponseListener<Object> listener) {
         String uri = "ssap://com.webos.service.networkinput/getPointerInputSocket";
 
@@ -1920,33 +1927,16 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void click() {
-        if (mouseSocket != null) 
+        if (mouseSocket != null) {
             mouseSocket.click();
+        }
         else {
-            ResponseListener<Object> responseListener = new ResponseListener<Object>() {
-
+            connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
                 @Override
-                public void onSuccess(Object response) {
-                    try {
-                        JSONObject jsonObj = (JSONObject)response;
-                        String socketPath = (String) jsonObj.get("socketPath");
-                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
-                            @Override
-                            public void onConnected() {
-                                mouseSocket.click();
-                            }
-                        });
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                public void onConnected() {
+                    mouseSocket.click();
                 }
-
-                @Override
-                public void onError(ServiceCommandError error) {
-                }
-            };
-
-            connectMouse(responseListener);
+            });
         }
     }
 
