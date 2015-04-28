@@ -1,6 +1,15 @@
 package com.connectsdk.service.upnp;
 
-import android.util.Log;
+import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.Util;
+import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.URLServiceSubscription;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -14,17 +23,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParserException;
-
-import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.Util;
-import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
-import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.command.URLServiceSubscription;
 
 public class DLNAHttpServer {
     final int port = 49291;
@@ -45,7 +43,6 @@ public class DLNAHttpServer {
         }
 
         running = true;
-        Log.d("", "SubServer start");
 
         try {
             welcomeSocket = new ServerSocket(this.port);
@@ -67,7 +64,6 @@ public class DLNAHttpServer {
             return;
         }
 
-        Log.d("", "SubServer stop");
         for (URLServiceSubscription<?> sub : subscriptions) {
             sub.unsubscribe();
         }
