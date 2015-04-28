@@ -250,6 +250,11 @@ public class DLNAServiceTest {
        Assert.assertEquals(432000000L, service.convertStrTimeFormatToLong("120:00:00"));
     }
 
+    @Test
+    public void testTimeToLong1WithMilliseconds() {
+        Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00.777"));
+    }
+
     private DLNAService makeServiceWithControlURL(String base, String controlURL) {
         List<Service> services = new ArrayList<Service>();
         Service service = new Service();
