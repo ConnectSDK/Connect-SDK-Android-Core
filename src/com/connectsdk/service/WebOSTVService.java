@@ -1885,7 +1885,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 try {
                     JSONObject jsonObj = (JSONObject)response;
                     String socketPath = (String) jsonObj.get("socketPath");
-                    mouseSocket = new WebOSTVMouseSocketConnection(socketPath);
+                    mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                        @Override
+                        public void onConnected() {}
+                    });
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -1920,7 +1923,30 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         if (mouseSocket != null) 
             mouseSocket.click();
         else {
-            connectMouse();
+            ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+                @Override
+                public void onSuccess(Object response) {
+                    try {
+                        JSONObject jsonObj = (JSONObject)response;
+                        String socketPath = (String) jsonObj.get("socketPath");
+                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                            @Override
+                            public void onConnected() {
+                                mouseSocket.click();
+                            }
+                        });
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onError(ServiceCommandError error) {
+                }
+            };
+
+            connectMouse(responseListener);
         }
     }
 
@@ -2078,15 +2104,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
                 @Override
-                public void onSuccess(Object response) {
+                public void onSuccess(final Object response) {
                     try {
                         JSONObject jsonObj = (JSONObject)response;
                         String socketPath = (String) jsonObj.get("socketPath");
-                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath);
+                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                            @Override
+                            public void onConnected() {
+                                mouseSocket.button(key);
 
-                        mouseSocket.button(key);
-                        
-                        Util.postSuccess(listener, response);
+                                Util.postSuccess(listener, response);
+                            }
+                        });
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -2123,9 +2152,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void ok(ResponseListener<Object> listener) {
+    public void ok(final ResponseListener<Object> listener) {
         if (mouseSocket != null) {
             mouseSocket.click();
+            Util.postSuccess(listener, null);
         }
         else {
             ResponseListener<Object> responseListener = new ResponseListener<Object>() {
@@ -2135,10 +2165,15 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                     try {
                         JSONObject jsonObj = (JSONObject)response;
                         String socketPath = (String) jsonObj.get("socketPath");
-                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath);
-
-                        mouseSocket.click();
+                        mouseSocket = new WebOSTVMouseSocketConnection(socketPath, new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                            @Override
+                            public void onConnected() {
+                                mouseSocket.click();
+                                Util.postSuccess(listener, null);
+                            }
+                        });
                     } catch (JSONException e) {
+                        Util.postError(listener, new ServiceCommandError(e.getLocalizedMessage()));
                         e.printStackTrace();
                     }
                 }

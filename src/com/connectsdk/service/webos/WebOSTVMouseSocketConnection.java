@@ -30,8 +30,13 @@ import org.java_websocket.handshake.ServerHandshake;
 import android.util.Log;
 
 public class WebOSTVMouseSocketConnection {
+    public interface WebOSTVMouseSocketListener {
+        void onConnected();
+    }
+
     WebSocketClient ws;
     String socketPath;
+    WebOSTVMouseSocketListener listener;
 
     public enum ButtonType {
         HOME,
@@ -42,8 +47,10 @@ public class WebOSTVMouseSocketConnection {
         RIGHT,
     }
 
-    public WebOSTVMouseSocketConnection(String socketPath) {
+    public WebOSTVMouseSocketConnection(String socketPath, WebOSTVMouseSocketListener listener) {
         Log.d("PointerAndKeyboardFragment", "got socketPath: " + socketPath);
+
+        this.listener = listener;
 
         if (socketPath.startsWith("wss:")) {
             this.socketPath = socketPath.replace("wss:", "ws:").replace(":3001/", ":3000/"); // downgrade to plaintext
@@ -71,6 +78,9 @@ public class WebOSTVMouseSocketConnection {
             @Override
             public void onOpen(ServerHandshake arg0) {
                 Log.d("PointerAndKeyboardFragment", "connected to " + uri.toString());
+                if (listener != null) {
+                    listener.onConnected();
+                }
             }
 
             @Override
