@@ -48,13 +48,13 @@ public class WebOSTVMouseSocketConnection {
     }
 
     public WebOSTVMouseSocketConnection(String socketPath, WebOSTVMouseSocketListener listener) {
-        Log.d("PointerAndKeyboardFragment", "got socketPath: " + socketPath);
+        Log.d("PtrAndKeyboardFragment", "got socketPath: " + socketPath);
 
         this.listener = listener;
 
         if (socketPath.startsWith("wss:")) {
             this.socketPath = socketPath.replace("wss:", "ws:").replace(":3001/", ":3000/"); // downgrade to plaintext
-            Log.d("PointerAndKeyboardFragment", "downgraded socketPath: " + this.socketPath);
+            Log.d("PtrAndKeyboardFragment", "downgraded socketPath: " + this.socketPath);
         }
         else 
             this.socketPath = socketPath;
@@ -77,7 +77,7 @@ public class WebOSTVMouseSocketConnection {
 
             @Override
             public void onOpen(ServerHandshake arg0) {
-                Log.d("PointerAndKeyboardFragment", "connected to " + uri.toString());
+                Log.d("PtrAndKeyboardFragment", "connected to " + uri.toString());
                 if (listener != null) {
                     listener.onConnected();
                 }
