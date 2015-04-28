@@ -618,7 +618,7 @@ public class ConnectableDevice implements DeviceServiceListener {
                 }
                 foundControllerPriority = controllerPriority;
             }
-            else {
+            else if (controllerPriority != null && foundControllerPriority != null) {
                 if (controllerPriority.getValue() > foundControllerPriority.getValue()) {
                     foundController = controller;
                     foundControllerPriority = controllerPriority;

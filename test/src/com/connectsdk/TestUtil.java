@@ -30,8 +30,7 @@ public final class TestUtil {
                 return mockConnection;
             }
         };
-        final URL url = new URL("http", "hostname", 80, "", handler);
-        return url;
+        return new URL("http", "hostname", 80, "", handler);
     }
 
     public static void runUtilBackgroundTasks() {
