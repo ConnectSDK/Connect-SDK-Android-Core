@@ -20,37 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xml.sax.SAXException;
-
 import android.graphics.PointF;
 import android.util.Log;
 
@@ -65,6 +34,7 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
+import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
@@ -94,6 +64,26 @@ import com.connectsdk.service.netcast.NetcastVirtualKeycodes;
 import com.connectsdk.service.netcast.NetcastVolumeParser;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xml.sax.SAXException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 public class NetcastTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, TVControl, VolumeControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl {
 
@@ -127,9 +117,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         PAIRING,
         PAIRED,
         DISCONNECTING
-    };
+    }
 
-    HttpClient httpClient;
     NetcastHttpServer httpServer;
 
     DLNAService dlnaService;
@@ -149,6 +138,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     public NetcastTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
 
+        pairingType = PairingType.PIN_CODE;
+
         if (serviceDescription.getPort() != 8080)
             serviceDescription.setPort(8080);
 
@@ -156,11 +147,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         subscriptions = new ArrayList<URLServiceSubscription<?>>();
 
         keyboardString = new StringBuilder();
-
-        httpClient = new DefaultHttpClient();
-        ClientConnectionManager mgr = httpClient.getConnectionManager();
-        HttpParams params = httpClient.getParams();
-        httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
 
         state = State.INITIAL;
 
@@ -321,7 +307,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             @Override
             public void onSuccess(Object response) {
                 if (listener != null)
-                    listener.onPairingRequired(NetcastTVService.this, PairingType.PIN_CODE, null);
+                    listener.onPairingRequired(NetcastTVService.this, pairingType, null);
             }
 
             @Override
@@ -433,7 +419,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
      *****************/
     public Launcher getLauncher() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getLauncherCapabilityLevel() {
@@ -483,9 +469,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                     setId(decToHex(strObj));
                 }};
 
-                if (appId != null) {
-                    Util.postSuccess(listener, appId);
-                }
+                Util.postSuccess(listener, appId);
             }
 
             @Override
@@ -1268,7 +1252,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public VolumeControl getVolumeControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getVolumeControlCapabilityLevel() {
@@ -1409,7 +1393,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public ExternalInputControl getExternalInput() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getExternalInputControlPriorityLevel() {
@@ -1476,7 +1460,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public MediaPlayer getMediaPlayer() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
@@ -1491,7 +1475,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1503,7 +1487,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
             return null;
         }
     }
@@ -1540,10 +1524,25 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void displayImage(MediaInfo mediaInfo, LaunchListener listener) {
-        ImageInfo imageInfo = mediaInfo.getImages().get(0);
-        String iconSrc = imageInfo.getUrl();
+        String mediaUrl = null;
+        String mimeType = null;
+        String title = null;
+        String desc = null;
+        String iconSrc = null;
 
-        displayImage(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, listener);
+        if (mediaInfo != null) {
+            mediaUrl = mediaInfo.getUrl();
+            mimeType = mediaInfo.getMimeType();
+            title = mediaInfo.getTitle();
+            desc = mediaInfo.getDescription();
+
+            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
+                ImageInfo imageInfo = mediaInfo.getImages().get(0);
+                iconSrc = imageInfo.getUrl();
+            }
+        }
+
+        displayImage(mediaUrl, mimeType, title, desc, iconSrc, listener);
     }
 
     @Override
@@ -1578,10 +1577,25 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
-        ImageInfo imageInfo = mediaInfo.getImages().get(0);
-        String iconSrc = imageInfo.getUrl();
+        String mediaUrl = null;
+        String mimeType = null;
+        String title = null;
+        String desc = null;
+        String iconSrc = null;
 
-        playMedia(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, shouldLoop, listener);
+        if (mediaInfo != null) {
+            mediaUrl = mediaInfo.getUrl();
+            mimeType = mediaInfo.getMimeType();
+            title = mediaInfo.getTitle();
+            desc = mediaInfo.getDescription();
+
+            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
+                ImageInfo imageInfo = mediaInfo.getImages().get(0);
+                iconSrc = imageInfo.getUrl();
+            }
+        }
+
+        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
     }
 
     @Override
@@ -1651,7 +1665,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().seek(position, listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1661,7 +1675,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().getDuration(listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1671,7 +1685,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             getDLNAService().getPosition(listener);
         } else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
     }
 
@@ -1682,7 +1696,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         }
         else {
             if (listener != null)
-                Util.postError(listener, new ServiceCommandError(-1, "Command is not supported", null));
+                Util.postError(listener, ServiceCommandError.notSupported());
         }
 
     }
@@ -1703,7 +1717,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public MouseControl getMouseControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getMouseControlCapabilityLevel() {
@@ -1873,7 +1887,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public TextInputControl getTextInputControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getTextInputControlCapabilityLevel() {
@@ -2024,7 +2038,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public PowerControl getPowerControl() {
         return this;
-    };
+    }
 
     @Override
     public CapabilityPriorityLevel getPowerControlCapabilityLevel() {
@@ -2248,7 +2262,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         StringBuilder sb = new StringBuilder();
         sb.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
         sb.append("<envelope>");
-        sb.append("<api type=\"" + api + "\">");
+        sb.append("<api type=\"").append(api).append("\">");
 
         for (Map.Entry<String, String> entry : params.entrySet()) {
             String key = entry.getKey();
@@ -2264,13 +2278,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     private String createNode(String tag, String value) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("<" + tag + ">");
-        sb.append(value);
-        sb.append("</" + tag + ">");
-
-        return sb.toString();
+        return "<" + tag + ">" + value + "</" + tag + ">";
     }
 
     public String decToHex(String dec) {
@@ -2285,61 +2293,36 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void sendCommand(final ServiceCommand<?> mCommand) {
-        Thread thread = new Thread(new Runnable() {
+        Util.runInBackground(new Runnable() {
 
             @SuppressWarnings("unchecked")
             @Override
             public void run() {
                 final ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
-
                 Object payload = command.getPayload();
 
-                HttpRequestBase request = command.getRequest();
-                request.addHeader(HttpMessage.USER_AGENT, HttpMessage.UDAP_USER_AGENT);
-                request.addHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_TEXT_XML);
-                HttpResponse response = null;
-
-                if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                    HttpEntity entity = null;
-
-                    try {
-                        if (payload instanceof String) {
-                            entity = new StringEntity((String) payload);
-                        } else if (payload instanceof JSONObject) {
-                            entity = new StringEntity(((JSONObject) payload).toString());
-                        }
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-
-                    ((HttpPost) request).setEntity(entity);
-                }
-
                 try {
-                    response = httpClient.execute(request);
-
-                    final int code = response.getStatusLine().getStatusCode();
-
-                    if (code == 200) { 
-                        HttpEntity entity = response.getEntity();
-                        final String message = EntityUtils.toString(entity, "UTF-8");
-
-                        Util.postSuccess(command.getResponseListener(), message);
+                    HttpConnection connection = HttpConnection.newInstance(URI.create(command.getTarget()));
+                    connection.setHeader(HttpMessage.USER_AGENT, HttpMessage.UDAP_USER_AGENT);
+                    connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, HttpMessage.CONTENT_TYPE_TEXT_XML);
+                    if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
+                        connection.setMethod(HttpConnection.Method.POST);
+                        connection.setPayload(payload.toString());
                     }
-                    else {
+                    connection.execute();
+                    int code = connection.getResponseCode();
+                    Log.d("", "RESP " + code);
+                    if (code == 200) {
+                        Util.postSuccess(command.getResponseListener(), connection.getResponseString());
+                    } else {
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
-
-                    response.getEntity().consumeContent();
-                } catch (ClientProtocolException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
                 }
             }
         });
-
-        thread.start();
     }
 
     private void addSubscription(URLServiceSubscription<?> subscription) {
@@ -2373,10 +2356,10 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         List<String> capabilities = new ArrayList<String>();
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            for (String capability : TextInputControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : MouseControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : KeyControl.Capabilities) { capabilities.add(capability); }
-            for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
+            Collections.addAll(capabilities, TextInputControl.Capabilities);
+            Collections.addAll(capabilities, MouseControl.Capabilities);
+            Collections.addAll(capabilities, KeyControl.Capabilities);
+            Collections.addAll(capabilities, MediaPlayer.Capabilities);
 
             capabilities.add(PowerControl.Off);
 
@@ -2421,7 +2404,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                 capabilities.add(AppStore_Params); 
             }
         } else {
-            for (String capability : MediaPlayer.Capabilities) { capabilities.add(capability); }
+            Collections.addAll(capabilities, MediaPlayer.Capabilities);
             capabilities.add(Play); 
             capabilities.add(Pause); 
             capabilities.add(Stop); 

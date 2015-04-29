@@ -52,7 +52,7 @@ public class ImageInfo {
 
 
     public enum ImageType {
-        Thumb, Video_Poster, Album_Art, Unknown;
+        Thumb, Video_Poster, Album_Art, Unknown
     }
 
     private String url;

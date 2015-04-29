@@ -80,7 +80,10 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     public static final String KEY_CONFIG = "config";
     public static final String KEY_DESC = "description";
 
+    PairingType pairingType = PairingType.NONE;
+
     ServiceDescription serviceDescription;
+
     ServiceConfig serviceConfig;
 
     protected DeviceServiceReachability mServiceReachability;
@@ -204,6 +207,13 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         }
 
         return null;
+    }
+
+    public PairingType getPairingType() {
+        return pairingType;
+    }
+
+    public void setPairingType(PairingType pairingType) {
     }
 
     @SuppressWarnings("unchecked")
@@ -349,7 +359,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         if (m.find()) {
             String match = m.group();
             for (String item : this.mCapabilities) {
-                if (item.indexOf(match) != -1) {
+                if (item.contains(match)) {
                     return true;
                 }
             }
@@ -535,7 +545,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
             return;
 
         for (String capability : capabilities) {
-            if (capability == null || capability.length() == 0 || mCapabilities.contains(capabilities))
+            if (capability == null || capability.length() == 0 || mCapabilities.contains(capability))
                 continue;
 
             mCapabilities.add(capability);

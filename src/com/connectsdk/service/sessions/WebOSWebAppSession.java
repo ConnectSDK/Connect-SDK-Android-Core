@@ -87,9 +87,7 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     public void handleMediaEvent(JSONObject payload) {
-        String type = "";
-
-        type = payload.optString("type");
+        String type = payload.optString("type");
         if (type.length() == 0)
             return;
 
@@ -152,9 +150,7 @@ public class WebOSWebAppSession extends WebAppSession {
             String type = payload.optString("type");
 
             if ("p2p".equals(type)) {
-                String fromAppId = null;
-
-                fromAppId = payload.optString("from");
+                String fromAppId = payload.optString("from");
 
                 if (!fromAppId.equalsIgnoreCase(getFullAppId()))
                     return false;
@@ -438,10 +434,8 @@ public class WebOSWebAppSession extends WebAppSession {
             // do nothing
         }
 
-        final JSONObject payload = _payload;
-
         if (isConnected()) {
-            socket.sendMessage(payload, null);
+            socket.sendMessage(_payload, null);
 
             if (listener != null)
                 listener.onSuccess(null);

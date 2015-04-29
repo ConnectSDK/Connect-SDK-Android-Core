@@ -58,7 +58,7 @@ public class PairingDialog {
         final EditText input = new EditText(activity);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
 
-        final AlertDialog pickerDialog = new AlertDialog.Builder(activity)
+        return new AlertDialog.Builder(activity)
         .setCustomTitle(title)
         .setView(input)
         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -75,7 +75,5 @@ public class PairingDialog {
             }
         })
         .create();
-
-        return pickerDialog;
     }
 }

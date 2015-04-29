@@ -1,7 +1,10 @@
 package com.connectsdk.service;
 
+import com.connectsdk.core.TestUtil;
+import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.upnp.DLNAHttpServer;
 
 import junit.framework.Assert;
 
@@ -13,8 +16,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,11 +29,15 @@ import java.util.Map;
 @Config(manifest=Config.NONE)
 public class DLNAServiceTest {
 
-    DLNAService service;
+    private DLNAService service;
+
+    private DLNAHttpServer dlnaServer;
 
     @Before
     public void setUp() {
-        service = new DLNAService(Mockito.mock(ServiceDescription.class), Mockito.mock(ServiceConfig.class), Robolectric.application);
+        dlnaServer = Mockito.mock(DLNAHttpServer.class);
+        service = new DLNAService(Mockito.mock(ServiceDescription.class),
+                Mockito.mock(ServiceConfig.class), Robolectric.application, dlnaServer);
     }
 
     @Test
@@ -164,6 +173,112 @@ public class DLNAServiceTest {
         String expected = "http://192.168.1.100:8000/ph&o't'o%20with%20symbols.jpg";
         String urlStr = "http://192.168.1.100:8000/ph&o't'o%20with%20symbols.jpg";
         Assert.assertEquals(expected, service.encodeURL(urlStr));
+    }
+
+    @Test
+    public void testNullUrlEncode() throws Exception {
+        Assert.assertEquals("", service.encodeURL(null));
+    }
+
+
+    @Test
+    public void testEmptyUrlEncode() throws Exception {
+        Assert.assertEquals("", service.encodeURL(""));
+    }
+
+    @Test
+    public void testServiceControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0/", "/controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongBase() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0", "/controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0/", "controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testServiceControlURLWithWrongBaseAndControlURL() {
+        DLNAService dlnaService = makeServiceWithControlURL("http://192.168.1.0", "controlURL");
+        Assert.assertEquals("http://192.168.1.0/controlURL", dlnaService.avTransportURL);
+    }
+
+    @Test
+    public void testInitialPairingType() {
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
+    public void testPairingTypeSetter() {
+        service.setPairingType(DeviceService.PairingType.PIN_CODE);
+        Assert.assertEquals(DeviceService.PairingType.NONE, service.getPairingType());
+    }
+
+    @Test
+    public void testTimeToLongNullValue() {
+        Assert.assertEquals(0L, service.convertStrTimeFormatToLong(null));
+    }
+
+    @Test
+    public void testTimeToLongWrongValue() {
+        Assert.assertEquals(0L, service.convertStrTimeFormatToLong("abc"));
+    }
+
+    @Test
+    public void testTimeToLongZeroValue() {
+        Assert.assertEquals(0L, service.convertStrTimeFormatToLong("00:00:00"));
+    }
+
+    @Test
+    public void testTimeToLong() {
+        Assert.assertEquals(10000L, service.convertStrTimeFormatToLong("00:00:10"));
+    }
+
+    @Test
+    public void testTimeToLong12Hours() {
+        Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00"));
+    }
+
+    @Test
+    public void testTimeToLong20Hours() {
+        Assert.assertEquals(72000000L, service.convertStrTimeFormatToLong("20:00:00"));
+    }
+
+    @Test
+    public void testTimeToLongBigValue() {
+       Assert.assertEquals(432000000L, service.convertStrTimeFormatToLong("120:00:00"));
+    }
+
+    @Test
+    public void testStopDLNAServerOnDisconnect() {
+        service.disconnect();
+        TestUtil.runUtilBackgroundTasks();
+        Mockito.verify(dlnaServer).stop();
+    }
+
+    @Test
+    public void testTimeToLong1WithMilliseconds() {
+        Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00.777"));
+    }
+
+    private DLNAService makeServiceWithControlURL(String base, String controlURL) {
+        List<Service> services = new ArrayList<Service>();
+        Service service = new Service();
+        service.baseURL = base;
+        service.controlURL = controlURL;
+        service.serviceType = DLNAService.AV_TRANSPORT;
+        services.add(service);
+
+        ServiceDescription description = Mockito.mock(ServiceDescription.class);
+        Mockito.when(description.getServiceList()).thenReturn(services);
+        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application, null);
     }
 
 }

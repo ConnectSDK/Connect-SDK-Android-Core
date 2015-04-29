@@ -74,10 +74,7 @@ public class DLNAMediaInfoParser {
 
         ArrayList<ImageInfo> list = new ArrayList<ImageInfo>();
         list.add(new ImageInfo(iconUrl));
-        MediaInfo info = new MediaInfo(url, mimeType, title, description, list);
-
-        return info;
-
+        return new MediaInfo(url, mimeType, title, description, list);
     }
 
     public static MediaInfo getMediaInfo(String str, String baseUrl) {
@@ -96,10 +93,7 @@ public class DLNAMediaInfoParser {
 
         ArrayList<ImageInfo> list = new ArrayList<ImageInfo>();
         list.add(new ImageInfo(iconUrl));
-        MediaInfo info = new MediaInfo(url, mimeType, title, description, list);
-
-        return info;
-
+        return new MediaInfo(url, mimeType, title, description, list);
     }
 
     public static String getTitle(String str) {

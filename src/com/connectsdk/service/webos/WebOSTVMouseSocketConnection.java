@@ -30,8 +30,13 @@ import org.java_websocket.handshake.ServerHandshake;
 import android.util.Log;
 
 public class WebOSTVMouseSocketConnection {
+    public interface WebOSTVMouseSocketListener {
+        void onConnected();
+    }
+
     WebSocketClient ws;
     String socketPath;
+    WebOSTVMouseSocketListener listener;
 
     public enum ButtonType {
         HOME,
@@ -42,12 +47,14 @@ public class WebOSTVMouseSocketConnection {
         RIGHT,
     }
 
-    public WebOSTVMouseSocketConnection(String socketPath) {
-        Log.d("PointerAndKeyboardFragment", "got socketPath: " + socketPath);
+    public WebOSTVMouseSocketConnection(String socketPath, WebOSTVMouseSocketListener listener) {
+        Log.d("PtrAndKeyboardFragment", "got socketPath: " + socketPath);
+
+        this.listener = listener;
 
         if (socketPath.startsWith("wss:")) {
             this.socketPath = socketPath.replace("wss:", "ws:").replace(":3001/", ":3000/"); // downgrade to plaintext
-            Log.d("PointerAndKeyboardFragment", "downgraded socketPath: " + this.socketPath);
+            Log.d("PtrAndKeyboardFragment", "downgraded socketPath: " + this.socketPath);
         }
         else 
             this.socketPath = socketPath;
@@ -70,7 +77,10 @@ public class WebOSTVMouseSocketConnection {
 
             @Override
             public void onOpen(ServerHandshake arg0) {
-                Log.d("PointerAndKeyboardFragment", "connected to " + uri.toString());
+                Log.d("PtrAndKeyboardFragment", "connected to " + uri.toString());
+                if (listener != null) {
+                    listener.onConnected();
+                }
             }
 
             @Override
@@ -107,12 +117,7 @@ public class WebOSTVMouseSocketConnection {
 
     public void click() {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:click\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:click\n" + "\n");
         }
     }
 
@@ -148,54 +153,25 @@ public class WebOSTVMouseSocketConnection {
 
     public void button(String keyName) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:button\n");
-            sb.append("name:" + keyName + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:button\n" + "name:" + keyName + "\n" + "\n");
         }
     }
 
     public void move(double dx, double dy) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:move\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("down:0\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:0\n" + "\n");
         }
     }
 
     public void move(double dx, double dy, boolean drag) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:move\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("down:" + (drag ? 1 : 0) + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:" + (drag ? 1 : 0) + "\n" + "\n");
         }
     }
 
     public void scroll(double dx, double dy) {
         if (isConnected()) {
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("type:scroll\n");
-            sb.append("dx:" + dx + "\n");
-            sb.append("dy:" + dy + "\n");
-            sb.append("\n");
-
-            ws.send(sb.toString());
+            ws.send("type:scroll\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "\n");
         }
     }
 }

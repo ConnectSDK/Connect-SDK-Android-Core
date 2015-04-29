@@ -1,6 +1,4 @@
-package com.connectsdk;
-
-import com.connectsdk.core.Util;
+package com.connectsdk.core;
 
 import org.apache.tools.ant.filters.StringInputStream;
 import org.mockito.Mockito;
@@ -30,8 +28,7 @@ public final class TestUtil {
                 return mockConnection;
             }
         };
-        final URL url = new URL("http", "hostname", 80, "", handler);
-        return url;
+        return new URL("http", "hostname", 80, "", handler);
     }
 
     public static void runUtilBackgroundTasks() {
@@ -42,5 +39,6 @@ public final class TestUtil {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Util.createExecutor();
     }
 }

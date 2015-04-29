@@ -2,7 +2,7 @@ package com.connectsdk.discovery.provider;
 
 import android.content.Context;
 
-import com.connectsdk.TestUtil;
+import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.service.config.ServiceDescription;
@@ -50,7 +50,7 @@ public class SSDPDiscoveryProviderTest{
             return ssdpClient;
         }
 
-    };
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -83,7 +83,7 @@ public class SSDPDiscoveryProviderTest{
         dp.stop();
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(ssdpClient, Mockito.times(3)).send(argument.capture());
-        Assert.assertEquals(msg, new String(argument.getValue()));
+        Assert.assertEquals(msg, argument.getValue());
 
     }
 
