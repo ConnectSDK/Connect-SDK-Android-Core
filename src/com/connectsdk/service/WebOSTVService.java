@@ -1907,9 +1907,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                     JSONObject jsonObj = (JSONObject)response;
                     String socketPath = (String) jsonObj.get("socketPath");
                     mouseSocket = new WebOSTVMouseSocketConnection(socketPath, successHandler);
-
-                    if (successHandler != null)
-                        successHandler.onConnected();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
