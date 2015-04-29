@@ -2089,6 +2089,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     private void sendSpecialKey(final String key, final ResponseListener<Object> listener) {
         if (mouseSocket != null) {
             mouseSocket.button(key);
+            Util.postSuccess(listener, null);
         }
         else {
             connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
