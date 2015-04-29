@@ -1,6 +1,6 @@
 package com.connectsdk.discovery.provider.ssdp;
 
-import com.connectsdk.TestUtil;
+import com.connectsdk.core.TestUtil;
 
 import junit.framework.Assert;
 

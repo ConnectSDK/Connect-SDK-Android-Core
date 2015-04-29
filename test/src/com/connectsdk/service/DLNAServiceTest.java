@@ -1,8 +1,10 @@
 package com.connectsdk.service;
 
+import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.upnp.DLNAHttpServer;
 
 import junit.framework.Assert;
 
@@ -27,11 +29,15 @@ import java.util.Map;
 @Config(manifest=Config.NONE)
 public class DLNAServiceTest {
 
-    DLNAService service;
+    private DLNAService service;
+
+    private DLNAHttpServer dlnaServer;
 
     @Before
     public void setUp() {
-        service = new DLNAService(Mockito.mock(ServiceDescription.class), Mockito.mock(ServiceConfig.class), Robolectric.application);
+        dlnaServer = Mockito.mock(DLNAHttpServer.class);
+        service = new DLNAService(Mockito.mock(ServiceDescription.class),
+                Mockito.mock(ServiceConfig.class), Robolectric.application, dlnaServer);
     }
 
     @Test
@@ -251,6 +257,13 @@ public class DLNAServiceTest {
     }
 
     @Test
+    public void testStopDLNAServerOnDisconnect() {
+        service.disconnect();
+        TestUtil.runUtilBackgroundTasks();
+        Mockito.verify(dlnaServer).stop();
+    }
+
+    @Test
     public void testTimeToLong1WithMilliseconds() {
         Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00.777"));
     }
@@ -265,7 +278,7 @@ public class DLNAServiceTest {
 
         ServiceDescription description = Mockito.mock(ServiceDescription.class);
         Mockito.when(description.getServiceList()).thenReturn(services);
-        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application);
+        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application, null);
     }
 
 }
