@@ -83,7 +83,7 @@ public class SSDPDiscoveryProviderTest{
         dp.stop();
         ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
         verify(ssdpClient, Mockito.times(3)).send(argument.capture());
-        Assert.assertEquals(msg, new String(argument.getValue()));
+        Assert.assertEquals(msg, argument.getValue());
 
     }
 
