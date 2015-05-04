@@ -191,7 +191,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         discoveryListeners = new CopyOnWriteArrayList<DiscoveryManagerListener>();
 
         WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        multicastLock = wifiMgr.createMulticastLock("Connect SDK");
+        multicastLock = wifiMgr.createMulticastLock(Util.T);
         multicastLock.setReferenceCounted(true);
 
         capabilityFilters = new ArrayList<CapabilityFilter>();
@@ -217,7 +217,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                         break;
 
                     case DISCONNECTED:
-                        Log.w("Connect SDK", "Network connection is disconnected"); 
+                        Log.w(Util.T, "Network connection is disconnected");
 
                         for (DiscoveryProvider provider : discoveryProviders) {
                             provider.reset();
@@ -511,7 +511,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                         provider.start();
                     }
                 } else {
-                    Log.w("Connect SDK", "Wifi is not connected yet");
+                    Log.w(Util.T, "Wifi is not connected yet");
 
                     Util.runOnUI(new Runnable() {
 
@@ -701,7 +701,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     @Override
     public void onServiceAdded(DiscoveryProvider provider, ServiceDescription serviceDescription) {
-        Log.d("Connect SDK", "Service added: " + serviceDescription.getFriendlyName() + " (" + serviceDescription.getServiceID() + ")");
+        Log.d(Util.T, "Service added: " + serviceDescription.getFriendlyName() + " (" + serviceDescription.getServiceID() + ")");
 
         boolean deviceIsNew = !allDevices.containsKey(serviceDescription.getIpAddress());
         ConnectableDevice device = null;
@@ -751,12 +751,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     @Override
     public void onServiceRemoved(DiscoveryProvider provider, ServiceDescription serviceDescription) {
         if (serviceDescription == null) {
-            Log.w("Connect SDK", "onServiceRemoved: unknown service description");
+            Log.w(Util.T, "onServiceRemoved: unknown service description");
 
             return;
         }
 
-        Log.d("Connect SDK", "onServiceRemoved: friendlyName: " + serviceDescription.getFriendlyName());
+        Log.d(Util.T, "onServiceRemoved: friendlyName: " + serviceDescription.getFriendlyName());
 
         ConnectableDevice device = allDevices.get(serviceDescription.getIpAddress());
 
@@ -776,12 +776,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     @Override
     public void onServiceDiscoveryFailed(DiscoveryProvider provider, ServiceCommandError error) {
-        Log.w("Connect SDK", "DiscoveryProviderListener, Service Discovery Failed");
+        Log.w(Util.T, "DiscoveryProviderListener, Service Discovery Failed");
     } 
 
     @SuppressWarnings("unchecked")
     public void addServiceDescriptionToDevice(ServiceDescription desc, ConnectableDevice device) {
-        Log.d("Connect SDK", "Adding service " + desc.getServiceID() + " to device with address " + device.getIpAddress() + " and id " + device.getId());
+        Log.d(Util.T, "Adding service " + desc.getServiceID() + " to device with address " + device.getIpAddress() + " and id " + device.getId());
 
         Class<? extends DeviceService> deviceServiceClass = deviceClasses.get(desc.getServiceID());
 

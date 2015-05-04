@@ -488,7 +488,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     private void probeForAppSupport() {
         if (serviceDescription.getApplicationURL() == null) {
-            Log.d("Connect SDK", "unable to check for installed app; no service application url");
+            Log.d(Util.T, "unable to check for installed app; no service application url");
             return;
         }
 

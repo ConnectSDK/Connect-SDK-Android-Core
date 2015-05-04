@@ -888,9 +888,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             Date d2 = df.parse("00:00:00");
             time = d.getTime() - d2.getTime();
         } catch (ParseException e) {
-            Log.w("Connect SDK", "Invalid Time Format: " + strTime);
+            Log.w(Util.T, "Invalid Time Format: " + strTime);
         } catch (NullPointerException e) {
-            Log.w("Connect SDK", "Null time argument");
+            Log.w(Util.T, "Null time argument");
         }
 
         return time;

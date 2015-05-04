@@ -91,7 +91,6 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSoc
 public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
 
     public static final String ID = "webOS TV";
-    public static final String TAG = "Connect SDK";
 
     public interface WebOSTVServicePermission {
         public enum Open implements WebOSTVServicePermission {
@@ -325,7 +324,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void disconnect() {
-        Log.d(TAG, "attempting to disconnect to " + serviceDescription.getIpAddress());
+        Log.d(Util.T, "attempting to disconnect to " + serviceDescription.getIpAddress());
 
         Util.runOnUI(new Runnable() {
 
@@ -1850,7 +1849,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 payload.put("inputId", externalInputInfo.getId());
             }
             else {
-                Log.w(TAG, "ExternalInputInfo has no id");
+                Log.w(Util.T, "ExternalInputInfo has no id");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1914,7 +1913,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w(TAG, "Connect mouse error: " + error.getMessage());
+                Log.w(Util.T, "Connect mouse error: " + error.getMessage());
             }
         };
 
@@ -1942,7 +1941,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         if (mouseSocket != null)
             mouseSocket.move(dx, dy);
         else 
-            Log.w(TAG, "Mouse Socket is not ready yet");
+            Log.w(Util.T, "Mouse Socket is not ready yet");
     }
 
     @Override
@@ -1955,7 +1954,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         if (mouseSocket != null) 
             mouseSocket.scroll(dx, dy);
         else 
-            Log.w(TAG, "Mouse Socket is not ready yet");
+            Log.w(Util.T, "Mouse Socket is not ready yet");
     }
 
     @Override
@@ -2941,7 +2940,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             config.setClientKey(null);
 
             if (isConnected()) {
-                Log.w(TAG, "Permissions changed -- you will need to re-pair to the TV.");
+                Log.w(Util.T, "Permissions changed -- you will need to re-pair to the TV.");
                 disconnect();
             }
         }

@@ -614,7 +614,7 @@ public class ConnectableDevice implements DeviceServiceListener {
                 foundController = controller;
  
                 if (controllerPriority == null || controllerPriority == CapabilityPriorityLevel.NOT_SUPPORTED) {
-                    Log.w("Connect SDK", "We found a mathcing capability class, but no priority level for the class. Please check \"getPriorityLevel()\" in your class");
+                    Log.w(Util.T, "We found a mathcing capability class, but no priority level for the class. Please check \"getPriorityLevel()\" in your class");
                 }
                 foundControllerPriority = controllerPriority;
             }
