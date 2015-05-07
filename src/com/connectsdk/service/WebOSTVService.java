@@ -1937,11 +1937,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void move(double dx, double dy) {
-        if (mouseSocket != null)
+    public void move(final double dx, final double dy) {
+        if (mouseSocket != null) {
             mouseSocket.move(dx, dy);
-        else 
-            Log.w(Util.T, "Mouse Socket is not ready yet");
+        }
+        else {
+            connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                @Override
+                public void onConnected() {
+                    mouseSocket.move(dx, dy);
+                }
+            });
+        }
     }
 
     @Override
@@ -1950,11 +1957,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void scroll(double dx, double dy) {
-        if (mouseSocket != null) 
+    public void scroll(final double dx, final double dy) {
+        if (mouseSocket != null) {
             mouseSocket.scroll(dx, dy);
-        else 
-            Log.w(Util.T, "Mouse Socket is not ready yet");
+        }
+        else {
+            connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                @Override
+                public void onConnected() {
+                    mouseSocket.scroll(dx, dy);
+                }
+            });
+        }
     }
 
     @Override
