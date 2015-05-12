@@ -930,66 +930,26 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public void playMedia(final MediaInfo mediaInfo,
             final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
-        int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d",
-                requestIdNumber);
+        String mediaUrl = null;
+        String mimeType = null;
+        String title = null;
+        String desc = null;
+        String iconSrc = null;
 
-        JSONObject message = null;
-        try {
-            message = new JSONObject() {
-                {
-                    putOpt("contentType", namespaceKey + "mediaCommand");
-                    putOpt("mediaCommand", new JSONObject() {
-                        {
-                            putOpt("type", "playMedia");
-                            putOpt("mediaURL", mediaInfo.getUrl());
-                            putOpt("iconURL", mediaInfo.getImages().get(0)
-                                    .getUrl()  == null ? NULL : mediaInfo.getImages().get(0)
-                                            .getUrl()) ;
-                            putOpt("poster", mediaInfo.getImages().get(1).getUrl() == null ? NULL : mediaInfo.getImages().get(1).getUrl());
-                            putOpt("title", mediaInfo.getTitle());
-                            putOpt("description", mediaInfo.getDescription());
-                            putOpt("mimeType", mediaInfo.getMimeType());
-                            putOpt("shouldLoop", shouldLoop);
-                            putOpt("requestId", requestId);
-                        }
-                    });
-                }
-            };
-        } catch (JSONException e) {
-            e.printStackTrace();
-            // Should never hit this
+        if (mediaInfo != null) {
+            mediaUrl = mediaInfo.getUrl();
+            mimeType = mediaInfo.getMimeType();
+            title = mediaInfo.getTitle();
+            desc = mediaInfo.getDescription();
+
+            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
+                ImageInfo imageInfo = mediaInfo.getImages().get(0);
+                iconSrc = imageInfo.getUrl();
+            }
         }
 
-        ResponseListener<Object> response = new ResponseListener<Object>() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-
-            @Override
-            public void onSuccess(Object object) {
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
-                        getMediaControl()));
-            }
-        };
-
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
-                null, null, null, response);
-
-        mActiveCommands.put(requestId, command);
-
-        sendMessage(message, new ResponseListener<Object>() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-
-            @Override
-            public void onSuccess(Object object) {
-            }
-        });
+        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
     }
+
+
 }
