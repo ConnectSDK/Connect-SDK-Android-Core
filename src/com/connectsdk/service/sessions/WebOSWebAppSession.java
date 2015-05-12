@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
@@ -34,6 +35,7 @@ import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
@@ -904,13 +906,11 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onSuccess(Object object) {
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
-                        getMediaControl()));
+                Util.postSuccess(listener, new MediaLaunchObject(launchSession, getMediaControl(), getPlaylistControl()));
             }
         };
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
-                null, null, null, response);
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, response);
 
         mActiveCommands.put(requestId, command);
 
@@ -951,5 +951,169 @@ public class WebOSWebAppSession extends WebAppSession {
         playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
     }
 
+    /****************
+     * Playlist Control *
+     ****************/
+    public PlaylistControl getPlaylistControl() {
+        return this;
+    }
 
+    @Override
+    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
+        return CapabilityPriorityLevel.HIGH;
+    }
+
+    @Override
+    public void jumpToTrack(final long index, final ResponseListener<Object> listener) {
+        int requestIdNumber = getNextId();
+        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+
+        JSONObject message = null;
+        try {
+            message = new JSONObject() {
+                {
+                    put("contentType", namespaceKey + "mediaCommand");
+                    put("mediaCommand", new JSONObject() {
+                        {
+                            put("type", "jumpToTrack");
+                            put("requestId", requestId);
+                            put("index", (int)index);
+                        }
+                    });
+                }
+            };
+        } catch (JSONException e) {
+            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            return;
+        }
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+
+        mActiveCommands.put(requestId, command);
+
+        sendMessage(message, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+    }
+
+    @Override
+    public void previous(final ResponseListener<Object> listener) {
+        int requestIdNumber = getNextId();
+        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+
+        JSONObject message = null;
+        try {
+            message = new JSONObject() {
+                {
+                    put("contentType", namespaceKey + "mediaCommand");
+                    put("mediaCommand", new JSONObject() {
+                        {
+                            put("type", "playPrevious");
+                            put("requestId", requestId);
+                        }
+                    });
+                }
+            };
+        } catch (JSONException e) {
+            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            return;
+        }
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+
+        mActiveCommands.put(requestId, command);
+
+        sendMessage(message, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+    }
+
+    @Override
+    public void next(final ResponseListener<Object> listener) {
+        int requestIdNumber = getNextId();
+        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+
+        JSONObject message = null;
+        try {
+            message = new JSONObject() {
+                {
+                    put("contentType", namespaceKey + "mediaCommand");
+                    put("mediaCommand", new JSONObject() {
+                        {
+                            put("type", "playNext");
+                            put("requestId", requestId);
+                        }
+                    });
+                }
+            };
+        } catch (JSONException e) {
+            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            return;
+        }
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+
+        mActiveCommands.put(requestId, command);
+
+        sendMessage(message, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+    }
 }

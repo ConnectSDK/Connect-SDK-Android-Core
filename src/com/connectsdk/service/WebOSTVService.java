@@ -62,6 +62,7 @@ import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.MouseControl;
+import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.PowerControl;
 import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
@@ -88,7 +89,7 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
 @SuppressLint("DefaultLocale")
-public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
+public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher, PlaylistControl {
 
     public static final String ID = "webOS TV";
 
@@ -263,6 +264,9 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         }
         else if (clazz.equals(WebAppLauncher.class)) {
             return getWebAppLauncherCapabilityLevel();
+        }
+        else if (clazz.equals(PlaylistControl.class)) {
+            return getPlaylistControlCapabilityLevel();
         }
         return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
@@ -1458,7 +1462,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     public void getPosition(PositionListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
-
 
     /******************
     TV CONTROL
@@ -2852,6 +2855,29 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
+    /******************
+     PLAYLIST CONTROL
+     *****************/
+    @Override
+    public PlaylistControl getPlaylistControl() {
+        return this;
+    }
+
+    @Override
+    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
+        return CapabilityPriorityLevel.HIGH;
+    }
+
+    @Override
+    public void jumpToTrack(long index, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
     @Override
     public void sendCommand(ServiceCommand<?> command) {
         if (socket != null)
@@ -2916,12 +2942,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 capabilities.add(WebAppLauncher.Close);
             } else {
                 Collections.addAll(capabilities, WebAppLauncher.Capabilities);
-                for (String capability : MediaControl.Capabilities) {
-                    if (capability.equalsIgnoreCase(MediaControl.Previous) || capability.equalsIgnoreCase(MediaControl.Next))
-                        continue;
+                Collections.addAll(capabilities, MediaControl.Capabilities);
 
-                    capabilities.add(capability);
-                }
+                capabilities.add(PlaylistControl.JumpToTrack);
+                capabilities.add(PlaylistControl.Next);
+                capabilities.add(PlaylistControl.Previous);
             }
         }
 
