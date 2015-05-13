@@ -805,65 +805,26 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     @Override
-    public void displayImage(final MediaInfo mediaInfo,
-            final MediaPlayer.LaunchListener listener) {
-        int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+    public void displayImage(MediaInfo mediaInfo, MediaPlayer.LaunchListener listener) {
+        String mediaUrl = null;
+        String mimeType = null;
+        String title = null;
+        String desc = null;
+        String iconSrc = null;
 
-        JSONObject message = null;
-        try {
-            message = new JSONObject() {
-                {
-                    putOpt("contentType", namespaceKey + "mediaCommand");
-                    putOpt("mediaCommand", new JSONObject() {
-                        {
-                            putOpt("type", "displayImage");
-                            putOpt("mediaURL", mediaInfo.getUrl());
-                            putOpt("iconURL", mediaInfo.getImages().get(0)
-                                    .getUrl());
-                            putOpt("title", mediaInfo.getTitle());
-                            putOpt("description", mediaInfo.getDescription());
-                            putOpt("mimeType", mediaInfo.getMimeType());
-                            putOpt("requestId", requestId);
-                        }
-                    });
-                }
-            };
-        } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
+        if (mediaInfo != null) {
+            mediaUrl = mediaInfo.getUrl();
+            mimeType = mediaInfo.getMimeType();
+            title = mediaInfo.getTitle();
+            desc = mediaInfo.getDescription();
+
+            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
+                ImageInfo imageInfo = mediaInfo.getImages().get(0);
+                iconSrc = imageInfo.getUrl();
+            }
         }
 
-        ResponseListener<Object> response = new ResponseListener<Object>() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-
-            @Override
-            public void onSuccess(Object object) {
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
-                        getMediaControl()));
-            }
-        };
-
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
-                socket, null, null, response);
-
-        mActiveCommands.put(requestId, command);
-
-        sendP2PMessage(message, new ResponseListener<Object>() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-
-            @Override
-            public void onSuccess(Object object) {
-            }
-        });
+        displayImage(mediaUrl, mimeType, title, desc, iconSrc, listener);
     }
 
     @Override
