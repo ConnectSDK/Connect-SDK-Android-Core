@@ -131,40 +131,6 @@ public class DIALService extends DeviceService implements Launcher {
         launchAppWithInfo(appInfo, listener);
     }
 
-//    private void launchApplication(final String appName, String contentId, final AppLaunchListener listener) {
-//        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
-//
-//            @Override
-//            public void onSuccess(Object response) {
-//                LaunchSession launchSession = new LaunchSession();
-//                launchSession.setService(DIALService.this);
-//                launchSession.setAppName(appName);
-//
-//                Util.postSuccess(listener, launchSession);
-//            }
-//
-//            @Override
-//            public void onError(ServiceCommandError error) {
-//                Util.postError(listener, error);
-//            }
-//        };
-//
-//        String uri = requestURL(appName);
-//
-//        String payload = null;
-//        if (contentId != null) {
-//            StringBuilder sb = new StringBuilder();
-//            sb.append("v");
-//            sb.append("=");
-//            sb.append(contentId);
-//
-//            payload = sb.toString();
-//        }
-//
-//        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, responseListener);
-//        request.send();
-//    }
-
     @Override
     public void launchAppWithInfo(AppInfo appInfo, AppLaunchListener listener) {
         launchAppWithInfo(appInfo, null, listener);
@@ -206,14 +172,18 @@ public class DIALService extends DeviceService implements Launcher {
             public void onSuccess(AppState state) {
                 String uri = requestURL(launchSession.getAppName());
 
-                if (launchSession.getSessionId().contains("http://") || launchSession.getSessionId().contains("https://"))
+                if (launchSession.getSessionId().contains("http://")
+                        || launchSession.getSessionId().contains("https://"))
                     uri = launchSession.getSessionId();
-                else if (launchSession.getSessionId().endsWith("run") || launchSession.getSessionId().endsWith("run/"))
+                else if (launchSession.getSessionId().endsWith("run")
+                        || launchSession.getSessionId().endsWith("run/"))
                     uri = requestURL(launchSession.getAppId() + "/run");
                 else
                     uri = requestURL(launchSession.getSessionId());
 
-                ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(launchSession.getService(), uri, null, listener);
+                ServiceCommand<ResponseListener<Object>> command =
+                        new ServiceCommand<ResponseListener<Object>>(launchSession.getService(),
+                                uri, null, listener);
                 command.setHttpMethod(ServiceCommand.TYPE_DEL);
                 command.send();
             }
@@ -227,7 +197,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     @Override
     public void launchYouTube(String contentId, AppLaunchListener listener) {
-        launchYouTube(contentId, (float)0.0, listener);
+        launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
@@ -430,6 +400,8 @@ public class DIALService extends DeviceService implements Launcher {
                         connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; charset=\"utf-8\"");
                         connection.setMethod(HttpConnection.Method.POST);
                         connection.setPayload(payload.toString());
+                    } else if (command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_DEL)) {
+                        connection.setMethod(HttpConnection.Method.DELETE);
                     }
                     connection.execute();
                     int code = connection.getResponseCode();
