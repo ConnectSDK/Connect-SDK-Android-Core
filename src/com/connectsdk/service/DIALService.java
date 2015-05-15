@@ -395,7 +395,7 @@ public class DIALService extends DeviceService implements Launcher {
                 Object payload = command.getPayload();
 
                 try {
-                    HttpConnection connection = HttpConnection.newInstance(URI.create(mCommand.getTarget()));
+                    HttpConnection connection = createHttpConnection(mCommand.getTarget());
                     if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
                         connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; charset=\"utf-8\"");
                         connection.setMethod(HttpConnection.Method.POST);
@@ -417,6 +417,10 @@ public class DIALService extends DeviceService implements Launcher {
                 }
             }
         });
+    }
+
+    HttpConnection createHttpConnection(String target) throws IOException {
+        return HttpConnection.newInstance(URI.create(target));
     }
 
     private String requestURL(String appName) {
