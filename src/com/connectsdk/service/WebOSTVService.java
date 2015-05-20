@@ -81,6 +81,7 @@ import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.sessions.WebAppSession;
 import com.connectsdk.service.sessions.WebAppSession.WebAppPinStatusListener;
+import com.connectsdk.service.sessions.WebAppSessionListener;
 import com.connectsdk.service.sessions.WebOSWebAppSession;
 import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
@@ -1226,6 +1227,25 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         } else {
             final String webAppId = "MediaPlayer";
 
+            final WebAppSessionListener webAppListener = new WebAppSessionListener() {
+                @Override
+                public void onReceiveMessage(WebAppSession webAppSession, Object message) {
+                    if (message.getClass() == JSONObject.class) {
+                        JSONObject jsonObject = (JSONObject)message;
+
+                        if (jsonObject.has("error")) {
+                            String error = jsonObject.optString("error");
+                            Util.postError(listener, new ServiceCommandError(0, error, null));
+                        }
+                    }
+                }
+
+                @Override
+                public void onWebAppSessionDisconnect(WebAppSession webAppSession) {
+
+                }
+            };
+
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1235,6 +1255,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 @Override
                 public void onSuccess(WebAppSession webAppSession) {
+                    webAppSession.setWebAppSessionListener(webAppListener);
                     webAppSession.displayImage(url, mimeType, title, description, iconSrc, listener);
                 }
             };
@@ -1248,6 +1269,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 @Override
                 public void onSuccess(WebAppSession webAppSession) {
+                    webAppSession.setWebAppSessionListener(webAppListener);
                     webAppSession.displayImage(url, mimeType, title, description, iconSrc, listener);
                 }
             });
@@ -1312,6 +1334,25 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         } else {
             final String webAppId = "MediaPlayer";
 
+            final WebAppSessionListener webAppListener = new WebAppSessionListener() {
+                @Override
+                public void onReceiveMessage(WebAppSession webAppSession, Object message) {
+                    if (message.getClass() == JSONObject.class) {
+                        JSONObject jsonObject = (JSONObject)message;
+
+                        if (jsonObject.has("error")) {
+                            String error = jsonObject.optString("error");
+                            Util.postError(listener, new ServiceCommandError(0, error, null));
+                        }
+                    }
+                }
+
+                @Override
+                public void onWebAppSessionDisconnect(WebAppSession webAppSession) {
+
+                }
+            };
+
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1321,6 +1362,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 @Override
                 public void onSuccess(WebAppSession webAppSession) {
+                    webAppSession.setWebAppSessionListener(webAppListener);
                     webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
                 }
             };
@@ -1334,6 +1376,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 @Override
                 public void onSuccess(WebAppSession webAppSession) {
+                    webAppSession.setWebAppSessionListener(webAppListener);
                     webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
                 }
             });

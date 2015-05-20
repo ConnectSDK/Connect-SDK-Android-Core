@@ -173,6 +173,11 @@ public class WebOSWebAppSession extends WebAppSession {
                         JSONObject messagePayload = messageJSON
                                 .optJSONObject(payloadKey);
 
+                        if (payloadKey.equalsIgnoreCase("media-error")) {
+                            handleMessage(messageJSON);
+                            return false;
+                        }
+
                         if (messagePayload == null)
                             return false;
 
