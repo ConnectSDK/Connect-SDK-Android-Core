@@ -137,7 +137,8 @@ public class WebOSWebAppSession extends WebAppSession {
         mFullAppId = fullAppId;
     }
 
-    private WebOSTVServiceSocketClientListener mSocketListener = new WebOSTVServiceSocketClientListener() {
+    private WebOSTVServiceSocketClientListener mSocketListener =
+            new WebOSTVServiceSocketClientListener() {
 
         @Override
         public void onRegistrationFailed(ServiceCommandError error) {
@@ -195,8 +196,10 @@ public class WebOSWebAppSession extends WebAppSession {
             appToAppSubscription = null;
 
             if (mConnectionListener != null) {
-                if (error == null)
-                    error = new ServiceCommandError(0, "Unknown error connecting to web socket", null);
+                if (error == null) {
+                    error = new ServiceCommandError(0, "Unknown error connecting to web socket",
+                            null);
+                }
 
                 mConnectionListener.onError(error);
             }
@@ -221,8 +224,10 @@ public class WebOSWebAppSession extends WebAppSession {
                 if (error != null)
                     mConnectionListener.onError(error);
                 else {
-                    if (getWebAppSessionListener() != null)
-                        getWebAppSessionListener().onWebAppSessionDisconnect(WebOSWebAppSession.this);
+                    if (getWebAppSessionListener() != null) {
+                        getWebAppSessionListener()
+                                .onWebAppSessionDisconnect(WebOSWebAppSession.this);
+                    }
                 }
             }
 
@@ -322,8 +327,10 @@ public class WebOSWebAppSession extends WebAppSession {
                     disconnectFromWebApp();
 
                 if (connectionListener != null) {
-                    if (error == null)
-                        error = new ServiceCommandError(0, "Unknown error connecting to web app", null);
+                    if (error == null) {
+                        error = new ServiceCommandError(0, "Unknown error connecting to web app",
+                                null);
+                    }
 
                     connectionListener.onError(error);
                 }
@@ -360,7 +367,8 @@ public class WebOSWebAppSession extends WebAppSession {
             else
                 socket.connect();
         } else {
-            socket = new WebOSTVServiceSocketClient(service, WebOSTVServiceSocketClient.getURI(service));
+            socket = new WebOSTVServiceSocketClient(service, WebOSTVServiceSocketClient
+                    .getURI(service));
             socket.setListener(mSocketListener);
             socket.connect();
         }
@@ -386,7 +394,8 @@ public class WebOSWebAppSession extends WebAppSession {
     public void sendMessage(final String message,
             final ResponseListener<Object> listener) {
         if (message == null || message.length() == 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message", null));
+            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message",
+                    null));
             return;
         }
 
@@ -397,7 +406,8 @@ public class WebOSWebAppSession extends WebAppSession {
     public void sendMessage(final JSONObject message,
             final ResponseListener<Object> listener) {
         if (message == null || message.length() == 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message", null));
+            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message",
+                    null));
             return;
         }
 
@@ -478,14 +488,16 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(
             String webAppId, WebAppPinStatusListener listener) {
-        mWebAppPinnedSubscription = service.getWebAppLauncher().subscribeIsWebAppPinned(webAppId, listener);
+        mWebAppPinnedSubscription = service.getWebAppLauncher().subscribeIsWebAppPinned(webAppId,
+                listener);
         return mWebAppPinnedSubscription;
     }
 
     @Override
     public void seek(final long position, ResponseListener<Object> listener) {
         if (position < 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Must pass a valid positive value", null));
+            Util.postError(listener, new ServiceCommandError(0, "Must pass a valid positive value",
+                    null));
             return;
         }
 
@@ -605,7 +617,8 @@ public class WebOSWebAppSession extends WebAppSession {
                             long position = ((JSONObject) response).getLong("duration");
                             Util.postSuccess(listener, position * 1000);
                         } catch (JSONException e) {
-                            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+                            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error",
+                                    null));
                         }
                     }
 
@@ -867,11 +880,13 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onSuccess(Object object) {
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession, getMediaControl(), getPlaylistControl()));
+                Util.postSuccess(listener, new MediaLaunchObject(launchSession, getMediaControl(),
+                        getPlaylistControl()));
             }
         };
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, response);
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null,
+                response);
 
         mActiveCommands.put(requestId, command);
 
@@ -948,32 +963,10 @@ public class WebOSWebAppSession extends WebAppSession {
             return;
         }
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-                Util.postSuccess(listener, response);
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
-
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
         mActiveCommands.put(requestId, command);
-
-        sendMessage(message, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
+        sendMessage(message, listener);
     }
 
     @Override
@@ -999,32 +992,10 @@ public class WebOSWebAppSession extends WebAppSession {
             return;
         }
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-                Util.postSuccess(listener, response);
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
-
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
         mActiveCommands.put(requestId, command);
-
-        sendMessage(message, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
+        sendMessage(message, listener);
     }
 
     @Override
@@ -1050,31 +1021,9 @@ public class WebOSWebAppSession extends WebAppSession {
             return;
         }
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-                Util.postSuccess(listener, response);
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
-
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
         mActiveCommands.put(requestId, command);
-
-        sendMessage(message, new ResponseListener<Object>() {
-
-            @Override
-            public void onSuccess(Object response) {
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
-            }
-        });
+        sendMessage(message, listener);
     }
 }
