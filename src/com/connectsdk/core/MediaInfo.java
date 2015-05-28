@@ -185,12 +185,12 @@ public class MediaInfo {
      */
 
     public void addImages(ImageInfo... images) {
-
+        if (images == null) {
+            return;
+        }
         List<ImageInfo> list = new ArrayList<ImageInfo>();
         Collections.addAll(list, images);
-
         this.setImages(list);
-
     }
 
 }
