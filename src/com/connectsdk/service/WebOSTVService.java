@@ -2947,6 +2947,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 capabilities.add(PlaylistControl.JumpToTrack);
                 capabilities.add(PlaylistControl.Next);
                 capabilities.add(PlaylistControl.Previous);
+
+                capabilities.add(MediaPlayer.Loop);
             }
         }
 

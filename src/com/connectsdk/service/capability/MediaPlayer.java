@@ -38,6 +38,7 @@ public interface MediaPlayer extends CapabilityMethods {
     public final static String Play_Audio = "MediaPlayer.Play.Audio";
     public final static String Play_Playlist = "MediaPlayer.Play.Playlist";
     public final static String Close = "MediaPlayer.Close";
+    public final static String Loop = "MediaPlayer.Loop";
 
     public final static String MetaData_Title = "MediaPlayer.MetaData.Title";
     public final static String MetaData_Description = "MediaPlayer.MetaData.Description";
