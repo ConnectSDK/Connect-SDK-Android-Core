@@ -187,6 +187,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     String makeControlURL(String base, String path) {
+        if (base == null || path == null) {
+            return null;
+        }
         if (path.startsWith("/")) {
             return base + path.substring(1);
         }
