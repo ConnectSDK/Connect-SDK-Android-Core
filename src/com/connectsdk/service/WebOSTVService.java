@@ -92,6 +92,7 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSoc
 public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher, PlaylistControl {
 
     public static final String ID = "webOS TV";
+    private static final String MEDIA_PLAYER_ID = "MediaPlayer";
 
     public interface WebOSTVServicePermission {
         public enum Open implements WebOSTVServicePermission {
@@ -1228,8 +1229,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             if (params != null)
                 this.displayMedia(params, listener);
         } else {
-            final String webAppId = "MediaPlayer";
-
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1243,11 +1242,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 }
             };
 
-            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(webAppId, webAppLaunchListener);
+                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
                 }
 
                 @Override
@@ -1314,8 +1313,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             if (params != null)
                 this.displayMedia(params, listener);
         } else {
-            final String webAppId = "MediaPlayer";
-
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1329,11 +1326,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 }
             };
 
-            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(webAppId, webAppLaunchListener);
+                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
                 }
 
                 @Override
