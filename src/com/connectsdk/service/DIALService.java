@@ -412,7 +412,7 @@ public class DIALService extends DeviceService implements Launcher {
                     } else {
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Util.postError(command.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
                 }
             }
