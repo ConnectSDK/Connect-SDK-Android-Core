@@ -203,7 +203,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public void connect() {
         if (state != State.INITIAL) {
-            Log.w("Connect SDK", "already connecting; not trying to connect again: " + state);
+            Log.w(Util.T, "already connecting; not trying to connect again: " + state);
             return; // don't try to connect again while connected
         }
 
@@ -598,7 +598,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     @Override
     public void launchBrowser(String url, final Launcher.AppLaunchListener listener) {
         if (!(url == null || url.length() == 0)) 
-            Log.w("Connect SDK", "Netcast TV does not support deeplink for Browser");
+            Log.w(Util.T, "Netcast TV does not support deeplink for Browser");
 
         final String appName = "Internet";
 
@@ -1744,7 +1744,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onSuccess(Object response) {
-                Log.d("Connect SDK", "Netcast TV's mouse has been connected");
+                Log.d(Util.T, "Netcast TV's mouse has been connected");
 
                 mMouseDistance = new PointF(0, 0);
                 mMouseIsMoving = false;
@@ -1752,7 +1752,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's mouse connection has been failed");
+                Log.w(Util.T, "Netcast TV's mouse connection has been failed");
             }
         };
 
@@ -1774,7 +1774,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's mouse click has been failed");
+                Log.w(Util.T, "Netcast TV's mouse click has been failed");
             }
         };
 
@@ -1828,7 +1828,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's mouse move has failed");
+                Log.w(Util.T, "Netcast TV's mouse move has failed");
 
                 mMouseIsMoving = false;
             }
@@ -1856,7 +1856,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's mouse scroll has been failed");
+                Log.w(Util.T, "Netcast TV's mouse scroll has been failed");
             }
         };
 
@@ -1908,7 +1908,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void sendText(final String input) {
-        Log.d("Connect SDK", "Add to Queue: " + input);
+        Log.d(Util.T, "Add to Queue: " + input);
         keyboardString.append(input);
         handleKeyboardInput("Editing", keyboardString.toString());
     }
@@ -1925,7 +1925,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's enter key has been failed");
+                Log.w(Util.T, "Netcast TV's enter key has been failed");
             }
         };
         handleKeyboardInput("EditEnd", keyboardString.toString());
@@ -1965,7 +1965,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's keyboard input has been failed");
+                Log.w(Util.T, "Netcast TV's keyboard input has been failed");
             }
         };
 
@@ -2056,7 +2056,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w("Connect SDK", "Netcast TV's power off has been failed");
+                Log.w(Util.T, "Netcast TV's power off has been failed");
             }
         };
 

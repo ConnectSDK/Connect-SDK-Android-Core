@@ -66,12 +66,13 @@ public interface MediaControl extends CapabilityMethods {
     };
 
     public enum PlayStateStatus {
-        Unknown, 
-        Idle, 
-        Playing, 
-        Paused, 
-        Buffering, 
-        Finished;
+        Unknown,
+        Idle,
+        Playing,
+        Paused,
+        Buffering,
+        Finished,
+        Error;
 
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
@@ -120,7 +121,7 @@ public interface MediaControl extends CapabilityMethods {
 
             }
             else if (transportState.equals("NO_MEDIA_PRESENT")) {
-
+                status = PlayStateStatus.Error;
             }
             return status;
         }

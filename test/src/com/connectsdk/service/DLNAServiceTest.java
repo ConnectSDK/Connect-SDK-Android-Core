@@ -268,6 +268,21 @@ public class DLNAServiceTest {
         Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00.777"));
     }
 
+    @Test
+    public void testMakeControlURL() {
+        Assert.assertEquals("base/path", service.makeControlURL("base/", "path"));
+    }
+
+    @Test
+    public void testMakeControlURLWithNullBase() {
+        Assert.assertNull(service.makeControlURL(null, "path"));
+    }
+
+    @Test
+    public void testMakeControlURLWithNullPath() {
+        Assert.assertNull(service.makeControlURL("base", null));
+    }
+
     private DLNAService makeServiceWithControlURL(String base, String controlURL) {
         List<Service> services = new ArrayList<Service>();
         Service service = new Service();

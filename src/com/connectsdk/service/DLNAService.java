@@ -187,6 +187,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     String makeControlURL(String base, String path) {
+        if (base == null || path == null) {
+            return null;
+        }
         if (path.startsWith("/")) {
             return base + path.substring(1);
         }
@@ -556,8 +559,8 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if ((!strDuration.equals("0:00:00")) || (info.getMimeType().contains("image"))) {
                     long milliTimes = convertStrTimeFormatToLong(strDuration);
 
-                    Util.postSuccess(listener, milliTimes);}
-                else new Timer().schedule(new TimerTask() {
+                    Util.postSuccess(listener, milliTimes);
+                } else new Timer().schedule(new TimerTask() {
 
                     @Override
                     public void run() {
@@ -738,7 +741,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
 
                 String method = command.getTarget();
-                String payload = (String)command.getPayload();
+                String payload = (String) command.getPayload();
 
                 String targetURL = null;
                 String serviceURN = null;
@@ -751,12 +754,10 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 if (payload.contains(AV_TRANSPORT_URN)) {
                     targetURL = avTransportURL;
                     serviceURN = AV_TRANSPORT_URN;
-                }
-                else if (payload.contains(RENDERING_CONTROL_URN)) {
+                } else if (payload.contains(RENDERING_CONTROL_URN)) {
                     targetURL = renderingControlURL;
                     serviceURN = RENDERING_CONTROL_URN;
-                }
-                else if (payload.contains(CONNECTION_MANAGER_URN)) {
+                } else if (payload.contains(CONNECTION_MANAGER_URN)) {
                     targetURL = connectionControlURL;
                     serviceURN = CONNECTION_MANAGER_URN;
                 }
@@ -772,7 +773,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 }
 
                 try {
-                    HttpConnection connection = HttpConnection.newInstance(URI.create(targetURL));
+                    HttpConnection connection = createHttpConnection(targetURL);
                     connection.setHeader("Content-Type", "text/xml; charset=utf-8");
                     connection.setHeader("SOAPAction", String.format("\"%s#%s\"", serviceURN, method));
                     connection.setMethod(HttpConnection.Method.POST);
@@ -789,6 +790,10 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                 }
             }
         });
+    }
+
+    HttpConnection createHttpConnection(String targetURL) throws IOException {
+        return HttpConnection.newInstance(URI.create(targetURL));
     }
 
     @Override
@@ -888,9 +893,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             Date d2 = df.parse("00:00:00");
             time = d.getTime() - d2.getTime();
         } catch (ParseException e) {
-            Log.w("Connect SDK", "Invalid Time Format: " + strTime);
+            Log.w(Util.T, "Invalid Time Format: " + strTime);
         } catch (NullPointerException e) {
-            Log.w("Connect SDK", "Null time argument");
+            Log.w(Util.T, "Null time argument");
         }
 
         return time;
