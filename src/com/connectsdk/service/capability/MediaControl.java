@@ -71,8 +71,7 @@ public interface MediaControl extends CapabilityMethods {
         Playing,
         Paused,
         Buffering,
-        Finished,
-        Error;
+        Finished;
 
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
@@ -121,7 +120,7 @@ public interface MediaControl extends CapabilityMethods {
 
             }
             else if (transportState.equals("NO_MEDIA_PRESENT")) {
-                status = PlayStateStatus.Error;
+
             }
             return status;
         }

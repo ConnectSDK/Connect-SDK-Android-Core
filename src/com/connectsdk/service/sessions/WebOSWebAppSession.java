@@ -94,13 +94,14 @@ public class WebOSWebAppSession extends WebAppSession {
         if (type.length() == 0) {
             String errorMsg = payload.optString("error");
 
-            if (errorMsg.length() == 0)
+            if (errorMsg.length() == 0) {
                 return;
-            else {
+            } else {
                 Log.w(Util.T, "Play State Error: " + errorMsg);
-
-                for (PlayStateListener listener : mPlayStateSubscription.getListeners()) {
-                    Util.postSuccess(listener, PlayStateStatus.Error);
+                if (mPlayStateSubscription != null) {
+                    for (PlayStateListener listener : mPlayStateSubscription.getListeners()) {
+                        Util.postError(listener, new ServiceCommandError(errorMsg));
+                    }
                 }
             }
         }
