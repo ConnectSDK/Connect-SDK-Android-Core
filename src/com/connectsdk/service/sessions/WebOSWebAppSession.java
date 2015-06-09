@@ -20,6 +20,8 @@
 
 package com.connectsdk.service.sessions;
 
+import android.util.Log;
+
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,8 +91,20 @@ public class WebOSWebAppSession extends WebAppSession {
 
     public void handleMediaEvent(JSONObject payload) {
         String type = payload.optString("type");
-        if (type.length() == 0)
-            return;
+        if (type.length() == 0) {
+            String errorMsg = payload.optString("error");
+
+            if (errorMsg.length() == 0) {
+                return;
+            } else {
+                Log.w(Util.T, "Play State Error: " + errorMsg);
+                if (mPlayStateSubscription != null) {
+                    for (PlayStateListener listener : mPlayStateSubscription.getListeners()) {
+                        Util.postError(listener, new ServiceCommandError(errorMsg));
+                    }
+                }
+            }
+        }
 
         if (type.equals("playState")) {
             if (mPlayStateSubscription == null)
@@ -169,6 +183,11 @@ public class WebOSWebAppSession extends WebAppSession {
                             return false;
 
                         JSONObject messagePayload = messageJSON.optJSONObject(payloadKey);
+
+                        if (payloadKey.equalsIgnoreCase("media-error")) {
+                            handleMediaEvent(messageJSON);
+                            return false;
+                        }
 
                         if (messagePayload == null)
                             return false;

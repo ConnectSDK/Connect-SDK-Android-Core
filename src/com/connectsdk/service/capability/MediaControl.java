@@ -66,11 +66,11 @@ public interface MediaControl extends CapabilityMethods {
     };
 
     public enum PlayStateStatus {
-        Unknown, 
-        Idle, 
-        Playing, 
-        Paused, 
-        Buffering, 
+        Unknown,
+        Idle,
+        Playing,
+        Paused,
+        Buffering,
         Finished;
 
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
