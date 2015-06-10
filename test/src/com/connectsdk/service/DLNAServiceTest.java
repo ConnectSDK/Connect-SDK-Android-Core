@@ -264,8 +264,19 @@ public class DLNAServiceTest {
     }
 
     @Test
-    public void testTimeToLong1WithMilliseconds() {
+    public void testTimeToLongWithMilliseconds() {
         Assert.assertEquals(43200000L, service.convertStrTimeFormatToLong("12:00:00.777"));
+    }
+
+    @Test
+    public void testTimeToLongWithInvalidArguments() {
+        try {
+            Assert.assertEquals(0L, service.convertStrTimeFormatToLong("01.210"));
+            Assert.assertEquals(0L, service.convertStrTimeFormatToLong("00:01.210"));
+            Assert.assertEquals(0L, service.convertStrTimeFormatToLong("Not a number"));
+        } catch (Exception e) {
+            Assert.fail("convertStrTimeFormatToLong must not throw an exception");
+        }
     }
 
     @Test
