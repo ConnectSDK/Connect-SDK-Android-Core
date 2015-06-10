@@ -759,7 +759,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         JSONObject params = new JSONObject();
 
         try {
-            params.put("appId", launchSession.getAppId());
+            params.put("id", launchSession.getAppId());
             params.put("sessionId", launchSession.getSessionId());
         } catch (JSONException e) {
             e.printStackTrace();
