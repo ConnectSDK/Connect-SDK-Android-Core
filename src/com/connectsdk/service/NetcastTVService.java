@@ -1056,7 +1056,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             public void onSuccess(List<ChannelInfo> channelList) {
                 String requestURL = getUDAPRequestURL(UDAP_PATH_COMMAND);
 
-                Map <String,String> params = new HashMap<String,String>();
+                Map<String, String> params = new HashMap<String, String>();
 
                 for (int i = 0; i < channelList.size(); i++) {
                     ChannelInfo ch = channelList.get(i);
@@ -1072,7 +1072,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                         String sourceIndex = (String) rawData.get("sourceIndex");
                         int physicalNum = (Integer) rawData.get("physicalNumber");
 
-                        if (Integer.valueOf(major) == majorNumber 
+                        if (Integer.valueOf(major) == majorNumber
                                 && Integer.valueOf(minor) == minorNumber) {
                             params.put("name", "HandleChannelChange");
                             params.put("major", major);
@@ -2282,8 +2282,13 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     public String decToHex(String dec) {
-        if (dec != null && dec.length() > 0) 
-            return decToHex(Long.parseLong(dec));
+        if (dec != null && dec.length() > 0) {
+            try {
+                return decToHex(Long.parseLong(dec.trim()));
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            }
+        }
         return null;
     }
 
