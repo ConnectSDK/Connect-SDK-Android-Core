@@ -2285,53 +2285,22 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         }
 
         final WebOSWebAppSession webAppSession = mWebAppSessions.get(launchSession.getAppId());
-
-        if (webAppSession != null && webAppSession.isConnected()) {
-            JSONObject serviceCommand = new JSONObject();
-            JSONObject closeCommand = new JSONObject();
-
-            try {
-                serviceCommand.put("type", "close");
-
-                closeCommand.put("contentType", "connectsdk.serviceCommand");
-                closeCommand.put("serviceCommand", serviceCommand);
-            } catch (JSONException ex) {
-                ex.printStackTrace();
-            }
-
-            webAppSession.sendMessage(closeCommand, new ResponseListener<Object>() {
-
-                @Override
-                public void onError(ServiceCommandError error) {
-                    webAppSession.disconnectFromWebApp();
-
-                    Util.postError(listener, error);
-                }
-
-                @Override
-                public void onSuccess(Object object) {
-                    webAppSession.disconnectFromWebApp();
-
-                    Util.postSuccess(listener, object);
-                }
-            });
-        } else {
-            if (webAppSession != null)
-                webAppSession.disconnectFromWebApp();
-
-            String uri = "ssap://webapp/closeWebApp";
-            JSONObject payload = new JSONObject();
-
-            try {
-                if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
-                if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
-            request.send();
+        if (webAppSession != null) {
+            webAppSession.disconnectFromWebApp();
         }
+
+        String uri = "ssap://webapp/closeWebApp";
+        JSONObject payload = new JSONObject();
+
+        try {
+            if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
+            if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+        request.send();
     }
 
     public void connectToWebApp(final WebOSWebAppSession webAppSession, final boolean joinOnly, final ResponseListener<Object> connectionListener) {
