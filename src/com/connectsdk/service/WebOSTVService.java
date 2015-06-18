@@ -1798,12 +1798,23 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void launchInputPicker(final AppLaunchListener listener) {
-        AppInfo appInfo = new AppInfo() {{
+        final AppInfo appInfo = new AppInfo() {{
             setId("com.webos.app.inputpicker");
             setName("InputPicker");
         }};
 
-        launchAppWithInfo(appInfo, null, listener);
+        launchAppWithInfo(appInfo, null, new AppLaunchListener() {
+            @Override
+            public void onSuccess(LaunchSession object) {
+                listener.onSuccess(object);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                appInfo.setId("com.webos.app.inputmgr");
+                launchAppWithInfo(appInfo, null, listener);
+            }
+        });
     }
 
     @Override
