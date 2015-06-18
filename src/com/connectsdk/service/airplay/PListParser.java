@@ -20,7 +20,6 @@
 
 package com.connectsdk.service.airplay;
 
-import android.util.Log;
 import android.util.Xml;
 
 import org.json.JSONArray;
@@ -92,7 +91,6 @@ public class PListParser {
 
             if (name.equals("key")) {
                 key = readKey(parser);
-                Log.d("", "plist " + key);
             }
             else if (key != null) {
                 if (name.equals("data")) {

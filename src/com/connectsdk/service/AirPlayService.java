@@ -40,19 +40,27 @@ import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
+import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
 import org.apache.http.protocol.HTTP;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -65,6 +73,7 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
     public static final String X_APPLE_SESSION_ID = "X-Apple-Session-ID";
@@ -72,6 +81,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     private static final long KEEP_ALIVE_PERIOD = 15000;
 
     private final static String CHARSET = "UTF-8";
+    private final static String PLAY_STATE = "playState";
 
     private String mSessionId;
 
@@ -80,6 +90,8 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     ServiceCommand pendingCommand = null;
     String authenticate = null;
     String password = null;
+
+    CopyOnWriteArrayList<URLServiceSubscription<?>> subscriptions;
 
     @Override
     public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
@@ -101,6 +113,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
             ServiceConfig serviceConfig) throws IOException {
         super(serviceDescription, serviceConfig);
         pairingType = PairingType.PIN_CODE;
+        subscriptions = new CopyOnWriteArrayList<URLServiceSubscription<?>>();
     }
 
     public static DiscoveryFilter discoveryFilter() {
@@ -321,8 +334,15 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     @Override
     public ServiceSubscription<PlayStateListener> subscribePlayState(
             PlayStateListener listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-        return null;
+        URLServiceSubscription<PlayStateListener> request = new URLServiceSubscription<MediaControl.PlayStateListener>(this, PLAY_STATE, null, null);
+        request.addListener(listener);
+        subscriptions.add(request);
+        return request;
+    }
+
+    @Override
+    public void unsubscribe(URLServiceSubscription<?> subscription) {
+        subscriptions.remove(subscription);
     }
 
     @Override
@@ -659,6 +679,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         capabilities.add(Seek);
         capabilities.add(Rewind);
         capabilities.add(FastForward);
+        capabilities.add(PlayState_Subscribe);
 
         setCapabilities(capabilities);
     }
@@ -700,6 +721,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
             public void onSuccess(Object object) {
                 connected = true;
                 reportConnected(true);
+                eventSubscribe();
             }
 
             @Override
@@ -776,5 +798,99 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
         timer = null;
     }
 
+    private void eventSubscribe() {
+        Util.runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Socket socket = new Socket(serviceDescription.getIpAddress(), serviceDescription.getPort());
 
+                    String path = "/reverse";
+
+                    BufferedWriter wr = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF8"));
+                    wr.write("POST " + path + " HTTP/1.1\r\n");
+                    wr.write("Accept: */*\r\n");
+                    wr.write("User-Agent: My Test\r\n");
+                    wr.write("Upgrade: PTTH/1.0\r\n");
+                    wr.write("Connection: Upgrade\r\n");
+                    wr.write("X-Apple-Purpose: event\r\n");
+                    wr.write("Content-Length: 0\r\n");
+                    wr.write("\r\n");
+
+                    wr.flush();
+
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    String line;
+
+                    StringBuilder sb = new StringBuilder();
+                    while ((line = rd.readLine()) != null) {
+                        sb.append(line);
+
+                        if (!connected) {
+                            Log.w(Util.T, "Airplay Event Server is disconnecting");
+                            break;
+                        }
+                        else {
+                            if (line.equals("")) {
+                                sb = new StringBuilder();
+                            }
+                            else if (line.equals("</plist>")) {
+                                JSONObject event;
+                                PListParser parser = new PListParser();
+                                try {
+                                    event = parser.parse(sb.toString());
+                                    Log.d(Util.T, event.toString());
+
+                                    if (event.has("state")) {
+                                        String state = event.getString("state");
+                                        PlayStateStatus status = convertStateToPlayStateStatus(state);
+
+                                        for (URLServiceSubscription<?> sub : subscriptions) {
+                                            if (sub.getTarget().equalsIgnoreCase(PLAY_STATE)) {
+                                                for (int j = 0; j < sub.getListeners().size(); j++) {
+                                                    @SuppressWarnings("unchecked")
+                                                    ResponseListener<Object> listener = (ResponseListener<Object>) sub.getListeners().get(j);
+                                                    Util.postSuccess(listener, status);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (XmlPullParserException e) {
+                                    e.printStackTrace();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                sb = new StringBuilder();
+                            }
+                        }
+                    }
+
+                    wr.close();
+                    rd.close();
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private PlayStateStatus convertStateToPlayStateStatus(String state) {
+        PlayStateStatus status = PlayStateStatus.Unknown;
+
+        if (state.equals("stopped")) {
+            status = PlayStateStatus.Finished;
+        }
+        else if (state.equals("playing")) {
+            status = PlayStateStatus.Playing;
+        }
+        else if (state.equals("loading")) {
+            status = PlayStateStatus.Buffering;
+        }
+        else if (state.equals("paused")) {
+            status = PlayStateStatus.Paused;
+        }
+
+        return status;
+    }
 }
