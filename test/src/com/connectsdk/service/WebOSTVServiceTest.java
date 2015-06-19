@@ -19,20 +19,31 @@
  */
 package com.connectsdk.service;
 
+import com.connectsdk.core.TestUtil;
+import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.WebAppLauncher;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceCommandError;
+import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.sessions.LaunchSession;
+import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -46,7 +57,10 @@ import java.util.Map;
 public class WebOSTVServiceTest {
 
     private WebOSTVService service;
+
     private ServiceDescription serviceDescription;
+
+    private WebOSTVServiceSocketClient socket;
 
     @Before
     public void setUp() {
@@ -56,6 +70,9 @@ public class WebOSTVServiceTest {
         headers.put("Server", Arrays.asList("server server"));
         Mockito.when(serviceDescription.getResponseHeaders()).thenReturn(headers);
         service = new WebOSTVService(serviceDescription, Mockito.mock(ServiceConfig.class));
+        this.socket = Mockito.mock(WebOSTVServiceSocketClient.class);
+        service.socket = this.socket;
+        Mockito.when(socket.isConnected()).thenReturn(Boolean.TRUE);
     }
 
     @Test
@@ -104,5 +121,59 @@ public class WebOSTVServiceTest {
         ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
         service.previous(listener);
         Mockito.verify(listener).onError(Mockito.isA(NotSupportedServiceCommandError.class));
+    }
+
+    @Test
+    public void testLaunchInputPickerForOldTV() throws JSONException {
+        Launcher.AppLaunchListener listener = Mockito.mock(Launcher.AppLaunchListener.class);
+        service.launchInputPicker(listener);
+
+        ArgumentCaptor<ServiceCommand> argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(socket).sendCommand(argCommand.capture());
+        ServiceCommand command = argCommand.getValue();
+        command.getResponseListener().onSuccess(new JSONObject());
+
+        Mockito.verify(listener).onSuccess(Mockito.any(LaunchSession.class));
+        JSONObject payload = (JSONObject)command.getPayload();
+        Assert.assertEquals("com.webos.app.inputpicker", payload.getString("id"));
+    }
+
+    @Test
+    public void testLaunchInputPickerForNewTV() throws JSONException {
+        Launcher.AppLaunchListener listener = Mockito.mock(Launcher.AppLaunchListener.class);
+        service.launchInputPicker(listener);
+
+        ArgumentCaptor<ServiceCommand> argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(socket).sendCommand(argCommand.capture());
+
+        ServiceCommand command = argCommand.getValue();
+        command.getResponseListener().onError(new ServiceCommandError());
+
+        argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(socket, Mockito.times(2)).sendCommand(argCommand.capture());
+        command = argCommand.getValue();
+        command.getResponseListener().onSuccess(new JSONObject());
+
+        Mockito.verify(listener).onSuccess(Mockito.any(LaunchSession.class));
+        JSONObject payload = (JSONObject)command.getPayload();
+        Assert.assertEquals("com.webos.app.inputmgr", payload.getString("id"));
+    }
+
+    @Test
+    public void testLaunchInputPickerForNewTVFailure() throws JSONException {
+        Launcher.AppLaunchListener listener = Mockito.mock(Launcher.AppLaunchListener.class);
+        service.launchInputPicker(listener);
+
+        ArgumentCaptor<ServiceCommand> argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(socket).sendCommand(argCommand.capture());
+        ServiceCommand command = argCommand.getValue();
+        command.getResponseListener().onError(new ServiceCommandError());
+
+        argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(socket, Mockito.times(2)).sendCommand(argCommand.capture());
+        command = argCommand.getValue();
+        command.getResponseListener().onError(new ServiceCommandError());
+
+        Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
     }
 }
