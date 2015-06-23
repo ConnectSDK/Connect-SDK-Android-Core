@@ -109,6 +109,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     public final static String TARGET_APPNUM_GET = "appnum_get";
     public final static String TARGET_3D_MODE = "3DMode";
     public final static String TARGET_IS_3D = "is_3D";
+    public static final String SMART_SHARE = "SmartShare™";
 
     enum State {
         NONE,
@@ -1505,8 +1506,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 @Override
                 public void onSuccess(MediaLaunchObject object) {
-                    object.launchSession.setAppId("SmartShareª");
-                    object.launchSession.setAppName("SmartShareª");
+                    object.launchSession.setAppId(SMART_SHARE);
+                    object.launchSession.setAppName(SMART_SHARE);
 
                     object.mediaControl = NetcastTVService.this.getMediaControl();
 
@@ -1558,8 +1559,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 @Override
                 public void onSuccess(MediaLaunchObject object) {
-                    object.launchSession.setAppId("SmartShareª");
-                    object.launchSession.setAppName("SmartShareª");
+                    object.launchSession.setAppId(SMART_SHARE);
+                    object.launchSession.setAppName(SMART_SHARE);
 
                     object.mediaControl = NetcastTVService.this.getMediaControl();
 
