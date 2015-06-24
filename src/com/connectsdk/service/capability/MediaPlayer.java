@@ -28,8 +28,15 @@ import com.connectsdk.service.sessions.LaunchSession;
 public interface MediaPlayer extends CapabilityMethods {
     public final static String Any = "MediaPlayer.Any";
 
+    /**
+     * This capability is deprecated. Use Play_Video instead.
+     */
     @Deprecated
     public final static String Display_Video = "MediaPlayer.Play.Video";
+
+    /**
+     * This capability is deprecated. Use Play_Audio instead.
+     */
     @Deprecated
     public final static String Display_Audio = "MediaPlayer.Play.Audio";
 

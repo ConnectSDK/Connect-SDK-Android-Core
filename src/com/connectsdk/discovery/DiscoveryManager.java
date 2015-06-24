@@ -528,8 +528,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Stop scanning for devices.
-     *
-     * This method will be called when your app enters a background state. When your app resumes, startDiscovery will be called.
      */
     public void stop() {
         if (!mSearching)

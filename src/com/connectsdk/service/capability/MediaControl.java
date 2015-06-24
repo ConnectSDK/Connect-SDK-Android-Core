@@ -37,8 +37,15 @@ public interface MediaControl extends CapabilityMethods {
     public final static String PlayState_Subscribe = "MediaControl.PlayState.Subscribe";
     public final static String Position = "MediaControl.Position";
 
+    /**
+     * This capability is deprecated. Use PlaylistControl instead.
+     */
     @Deprecated
     public final static String Previous = "MediaControl.Previous";
+
+    /**
+     * This capability is deprecated. Use PlaylistControl instead.
+     */
     @Deprecated
     public final static String Next = "MediaControl.Next";
 
@@ -135,9 +142,15 @@ public interface MediaControl extends CapabilityMethods {
     public void rewind(ResponseListener<Object> listener);
     public void fastForward(ResponseListener<Object> listener);
 
+    /**
+     * This method is deprecated. Use PlaylistControl instead.
+     */
     @Deprecated
     public void previous(ResponseListener<Object> listener);
 
+    /**
+     * This method is deprecated. Use PlaylistControl instead.
+     */
     @Deprecated
     public void next(ResponseListener<Object> listener);
 
