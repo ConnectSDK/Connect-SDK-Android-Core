@@ -151,7 +151,7 @@ public interface MediaControl extends CapabilityMethods {
 
     /**
      * This method is deprecated.
-     * @code Use PlaylistControl#next(ResponseListener<Object> listener) @endcode instead.
+     * Use @code PlaylistControl#next(ResponseListener<Object> listener) @endcode instead.
      */
     @Deprecated
     public void next(ResponseListener<Object> listener);

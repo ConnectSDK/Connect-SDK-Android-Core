@@ -291,7 +291,8 @@ public class ConnectableDevice implements DeviceServiceListener {
     /**
      * Clears the array of listeners and adds the provided `listener` to the array. If `listener` is null, the array will be empty.
      * 
-     * This method is deprecated. Since version 1.2.1, use addListener instead
+     * This method is deprecated. Since version 1.2.1, use
+     * @code ConnectableDevice#addListener(ConnectableDeviceListener listener) @endcode instead
      * 
      * @param listener ConnectableDeviceListener to listen to device events (connect, disconnect, ready, etc)
      */
@@ -486,7 +487,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority Launcher object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public Launcher getLauncher() {
@@ -495,7 +497,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MediaPlayer object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public MediaPlayer getMediaPlayer() {
@@ -504,7 +507,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MediaControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public MediaControl getMediaControl() {
@@ -513,7 +517,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority PlaylistControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public PlaylistControl getPlaylistControl() {
@@ -522,7 +527,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority VolumeControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public VolumeControl getVolumeControl() {
@@ -531,7 +537,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority WebAppLauncher object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public WebAppLauncher getWebAppLauncher() {
@@ -540,7 +547,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority TVControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public TVControl getTVControl() {
@@ -549,7 +557,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority ToastControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public ToastControl getToastControl() {
@@ -558,7 +567,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority TextInputControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public TextInputControl getTextInputControl() {
@@ -567,7 +577,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MouseControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public MouseControl getMouseControl() {
@@ -576,7 +587,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority ExternalInputControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public ExternalInputControl getExternalInputControl() {
@@ -585,7 +597,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority PowerLauncher object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public PowerControl getPowerControl() {
@@ -594,7 +607,8 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority KeyControl object
-     * This method is deprecated. Use getCapability method instead
+     * This method is deprecated. Use
+     * @code ConnectableDevice#getCapability(Class<T> controllerClass) @endcode method instead
      */
     @Deprecated
     public KeyControl getKeyControl() {
