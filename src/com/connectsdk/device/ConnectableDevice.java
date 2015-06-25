@@ -605,7 +605,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * Get a capability with the highest priority from a device. If device doesn't have such
      * capability then returns null.
      * @param controllerClass type of capability
-     * @return
+     * @return capability implementation
      */
     public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
         T foundController = null;
