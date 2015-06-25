@@ -29,13 +29,13 @@ public interface MediaPlayer extends CapabilityMethods {
     public final static String Any = "MediaPlayer.Any";
 
     /**
-     * This capability is deprecated. Use Play_Video instead.
+     * This capability is deprecated. Use @code MediaPlayer.Play_Video @endcode instead.
      */
     @Deprecated
     public final static String Display_Video = "MediaPlayer.Play.Video";
 
     /**
-     * This capability is deprecated. Use Play_Audio instead.
+     * This capability is deprecated. Use @code MediaPlayer.Play_Audio @endcode instead.
      */
     @Deprecated
     public final static String Display_Audio = "MediaPlayer.Play.Audio";
