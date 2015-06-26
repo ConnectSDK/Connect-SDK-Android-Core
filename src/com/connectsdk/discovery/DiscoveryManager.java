@@ -93,13 +93,13 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      */
     public enum PairingLevel {
         /**
-         * Indicates that pairing is off. DeviceService will never try to pair with a first
+         * Specifies that pairing is off. DeviceService will never try to pair with a first
          * screen device.
          */
         OFF,
 
         /**
-         * Indicates that pairing is on. DeviceService will try to pair if it is required by a first
+         * Specifies that pairing is on. DeviceService will try to pair if it is required by a first
          * screen device.
          */
         ON

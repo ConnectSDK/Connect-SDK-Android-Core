@@ -81,7 +81,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         NONE,
 
         /**
-         * In this mode user must confirm pairing on the first screen device (ex. an alert on a TV)
+         * In this mode user must confirm pairing on the first screen device (e.g. an alert on a TV)
          */
         FIRST_SCREEN,
 
