@@ -72,14 +72,45 @@ public interface MediaControl extends CapabilityMethods {
         Position,
     };
 
+    /**
+     * Enumerates possible playback status
+     */
     public enum PlayStateStatus {
+        /**
+         * Unknown state
+         */
         Unknown,
+
+        /**
+         * Media source is not set.
+         */
         Idle,
+
+        /**
+         * Media is playing.
+         */
         Playing,
+
+        /**
+         * Media is paused.
+         */
         Paused,
+
+        /**
+         * Media is buffering on the first screen device (ex. on the TV)
+         */
         Buffering,
+
+        /**
+         * Playback is finished.
+         */
         Finished;
 
+        /**
+         * Converts int value into PlayStateStatus
+         * @param playerState int value
+         * @return PlayStateStatus
+         */
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -105,6 +136,11 @@ public interface MediaControl extends CapabilityMethods {
             return status;
         }
 
+        /**
+         * Converts String value into PlayStateStatus
+         * @param transportState String vakue
+         * @return PlayStateStatus
+         */
         public static PlayStateStatus convertTransportStateToPlayStateStatus(String transportState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -147,7 +183,6 @@ public interface MediaControl extends CapabilityMethods {
 
     /**
      * Plays the current media item
-     * @param listener (optional) ResponseListener< Object > with methods to be called on success or failure
      */
     public void play(ResponseListener<Object> listener);
 
