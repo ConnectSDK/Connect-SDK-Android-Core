@@ -38,13 +38,13 @@ public interface MediaControl extends CapabilityMethods {
     public final static String Position = "MediaControl.Position";
 
     /**
-     * This capability is deprecated. Use @code PlaylistControl.Previous @endcode instead.
+     * This capability is deprecated. Use `PlaylistControl.Previous` instead.
      */
     @Deprecated
     public final static String Previous = "MediaControl.Previous";
 
     /**
-     * This capability is deprecated. Use @code PlaylistControl.Next @endcode instead.
+     * This capability is deprecated. Use `PlaylistControl.Next` instead.
      */
     @Deprecated
     public final static String Next = "MediaControl.Next";
@@ -138,7 +138,7 @@ public interface MediaControl extends CapabilityMethods {
 
         /**
          * Converts String value into PlayStateStatus
-         * @param transportState String vakue
+         * @param transportState String value
          * @return PlayStateStatus
          */
         public static PlayStateStatus convertTransportStateToPlayStateStatus(String transportState) {
@@ -169,85 +169,47 @@ public interface MediaControl extends CapabilityMethods {
         }
     }
 
-    /**
-     * Get MediaControl implementation
-     * @return MediaControl
-     */
     public MediaControl getMediaControl();
 
-    /**
-     * Get a capability priority for current implementation
-     * @return CapabilityPriorityLevel
-     */
     public CapabilityPriorityLevel getMediaControlCapabilityLevel();
 
-    /**
-     * Plays the current media item
-     */
     public void play(ResponseListener<Object> listener);
 
-    /**
-     * Pauses the current media item
-     */
     public void pause(ResponseListener<Object> listener);
 
-    /**
-     * Stops the current media item
-     */
     public void stop(ResponseListener<Object> listener);
 
-    /**
-     * Rewinds the current media item
-     */
     public void rewind(ResponseListener<Object> listener);
 
-    /**
-     * Fast forward the current media item
-     */
     public void fastForward(ResponseListener<Object> listener);
 
     /**
      * This method is deprecated.
-     * Use @code PlaylistControl#previous(ResponseListener<Object> listener) @endcode instead.
+     * Use `PlaylistControl#previous(ResponseListener<Object> listener)` instead.
      */
     @Deprecated
     public void previous(ResponseListener<Object> listener);
 
     /**
      * This method is deprecated.
-     * Use @code PlaylistControl#next(ResponseListener<Object> listener) @endcode instead.
+     * Use `PlaylistControl#next(ResponseListener<Object> listener)` instead.
      */
     @Deprecated
     public void next(ResponseListener<Object> listener);
 
     /**
-     * Seeks to a new position within the current media item
      * @param position The new position, in milliseconds from the beginning of the stream
      * @param listener (optional) ResponseListener< Object > with methods to be called on success
      *                 or failure
      */
     public void seek(long position, ResponseListener<Object> listener);
 
-    /**
-     * Get the current media duration in milliseconds
-     */
     public void getDuration(DurationListener listener);
 
-    /**
-     * Get the current playback position in milliseconds
-     */
     public void getPosition(PositionListener listener);
 
-    /**
-     * Get the current state of playback
-     */
     public void getPlayState(PlayStateListener listener);
 
-    /**
-     * Subscribe for playback state changes
-     * @param listener receives play state notifications
-     * @return ServiceSubscription<PlayStateListener>
-     */
     public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener);
 
     /**
