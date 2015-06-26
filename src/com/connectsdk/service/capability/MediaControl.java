@@ -72,14 +72,45 @@ public interface MediaControl extends CapabilityMethods {
         Position,
     };
 
+    /**
+     * Enumerates possible playback status
+     */
     public enum PlayStateStatus {
+        /**
+         * Unknown state
+         */
         Unknown,
+
+        /**
+         * Media source is not set.
+         */
         Idle,
+
+        /**
+         * Media is playing.
+         */
         Playing,
+
+        /**
+         * Media is paused.
+         */
         Paused,
+
+        /**
+         * Media is buffering on the first screen device (e.g. on the TV)
+         */
         Buffering,
+
+        /**
+         * Playback is finished.
+         */
         Finished;
 
+        /**
+         * Converts int value into PlayStateStatus
+         * @param playerState int value
+         * @return PlayStateStatus
+         */
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -105,6 +136,11 @@ public interface MediaControl extends CapabilityMethods {
             return status;
         }
 
+        /**
+         * Converts String value into PlayStateStatus
+         * @param transportState String vakue
+         * @return PlayStateStatus
+         */
         public static PlayStateStatus convertTransportStateToPlayStateStatus(String transportState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -133,13 +169,41 @@ public interface MediaControl extends CapabilityMethods {
         }
     }
 
+    /**
+     * Get MediaControl implementation
+     * @return MediaControl
+     */
     public MediaControl getMediaControl();
+
+    /**
+     * Get a capability priority for current implementation
+     * @return CapabilityPriorityLevel
+     */
     public CapabilityPriorityLevel getMediaControlCapabilityLevel();
 
+    /**
+     * Plays the current media item
+     */
     public void play(ResponseListener<Object> listener);
+
+    /**
+     * Pauses the current media item
+     */
     public void pause(ResponseListener<Object> listener);
+
+    /**
+     * Stops the current media item
+     */
     public void stop(ResponseListener<Object> listener);
+
+    /**
+     * Rewinds the current media item
+     */
     public void rewind(ResponseListener<Object> listener);
+
+    /**
+     * Fast forward the current media item
+     */
     public void fastForward(ResponseListener<Object> listener);
 
     /**
@@ -156,11 +220,34 @@ public interface MediaControl extends CapabilityMethods {
     @Deprecated
     public void next(ResponseListener<Object> listener);
 
+    /**
+     * Seeks to a new position within the current media item
+     * @param position The new position, in milliseconds from the beginning of the stream
+     * @param listener (optional) ResponseListener< Object > with methods to be called on success
+     *                 or failure
+     */
     public void seek(long position, ResponseListener<Object> listener);
+
+    /**
+     * Get the current media duration in milliseconds
+     */
     public void getDuration(DurationListener listener);
+
+    /**
+     * Get the current playback position in milliseconds
+     */
     public void getPosition(PositionListener listener);
 
+    /**
+     * Get the current state of playback
+     */
     public void getPlayState(PlayStateListener listener);
+
+    /**
+     * Subscribe for playback state changes
+     * @param listener receives play state notifications
+     * @return ServiceSubscription<PlayStateListener>
+     */
     public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener);
 
     /**
