@@ -87,8 +87,21 @@ import com.connectsdk.service.config.ServiceDescription;
  */
 public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryProviderListener, ServiceConfigListener {
 
+    /**
+     * Describes a pairing level for a DeviceService. It's used by a DiscoveryManager and all
+     * services.
+     */
     public enum PairingLevel {
+        /**
+         * Indicates that pairing is off. DeviceService will never try to pair with a first
+         * screen device.
+         */
         OFF,
+
+        /**
+         * Indicates that pairing is on. DeviceService will try to pair if it is required by a first
+         * screen device.
+         */
         ON
     }
 
