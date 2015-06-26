@@ -97,7 +97,7 @@ public interface MediaControl extends CapabilityMethods {
         Paused,
 
         /**
-         * Media is buffering on the first screen device (ex. on the TV)
+         * Media is buffering on the first screen device (e.g. on the TV)
          */
         Buffering,
 
