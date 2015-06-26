@@ -169,8 +169,16 @@ public interface MediaControl extends CapabilityMethods {
         }
     }
 
+    /**
+     * Get MediaControl implementation
+     * @return MediaControl
+     */
     public MediaControl getMediaControl();
 
+    /**
+     * Get a capability priority for current implementation
+     * @return CapabilityPriorityLevel
+     */
     public CapabilityPriorityLevel getMediaControlCapabilityLevel();
 
     public void play(ResponseListener<Object> listener);
@@ -204,12 +212,26 @@ public interface MediaControl extends CapabilityMethods {
      */
     public void seek(long position, ResponseListener<Object> listener);
 
+    /**
+     * Get the current media duration in milliseconds
+     */
     public void getDuration(DurationListener listener);
 
+    /**
+     * Get the current playback position in milliseconds
+     */
     public void getPosition(PositionListener listener);
 
+    /**
+     * Get the current state of playback
+     */
     public void getPlayState(PlayStateListener listener);
 
+    /**
+     * Subscribe for playback state changes
+     * @param listener receives play state notifications
+     * @return ServiceSubscription<PlayStateListener>
+     */
     public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener);
 
     /**
