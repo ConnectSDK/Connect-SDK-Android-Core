@@ -317,10 +317,6 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                     if (!(request instanceof URLServiceSubscription)) 
                         requests.remove(id);
 
-                    if (errorCode == 403) { // 403 User Denied Access 
-                        disconnect();
-                        return;
-                    }
                 }
             }
         } else if ("hello".equals(type)) {
