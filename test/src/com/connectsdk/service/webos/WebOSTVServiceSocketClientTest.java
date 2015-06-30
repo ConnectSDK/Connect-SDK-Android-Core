@@ -32,13 +32,15 @@ public class WebOSTVServiceSocketClientTest {
 
     @Test
     public void test403ErrorShouldNotCloseSocket() {
-        ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
-        ServiceCommand command = new ServiceCommand(null, null, (Object)null, listener);
-        socketClient.requests.put(11, command);
-        socketClient.state = WebOSTVServiceSocketClient.State.REGISTERED;
-        socketClient.onMessage(" {\"type\":\"error\",\"id\":\"11\",\"error\":" +
+        ServiceCommand command = new ServiceCommand(null, null, (Object)null, null);
+        WebOSTVServiceSocketClient spySocketClient = Mockito.spy(socketClient);
+
+        spySocketClient.requests.put(11, command);
+        spySocketClient.state = WebOSTVServiceSocketClient.State.REGISTERED;
+        spySocketClient.onMessage(" {\"type\":\"error\",\"id\":\"11\",\"error\":" +
                 "\"403 access denied\",\"payload\":{}}");
-        Assert.assertEquals(WebOSTVServiceSocketClient.State.REGISTERED, socketClient.getState());
-        Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
+
+        Assert.assertEquals(WebOSTVServiceSocketClient.State.REGISTERED, spySocketClient.getState());
+        Mockito.verify(spySocketClient, Mockito.times(0)).close();
     }
 }
