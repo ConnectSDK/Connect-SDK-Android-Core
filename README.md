@@ -14,7 +14,7 @@ For more information about Connect SDK, visit the [main repository](https://gith
 Unless you are doing very specialized work to extend the SDK, you should not need to make direct use of this repository. Instead, clone the [main repository](https://github.com/ConnectSDK/Connect-SDK-Android), which includes this repository as a submodule.
 
 ##License
-Copyright (c) 2013-2014 LG Electronics.
+Copyright (c) 2013-2015 LG Electronics.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
