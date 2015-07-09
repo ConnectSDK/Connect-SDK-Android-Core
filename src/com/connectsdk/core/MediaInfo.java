@@ -34,10 +34,13 @@ public class MediaInfo {
 
     /**
      * Default constructor method.
+     *
+     * @param url media file
+     * @param mimeType media mime type
+     * @param title optional metadata
+     * @param description optional metadata
      */
-
-    public MediaInfo(String url, String mimeType, String title,
-            String description) {
+    public MediaInfo(String url, String mimeType, String title, String description) {
         super();
         this.url = url;
         this.mimeType = mimeType;
@@ -46,14 +49,16 @@ public class MediaInfo {
     }
 
     /**
-     * Default constructor method.
-     * 
-     * @param allImages
-     *            list of imageInfo objects where [0] is icon, [1] is poster
+     * MediaInfo constructor with a list of icons URLs.
+     *
+     * @param url media file
+     * @param mimeType media mime type
+     * @param title optional metadata
+     * @param description optional metadata
+     * @param allImages list of imageInfo objects where [0] is icon, [1] is poster
      */
-
-    public MediaInfo(String url, String mimeType, String title,
-            String description, List<ImageInfo> allImages) {
+    public MediaInfo(String url, String mimeType, String title, String description,
+                     List<ImageInfo> allImages) {
         this(url, mimeType, title, description);
         this.allImages = allImages;
     }
@@ -185,12 +190,12 @@ public class MediaInfo {
      */
 
     public void addImages(ImageInfo... images) {
-
+        if (images == null) {
+            return;
+        }
         List<ImageInfo> list = new ArrayList<ImageInfo>();
         Collections.addAll(list, images);
-
         this.setImages(list);
-
     }
 
 }

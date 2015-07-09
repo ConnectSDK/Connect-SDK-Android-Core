@@ -62,6 +62,7 @@ import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.MouseControl;
+import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.PowerControl;
 import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
@@ -88,10 +89,10 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
 @SuppressLint("DefaultLocale")
-public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
+public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher, PlaylistControl {
 
     public static final String ID = "webOS TV";
-    public static final String TAG = "Connect SDK";
+    private static final String MEDIA_PLAYER_ID = "MediaPlayer";
 
     public interface WebOSTVServicePermission {
         public enum Open implements WebOSTVServicePermission {
@@ -265,6 +266,9 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         else if (clazz.equals(WebAppLauncher.class)) {
             return getWebAppLauncherCapabilityLevel();
         }
+        else if (clazz.equals(PlaylistControl.class)) {
+            return getPlaylistControlCapabilityLevel();
+        }
         return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
     
@@ -325,7 +329,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void disconnect() {
-        Log.d(TAG, "attempting to disconnect to " + serviceDescription.getIpAddress());
+        Log.d(Util.T, "attempting to disconnect to " + serviceDescription.getIpAddress());
 
         Util.runOnUI(new Runnable() {
 
@@ -755,7 +759,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         JSONObject params = new JSONObject();
 
         try {
-            params.put("appId", launchSession.getAppId());
+            params.put("id", launchSession.getAppId());
             params.put("sessionId", launchSession.getSessionId());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1225,8 +1229,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             if (params != null)
                 this.displayMedia(params, listener);
         } else {
-            final String webAppId = "MediaPlayer";
-
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1240,11 +1242,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 }
             };
 
-            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(webAppId, webAppLaunchListener);
+                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
                 }
 
                 @Override
@@ -1311,8 +1313,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             if (params != null)
                 this.displayMedia(params, listener);
         } else {
-            final String webAppId = "MediaPlayer";
-
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1326,11 +1326,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 }
             };
 
-            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(webAppId, webAppLaunchListener);
+                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
                 }
 
                 @Override
@@ -1459,7 +1459,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     public void getPosition(PositionListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
-
 
     /******************
     TV CONTROL
@@ -1799,12 +1798,23 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void launchInputPicker(final AppLaunchListener listener) {
-        AppInfo appInfo = new AppInfo() {{
+        final AppInfo appInfo = new AppInfo() {{
             setId("com.webos.app.inputpicker");
             setName("InputPicker");
         }};
 
-        launchAppWithInfo(appInfo, null, listener);
+        launchAppWithInfo(appInfo, null, new AppLaunchListener() {
+            @Override
+            public void onSuccess(LaunchSession object) {
+                listener.onSuccess(object);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                appInfo.setId("com.webos.app.inputmgr");
+                launchAppWithInfo(appInfo, null, listener);
+            }
+        });
     }
 
     @Override
@@ -1850,7 +1860,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 payload.put("inputId", externalInputInfo.getId());
             }
             else {
-                Log.w(TAG, "ExternalInputInfo has no id");
+                Log.w(Util.T, "ExternalInputInfo has no id");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1914,7 +1924,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
             @Override
             public void onError(ServiceCommandError error) {
-                Log.w(TAG, "Connect mouse error: " + error.getMessage());
+                Log.w(Util.T, "Connect mouse error: " + error.getMessage());
             }
         };
 
@@ -1938,11 +1948,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void move(double dx, double dy) {
-        if (mouseSocket != null)
+    public void move(final double dx, final double dy) {
+        if (mouseSocket != null) {
             mouseSocket.move(dx, dy);
-        else 
-            Log.w(TAG, "Mouse Socket is not ready yet");
+        }
+        else {
+            connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                @Override
+                public void onConnected() {
+                    mouseSocket.move(dx, dy);
+                }
+            });
+        }
     }
 
     @Override
@@ -1951,11 +1968,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void scroll(double dx, double dy) {
-        if (mouseSocket != null) 
+    public void scroll(final double dx, final double dy) {
+        if (mouseSocket != null) {
             mouseSocket.scroll(dx, dy);
-        else 
-            Log.w(TAG, "Mouse Socket is not ready yet");
+        }
+        else {
+            connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
+                @Override
+                public void onConnected() {
+                    mouseSocket.scroll(dx, dy);
+                }
+            });
+        }
     }
 
     @Override
@@ -2272,53 +2296,22 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         }
 
         final WebOSWebAppSession webAppSession = mWebAppSessions.get(launchSession.getAppId());
-
-        if (webAppSession != null && webAppSession.isConnected()) {
-            JSONObject serviceCommand = new JSONObject();
-            JSONObject closeCommand = new JSONObject();
-
-            try {
-                serviceCommand.put("type", "close");
-
-                closeCommand.put("contentType", "connectsdk.serviceCommand");
-                closeCommand.put("serviceCommand", serviceCommand);
-            } catch (JSONException ex) {
-                ex.printStackTrace();
-            }
-
-            webAppSession.sendMessage(closeCommand, new ResponseListener<Object>() {
-
-                @Override
-                public void onError(ServiceCommandError error) {
-                    webAppSession.disconnectFromWebApp();
-
-                    Util.postError(listener, error);
-                }
-
-                @Override
-                public void onSuccess(Object object) {
-                    webAppSession.disconnectFromWebApp();
-
-                    Util.postSuccess(listener, object);
-                }
-            });
-        } else {
-            if (webAppSession != null)
-                webAppSession.disconnectFromWebApp();
-
-            String uri = "ssap://webapp/closeWebApp";
-            JSONObject payload = new JSONObject();
-
-            try {
-                if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
-                if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
-            request.send();
+        if (webAppSession != null) {
+            webAppSession.disconnectFromWebApp();
         }
+
+        String uri = "ssap://webapp/closeWebApp";
+        JSONObject payload = new JSONObject();
+
+        try {
+            if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
+            if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+        request.send();
     }
 
     public void connectToWebApp(final WebOSWebAppSession webAppSession, final boolean joinOnly, final ResponseListener<Object> connectionListener) {
@@ -2839,6 +2832,29 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
+    /******************
+     PLAYLIST CONTROL
+     *****************/
+    @Override
+    public PlaylistControl getPlaylistControl() {
+        return this;
+    }
+
+    @Override
+    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
+        return CapabilityPriorityLevel.HIGH;
+    }
+
+    @Override
+    public void jumpToTrack(long index, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
     @Override
     public void sendCommand(ServiceCommand<?> command) {
         if (socket != null)
@@ -2903,12 +2919,13 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 capabilities.add(WebAppLauncher.Close);
             } else {
                 Collections.addAll(capabilities, WebAppLauncher.Capabilities);
-                for (String capability : MediaControl.Capabilities) {
-                    if (capability.equalsIgnoreCase(MediaControl.Previous) || capability.equalsIgnoreCase(MediaControl.Next))
-                        continue;
+                Collections.addAll(capabilities, MediaControl.Capabilities);
 
-                    capabilities.add(capability);
-                }
+                capabilities.add(PlaylistControl.JumpToTrack);
+                capabilities.add(PlaylistControl.Next);
+                capabilities.add(PlaylistControl.Previous);
+
+                capabilities.add(MediaPlayer.Loop);
             }
         }
 
@@ -2941,7 +2958,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             config.setClientKey(null);
 
             if (isConnected()) {
-                Log.w(TAG, "Permissions changed -- you will need to re-pair to the TV.");
+                Log.w(Util.T, "Permissions changed -- you will need to re-pair to the TV.");
                 disconnect();
             }
         }

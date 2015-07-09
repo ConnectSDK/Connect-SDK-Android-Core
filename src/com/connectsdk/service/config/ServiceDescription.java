@@ -53,12 +53,10 @@ public class ServiceDescription implements Cloneable {
     String version;
     List<Service> serviceList; 
     String locationXML;
-
     String serviceURI;
-
     Map<String, List<String>> responseHeaders;
-
     String serviceID;
+    Object device;
 
     long lastDetection = Long.MAX_VALUE;
 
@@ -222,6 +220,14 @@ public class ServiceDescription implements Cloneable {
         this.serviceURI = serviceURI;
     }
 
+    public Object getDevice() {
+        return device;
+    }
+
+    public void setDevice(Object device) {
+        this.device = device;
+    }
+
     public JSONObject toJSONObject() {
         JSONObject jsonObj = new JSONObject();
 
@@ -235,17 +241,6 @@ public class ServiceDescription implements Cloneable {
             jsonObj.putOpt(KEY_PORT, port);
             jsonObj.putOpt(KEY_VERSION, version);
             jsonObj.putOpt(KEY_SERVICE_ID, serviceID);
-//            if (responseHeaders != null) {
-//                jsonObj.putOpt("responseHeaders", new JSONObject() {{
-//                    for (final String key : responseHeaders.keySet()) {
-//                        putOpt(key, new JSONArray(){{
-//                            List<String> items = responseHeaders.get(key);
-//                            for (String item : items)
-//                                put(item);
-//                        }});
-//                    }
-//                }});
-//            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
