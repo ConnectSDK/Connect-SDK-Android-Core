@@ -23,6 +23,9 @@ import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
+import com.connectsdk.service.config.WebOSTVServiceConfig;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 
 import junit.framework.Assert;
@@ -50,6 +53,7 @@ public class WebOSWebAppSessionTest {
     @Before
     public void setUp() {
         socket = Mockito.mock(WebOSTVServiceSocketClient.class);
+        Mockito.when(socket.isConnected()).thenReturn(Boolean.TRUE);
         launchSession = Mockito.mock(LaunchSession.class);
         service = Mockito.mock(WebOSTVService.class);
         session = new WebOSWebAppSession(launchSession, service);
@@ -131,5 +135,23 @@ public class WebOSWebAppSessionTest {
     public void testGetPlaylistControlCapability() {
         Assert.assertEquals(CapabilityMethods.CapabilityPriorityLevel.HIGH,
                 session.getPlaylistControlCapabilityLevel());
+    }
+
+    @Test
+    public void testSendMessageWithEmptySocketShouldNotCrash() {
+        ServiceDescription description = Mockito.mock(ServiceDescription.class);
+        Mockito.when(description.getIpAddress()).thenReturn("127.0.0.1");
+        Mockito.when(service.getServiceDescription()).thenReturn(description);
+        ServiceConfig config = Mockito.mock(WebOSTVServiceConfig.class);
+        Mockito.when(service.getServiceConfig()).thenReturn(config);
+
+        session.socket = null;
+        session.setConnected(true);
+        ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
+        try {
+            session.sendMessage("message", listener);
+        } catch (RuntimeException e) {
+            Assert.fail("sendMessage should not throw an exception");
+        }
     }
 }

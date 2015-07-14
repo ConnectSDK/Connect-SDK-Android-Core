@@ -82,7 +82,7 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     public Boolean isConnected() {
-        return connected;
+        return connected && socket != null && socket.isConnected();
     }
 
     public void setConnected(Boolean connected) {
