@@ -519,11 +519,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                 ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 
-                if (mWifi.isConnected()) {
+//                if (mWifi.isConnected()) {
                     for (DiscoveryProvider provider : discoveryProviders) {
                         provider.start();
                     }
-                } else {
+                /*} else {
                     Log.w(Util.T, "Wifi is not connected yet");
 
                     Util.runOnUI(new Runnable() {
@@ -534,7 +534,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                                 listener.onDiscoveryFailed(DiscoveryManager.this, new ServiceCommandError(0, "No wifi connection", null));
                         }
                     });
-                }
+                }*/
             }
         });
     }

@@ -20,7 +20,10 @@
 
 package com.connectsdk.core;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.concurrent.Executor;
@@ -39,6 +42,8 @@ import android.os.Looper;
 import com.connectsdk.service.capability.listeners.ErrorListener;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
+
+import static java.util.Collections.list;
 
 public final class Util {
     static public String T = "Connect SDK";
@@ -140,16 +145,17 @@ public final class Util {
     }
 
     public static InetAddress getIpAddress(Context context) throws UnknownHostException {
-        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        int ip = wifiInfo.getIpAddress();
-
-        if (ip == 0) {
-            return null;
+        try {
+            for (NetworkInterface intf : list(NetworkInterface.getNetworkInterfaces())) {
+                for (InetAddress inetAddress : list(intf.getInetAddresses())) {
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        return inetAddress;
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            ex.printStackTrace();
         }
-        else {
-            byte[] ipAddress = convertIpAddress(ip);
-            return InetAddress.getByAddress(ipAddress);
-        }
+        return null;
     }
 }
