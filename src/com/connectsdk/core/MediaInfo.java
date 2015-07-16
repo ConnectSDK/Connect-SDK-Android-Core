@@ -21,25 +21,121 @@
 package com.connectsdk.core;
 
 import java.util.ArrayList;
-
-/**
- * Normalized reference object for information about a media to display. This object can be used to pass as a parameter to displayImage or playMedia.
- * 
- */
-
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Normalized reference object for information about a media to display. This object can be used
+ * to pass as a parameter to displayImage or playMedia.
+ */
 public class MediaInfo {
 
+    // @cond INTERNAL
+
+    private String url;
+
+    private String subtitlesUrl;
+
+    private String mimeType;
+
+    private String description;
+
+    private String title;
+
     /**
-     * Default constructor method.
+     * list of imageInfo objects where [0] is icon, [1] is poster
+     */
+    private List<ImageInfo> allImages;
+
+    private long duration;
+
+    // @endcond
+
+    public static class Builder {
+
+        // required parameters
+        private String url;
+        private String mimeType;
+
+        // optional parameters
+        private String title;
+        private String description;
+        private String subtitlesUrl;
+        private List<ImageInfo> allImages;
+
+        public Builder(String mediaUrl, String mediaMimeType) {
+            this.url = mediaUrl;
+            this.mimeType = mediaMimeType;
+        }
+
+        public Builder setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder setDescription(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder setIcon(String iconUrl) {
+            createImagesList();
+            allImages.set(0, new ImageInfo(iconUrl));
+            return this;
+        }
+
+        public Builder setIcon(ImageInfo icon) {
+            createImagesList();
+            allImages.set(0, icon);
+            return this;
+        }
+
+        public Builder setPoster(String posterUrl) {
+            createImagesList();
+            allImages.set(1, new ImageInfo(posterUrl));
+            return this;
+        }
+
+        public Builder setPoster(ImageInfo poster) {
+            createImagesList();
+            allImages.set(1, poster);
+            return this;
+        }
+
+        public Builder setSubtitles(String url) {
+            this.subtitlesUrl = url;
+            return this;
+        }
+
+        public MediaInfo build() {
+            return new MediaInfo(this);
+        }
+
+        private void createImagesList() {
+            if (allImages == null) {
+                allImages = new ArrayList<ImageInfo>(Collections.<ImageInfo>nCopies(2, null));
+            }
+        }
+    }
+
+    private MediaInfo(MediaInfo.Builder builder) {
+        url = builder.url;
+        mimeType = builder.mimeType;
+        title = builder.title;
+        description = builder.description;
+        subtitlesUrl = builder.subtitlesUrl;
+        allImages = builder.allImages;
+    }
+
+    /**
+     * This constructor is deprecated. Use `MediaInfo.Builder` instead.
      *
      * @param url media file
      * @param mimeType media mime type
      * @param title optional metadata
      * @param description optional metadata
      */
+    @Deprecated
     public MediaInfo(String url, String mimeType, String title, String description) {
         super();
         this.url = url;
@@ -49,20 +145,7 @@ public class MediaInfo {
     }
 
     /**
-     * MediaInfo constructor with subtitles url
-     *
-     * @param url media file
-     * @param mimeType media mime type
-     * @param title optional metadata
-     * @param description optional metadata
-     */
-    public MediaInfo(String url, String subsUrl, String mimeType, String title, String description) {
-        this(url, mimeType, title, description);
-        this.subsUrl = subsUrl;
-    }
-
-    /**
-     * MediaInfo constructor with a list of icons URLs.
+     * This constructor is deprecated. Use `MediaInfo.Builder` instead.
      *
      * @param url media file
      * @param mimeType media mime type
@@ -70,27 +153,18 @@ public class MediaInfo {
      * @param description optional metadata
      * @param allImages list of imageInfo objects where [0] is icon, [1] is poster
      */
+    @Deprecated
     public MediaInfo(String url, String mimeType, String title, String description,
                      List<ImageInfo> allImages) {
         this(url, mimeType, title, description);
         this.allImages = allImages;
     }
 
-    // @cond INTERNAL
-    private String url, subsUrl, mimeType, description, title;
-
-    private List<ImageInfo> allImages;
-
-    private long duration;
-
-    // @endcond
-
     /**
      * Gets type of a media file.
      * 
      * 
      */
-
     public String getMimeType() {
         return mimeType;
     }
@@ -98,9 +172,9 @@ public class MediaInfo {
     /**
      * Sets type of a media file.
      * 
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
     }
@@ -110,7 +184,6 @@ public class MediaInfo {
      * 
      * 
      */
-
     public String getTitle() {
         return title;
     }
@@ -118,9 +191,9 @@ public class MediaInfo {
     /**
      * Sets title of a media file.
      * 
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setTitle(String title) {
         this.title = title;
     }
@@ -129,33 +202,34 @@ public class MediaInfo {
      * Gets description for a media.
      * 
      */
-
     public String getDescription() {
         return description;
     }
 
     /**
      * Sets description for a media.
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * Gets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
+     * Gets list of ImageInfo objects for images representing a media (ex. icon, poster).
+     * Where first ([0]) is icon image, and second ([1]) is poster image.
      */
-
     public List<ImageInfo> getImages() {
         return allImages;
     }
 
     /**
-     * Sets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
+     * Sets list of ImageInfo objects for images representing a media (ex. icon, poster).
+     * Where first ([0]) is icon image, and second ([1]) is poster image.
      *
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setImages(List<ImageInfo> images) {
         this.allImages = images;
     }
@@ -164,16 +238,15 @@ public class MediaInfo {
      * Gets duration of a media file.
      * 
      */
-
     public long getDuration() {
         return duration;
     }
 
     /**
      * Sets duration of a media file.
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setDuration(long duration) {
         this.duration = duration;
     }
@@ -182,16 +255,15 @@ public class MediaInfo {
      * Gets URL address of a media file.
      * 
      */
-
     public String getUrl() {
         return url;
     }
 
     /**
      * Sets URL address of a media file.
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setUrl(String url) {
         this.url = url;
     }
@@ -200,25 +272,25 @@ public class MediaInfo {
      * Gets URL address of a subtitle file.
      * 
      */
-
     public String getSubsUrl() {
-        return subsUrl;
+        return subtitlesUrl;
     }
 
     /**
      * Sets URL address of a subtitle file.
-     * 
+     * This method is deprecated
      */
-
+    @Deprecated
     public void setSubsUrl(String subsUrl) {
-        this.subsUrl = subsUrl;
+        this.subtitlesUrl = subsUrl;
     }
 
     /**
      * Stores ImageInfo objects.
-     * 
+     *
+     * This method is deprecated
      */
-
+    @Deprecated
     public void addImages(ImageInfo... images) {
         if (images == null) {
             return;

@@ -1548,7 +1548,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void playMedia(String url, String mimeType, String title, String description, String iconSrc, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
-        playMedia(new MediaInfo(url, mimeType, title, description, iconSrc), shouldLoop, listener);
+        MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType)
+                .setTitle(title)
+                .setDescription(description)
+                .setIcon(iconSrc)
+                .build();
+        playMedia(mediaInfo, shouldLoop, listener);
     }
 
     @Override
