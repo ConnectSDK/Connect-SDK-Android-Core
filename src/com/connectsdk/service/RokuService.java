@@ -690,9 +690,6 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
             }
         };
 
-        String host = String.format("%s:%s", serviceDescription.getIpAddress(),
-                serviceDescription.getPort());
-
         String action = "input";
         String mediaFormat = mimeType;
         if (mimeType.contains("/")) {
@@ -702,18 +699,18 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
         String param;
         if (mimeType.contains("image")) {
-            param = String.format("15985?t=p&u=%s&h=%s&tr=crossfade",
-                    HttpMessage.encode(url), HttpMessage.encode(host));
+            param = String.format("15985?t=p&u=%s&tr=crossfade", HttpMessage.encode(url));
         } else if (mimeType.contains("video")) {
+            // parameter `h` is an event server URL
             param = String.format(
-                    "15985?t=v&u=%s&k=(null)&h=%s&videoName=%s&videoFormat=%s",
-                    HttpMessage.encode(url), HttpMessage.encode(host),
+                    "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
+                    HttpMessage.encode(url),
                     TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title), 
                             HttpMessage.encode(mediaFormat));
         } else { // if (mimeType.contains("audio")) {
             param = String
-                    .format("15985?t=a&u=%s&k=(null)&h=%s&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
-                            HttpMessage.encode(url), HttpMessage.encode(host),
+                    .format("15985?t=a&u=%s&k=(null)&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
+                            HttpMessage.encode(url),
                             TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
                                     TextUtils.isEmpty(description) ? "(null)" : HttpMessage.encode(description),
                                             HttpMessage.encode(mediaFormat),
