@@ -56,7 +56,7 @@ public final class TestUtil {
         URI expectedURI = URI.create(expectedUrl).normalize();
         URI targetURI = URI.create(targetUrl).normalize();
 
-        List<String> expectedQuery = Arrays.asList(expectedURI.getQuery().split("&"));
+        String[] expectedQuery = expectedURI.getQuery().split("&");
         List<String> targetQuery = new LinkedList<String>(
                 Arrays.asList(targetURI.getQuery().split("&")));
 
