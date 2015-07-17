@@ -49,6 +49,19 @@ public class MediaInfo {
     }
 
     /**
+     * MediaInfo constructor with subtitles url
+     *
+     * @param url media file
+     * @param mimeType media mime type
+     * @param title optional metadata
+     * @param description optional metadata
+     */
+    public MediaInfo(String url, String subsUrl, String mimeType, String title, String description) {
+        this(url, mimeType, title, description);
+        this.subsUrl = subsUrl;
+    }
+
+    /**
      * MediaInfo constructor with a list of icons URLs.
      *
      * @param url media file
@@ -64,7 +77,7 @@ public class MediaInfo {
     }
 
     // @cond INTERNAL
-    private String url, mimeType, description, title;
+    private String url, subsUrl, mimeType, description, title;
 
     private List<ImageInfo> allImages;
 
@@ -140,8 +153,7 @@ public class MediaInfo {
 
     /**
      * Sets list of ImageInfo objects for images representing a media (ex. icon, poster). Where first ([0]) is icon image, and second ([1]) is poster image. 
-
-     * 
+     *
      */
 
     public void setImages(List<ImageInfo> images) {
@@ -182,6 +194,24 @@ public class MediaInfo {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    /**
+     * Gets URL address of a subtitle file.
+     * 
+     */
+
+    public String getSubsUrl() {
+        return subsUrl;
+    }
+
+    /**
+     * Sets URL address of a subtitle file.
+     * 
+     */
+
+    public void setSubsUrl(String subsUrl) {
+        this.subsUrl = subsUrl;
     }
 
     /**
