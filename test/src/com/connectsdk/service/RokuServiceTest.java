@@ -20,6 +20,7 @@
 package com.connectsdk.service;
 
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.TestUtil;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.config.ServiceConfig;
@@ -83,16 +84,23 @@ public class RokuServiceTest {
     @Test
     public void testPlayVideoShouldSendHTTPRequestWithCorrectURL() {
         playMedia("url", "video/mp4", "title", "description");
-        Assert.assertEquals("http://127.0.0.1:13/input/15985?t=v&u=url&k=(null)" +
-                "&videoName=title&videoFormat=mp4", service.mLatestCommand.getTarget());
+
+        Assert.assertTrue(
+                TestUtil.compareUrls(
+                "http://127.0.0.1:13/input/15985?t=v&u=url&k=(null)&videoName=title&videoFormat=mp4"
+                        , service.mLatestCommand.getTarget())
+        );
     }
 
     @Test
     public void testPlayAudioShouldSendHTTPRequestWithCorrectURL() {
         playMedia("url", "audio/mp3", "title", "description");
-        Assert.assertEquals("http://127.0.0.1:13/input/15985?t=a&u=url&k=(null)" +
-                        "&songname=title&artistname=description&songformat=mp3&albumarturl=(null)",
-                service.mLatestCommand.getTarget());
+
+        Assert.assertTrue(
+                TestUtil.compareUrls(
+                        "http://127.0.0.1:13/input/15985?t=a&u=url&k=(null)&songname=title" +
+                                "&artistname=description&songformat=mp3&albumarturl=(null)",
+                        service.mLatestCommand.getTarget()));
     }
 
     @Test
@@ -101,8 +109,9 @@ public class RokuServiceTest {
         MediaPlayer.LaunchListener listener = Mockito.mock(MediaPlayer.LaunchListener.class);
         service.displayImage(mediaInfo, listener);
 
-        Assert.assertEquals("http://127.0.0.1:13/input/15985?t=p&u=url&tr=crossfade",
-                service.mLatestCommand.getTarget());
+        Assert.assertTrue(
+                TestUtil.compareUrls("http://127.0.0.1:13/input/15985?t=p&u=url&tr=crossfade",
+                        service.mLatestCommand.getTarget()));
     }
 
 
