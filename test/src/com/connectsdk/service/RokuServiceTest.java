@@ -1,5 +1,5 @@
 /*
- * WebOSTVServiceTest
+ * RokuServiceTest
  * Connect SDK
  *
  * Copyright (c) 2015 LG Electronics.
@@ -65,8 +65,14 @@ public class RokuServiceTest {
     @Before
     public void setUp() {
         serviceDescription = Mockito.mock(ServiceDescription.class);
+        Mockito.when(serviceDescription.getIpAddress()).thenReturn("127.0.0.1");
+        Mockito.when(serviceDescription.getPort()).thenReturn(13);
+
         ServiceConfig serviceConfig = Mockito.mock(ServiceConfig.class);
         service = new StubRokuService(serviceDescription, serviceConfig);
+
+        MediaPlayer.MediaLaunchObject response = Mockito.mock(MediaPlayer.MediaLaunchObject.class);
+        service.setResponse(response);
     }
 
     @Test
@@ -75,42 +81,35 @@ public class RokuServiceTest {
     }
 
     @Test
-    public void testPlayVideo() {
-        Mockito.when(serviceDescription.getIpAddress()).thenReturn("127.0.0.1");
-        Mockito.when(serviceDescription.getPort()).thenReturn(13);
-        MediaInfo mediaInfo = new MediaInfo("url", "video/mp4", "title", "description");
-        MediaPlayer.LaunchListener listener = Mockito.mock(MediaPlayer.LaunchListener.class);
-        MediaPlayer.MediaLaunchObject response = Mockito.mock(MediaPlayer.MediaLaunchObject.class);
-        service.setResponse(response);
-        service.playMedia(mediaInfo, false, listener);
+    public void testPlayVideoShouldSendHTTPRequestWithCorrectURL() {
+        playMedia("url", "video/mp4", "title", "description");
         Assert.assertEquals("http://127.0.0.1:13/input/15985?t=v&u=url&k=(null)" +
                 "&videoName=title&videoFormat=mp4", service.mLatestCommand.getTarget());
     }
 
     @Test
-    public void testPlayAudio() {
-        Mockito.when(serviceDescription.getIpAddress()).thenReturn("127.0.0.1");
-        Mockito.when(serviceDescription.getPort()).thenReturn(13);
-        MediaInfo mediaInfo = new MediaInfo("url", "audio/mp3", "title", "description");
-        MediaPlayer.LaunchListener listener = Mockito.mock(MediaPlayer.LaunchListener.class);
-        MediaPlayer.MediaLaunchObject response = Mockito.mock(MediaPlayer.MediaLaunchObject.class);
-        service.setResponse(response);
-        service.playMedia(mediaInfo, false, listener);
+    public void testPlayAudioShouldSendHTTPRequestWithCorrectURL() {
+        playMedia("url", "audio/mp3", "title", "description");
         Assert.assertEquals("http://127.0.0.1:13/input/15985?t=a&u=url&k=(null)" +
-                "&songname=title&artistname=description&songformat=mp3&albumarturl=(null)",
+                        "&songname=title&artistname=description&songformat=mp3&albumarturl=(null)",
                 service.mLatestCommand.getTarget());
     }
 
     @Test
-    public void testDisplayImage() {
-        Mockito.when(serviceDescription.getIpAddress()).thenReturn("127.0.0.1");
-        Mockito.when(serviceDescription.getPort()).thenReturn(13);
+    public void testDisplayImageShouldSendHTTPRequestWithCorrectURL() {
         MediaInfo mediaInfo = new MediaInfo("url", "image/jpeg", "title", "description");
         MediaPlayer.LaunchListener listener = Mockito.mock(MediaPlayer.LaunchListener.class);
-        MediaPlayer.MediaLaunchObject response = Mockito.mock(MediaPlayer.MediaLaunchObject.class);
-        service.setResponse(response);
         service.displayImage(mediaInfo, listener);
+
         Assert.assertEquals("http://127.0.0.1:13/input/15985?t=p&u=url&tr=crossfade",
                 service.mLatestCommand.getTarget());
     }
+
+
+    private void playMedia(String url, String mimeType, String title, String description) {
+        MediaInfo mediaInfo = new MediaInfo(url, mimeType, title, description);
+        MediaPlayer.LaunchListener listener = Mockito.mock(MediaPlayer.LaunchListener.class);
+        service.playMedia(mediaInfo, false, listener);
+    }
+
 }

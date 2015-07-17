@@ -701,7 +701,6 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         if (mimeType.contains("image")) {
             param = String.format("15985?t=p&u=%s&tr=crossfade", HttpMessage.encode(url));
         } else if (mimeType.contains("video")) {
-            // parameter `h` is an event server URL
             param = String.format(
                     "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
                     HttpMessage.encode(url),
