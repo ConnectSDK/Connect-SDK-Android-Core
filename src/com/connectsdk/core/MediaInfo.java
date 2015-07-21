@@ -34,7 +34,7 @@ public class MediaInfo {
 
     private String url;
 
-    private String subtitlesUrl;
+    private SubtitleTrack subtitle;
 
     private String mimeType;
 
@@ -60,8 +60,8 @@ public class MediaInfo {
         // optional parameters
         private String title;
         private String description;
-        private String subtitlesUrl;
         private List<ImageInfo> allImages;
+        public SubtitleTrack subtitle;
 
         public Builder(String mediaUrl, String mediaMimeType) {
             this.url = mediaUrl;
@@ -102,8 +102,8 @@ public class MediaInfo {
             return this;
         }
 
-        public Builder setSubtitles(String url) {
-            this.subtitlesUrl = url;
+        public Builder setSubtitle(SubtitleTrack subtitle) {
+            this.subtitle = subtitle;
             return this;
         }
 
@@ -123,7 +123,7 @@ public class MediaInfo {
         mimeType = builder.mimeType;
         title = builder.title;
         description = builder.description;
-        subtitlesUrl = builder.subtitlesUrl;
+        subtitle = builder.subtitle;
         allImages = builder.allImages;
     }
 
@@ -272,8 +272,8 @@ public class MediaInfo {
      * Gets URL address of a subtitle file.
      * 
      */
-    public String getSubsUrl() {
-        return subtitlesUrl;
+    public SubtitleTrack getSubtitle() {
+        return subtitle;
     }
 
     /**
@@ -281,8 +281,8 @@ public class MediaInfo {
      * This method is deprecated
      */
     @Deprecated
-    public void setSubsUrl(String subsUrl) {
-        this.subtitlesUrl = subsUrl;
+    public void setSubtitle(SubtitleTrack subtitle) {
+        this.subtitle = subtitle;
     }
 
     /**

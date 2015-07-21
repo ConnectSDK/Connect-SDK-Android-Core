@@ -91,18 +91,17 @@ public class DLNAServiceTest {
         String mediaURL = "http://host.com/media";
         String iconURL = "http://host.com/icon";
 
-        String excpectedXml = "<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:sec=\"http://www.sec.co.kr/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">" +
+        String expectedXml = "<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:sec=\"http://www.sec.co.kr/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">" +
                 "<item id=\"1000\" parentID=\"0\" restricted=\"0\">" +
                 "<dc:title>&lt;title&gt;</dc:title>" +
                 "<dc:description>" + description + "</dc:description>" +
-                "<res xmlns:pv=\"http://www.pv.com/pvns/\" protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\" pv:subtitleFileType=\"srt\" " +
-                "pv:subtitleFileUri=\"\">" + mediaURL + "</res>" +
+                "<res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\">" + mediaURL + "</res>" +
                 "<upnp:albumArtURI>" + iconURL + "</upnp:albumArtURI>" +
-                "<upnp:class>object.item.audioItem</upnp:class><res protocolInfo=\"http-get:*:smi/caption\"/><res protocolInfo=\"http-get:*:text/srt:\"/><sec:CaptionInfoEx sec:type=\"srt\"/><sec:CaptionInfo sec:type=\"srt\"/>" +
-                "</item></DIDL-Lite>";
+                "<upnp:class>object.item.audioItem</upnp:class><" +
+                "/item></DIDL-Lite>";
 
-        String fragment = service.getMetadata(mediaURL, "", mime, title, description, iconURL);
-        Assert.assertEquals(excpectedXml, fragment);
+        String fragment = service.getMetadata(mediaURL, null, mime, title, description, iconURL);
+        Assert.assertEquals(expectedXml, fragment);
     }
 
 
@@ -135,20 +134,10 @@ public class DLNAServiceTest {
                 "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                 "<s:Body>" +
                 "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
-                "<CurrentURIMetaData>" +
-                "&lt;DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
-                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:sec=\"http://www.sec.co.kr/\" " +
-                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
-                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
-                "&lt;dc:title&gt;&amp;amp;\"title\"&lt;/dc:title&gt;" +
-                "&lt;dc:description&gt;&amp;amp;&lt;/dc:description&gt;" +
-                "&lt;res xmlns:pv=\"http://www.pv.com/pvns/\" protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\" pv:subtitleFileType=\"srt\" pv:subtitleFileUri=\"\"&gt;http://url/t&amp;amp;t&lt;/res&gt;" +
-                "&lt;upnp:albumArtURI&gt;http://host/image&lt;/upnp:albumArtURI&gt;" +
-                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;&lt;res protocolInfo=\"http-get:*:smi/caption\"/&gt;&lt;res protocolInfo=\"http-get:*:text/srt:\"/&gt;&lt;sec:CaptionInfoEx sec:type=\"srt\"/&gt;&lt;sec:CaptionInfo sec:type=\"srt\"/&gt;&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
-                "</CurrentURIMetaData>" +
+                "<CurrentURIMetaData>&lt;DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:sec=\"http://www.sec.co.kr/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;&lt;dc:title&gt;&amp;amp;\"title\"&lt;/dc:title&gt;&lt;dc:description&gt;&amp;amp;&lt;/dc:description&gt;&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;http://url/t&amp;amp;t&lt;/res&gt;&lt;upnp:albumArtURI&gt;http://host/image&lt;/upnp:albumArtURI&gt;&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;&lt;/item&gt;&lt;/DIDL-Lite&gt;</CurrentURIMetaData>" +
                 "</u:" + method + "></s:Body></s:Envelope>";
 
-        String metadata = service.getMetadata("http://url/t&t", "", "audio/mpeg", "&\"title\"", "&", "http://host/image");
+        String metadata = service.getMetadata("http://url/t&t", null, "audio/mpeg", "&\"title\"", "&", "http://host/image");
         Map<String, String> params = new LinkedHashMap<String, String>();
         params.put("CurrentURIMetaData", metadata);
 
