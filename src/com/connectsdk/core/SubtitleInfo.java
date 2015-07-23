@@ -19,7 +19,9 @@
  */
 package com.connectsdk.core;
 
-public class SubtitleTrack {
+import android.support.annotation.NonNull;
+
+public class SubtitleInfo {
 
     final String url;
 
@@ -43,31 +45,31 @@ public class SubtitleTrack {
 
         /**
          * Constructor with required fields
-         * @param url subtitle URL, for Chromecast a web server must have
-         *            a header `Access-Control-Allow-Origin: *`
+         * @param url subtitle URL, see requirements for Chromecast
+         *            https://developers.google.com/cast/docs/chrome_sender#cors-requirements
          * @param mimeType mime type of subtitles. It can be text/vtt, text/srt
          */
-        public Builder(String url, String mimeType) {
+        public Builder(@NonNull String url, @NonNull String mimeType) {
             this.url = url;
             this.mimeType = mimeType;
         }
 
-        public Builder setLabel(String label) {
+        public Builder setLabel(@NonNull String label) {
             this.label = label;
             return this;
         }
 
-        public Builder setLanguage(String language) {
+        public Builder setLanguage(@NonNull String language) {
             this.language = language;
             return this;
         }
 
-        public SubtitleTrack build() {
-            return new SubtitleTrack(this);
+        public SubtitleInfo build() {
+            return new SubtitleInfo(this);
         }
     }
 
-    private SubtitleTrack(SubtitleTrack.Builder builder) {
+    private SubtitleInfo(SubtitleInfo.Builder builder) {
         url = builder.url;
         mimeType = builder.mimeType;
         label = builder.label;
@@ -95,7 +97,7 @@ public class SubtitleTrack {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SubtitleTrack that = (SubtitleTrack) o;
+        SubtitleInfo that = (SubtitleInfo) o;
 
         if (getUrl() != null ? !getUrl().equals(that.getUrl()) : that.getUrl() != null)
             return false;

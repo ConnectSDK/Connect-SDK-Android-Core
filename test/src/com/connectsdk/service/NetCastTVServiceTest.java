@@ -1,5 +1,7 @@
 package com.connectsdk.service;
 
+import com.connectsdk.service.capability.MediaControl;
+import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
@@ -11,6 +13,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
@@ -53,4 +58,5 @@ public class NetCastTVServiceTest {
     public void testDecToHexWithWrongCharactersArgument() {
         Assert.assertEquals("0000000000000010", service.decToHex(" 16\r\n"));
     }
+
 }

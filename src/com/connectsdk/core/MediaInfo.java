@@ -20,6 +20,8 @@
 
 package com.connectsdk.core;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +36,7 @@ public class MediaInfo {
 
     private String url;
 
-    private SubtitleTrack subtitle;
+    private SubtitleInfo subtitle;
 
     private String mimeType;
 
@@ -61,48 +63,36 @@ public class MediaInfo {
         private String title;
         private String description;
         private List<ImageInfo> allImages;
-        public SubtitleTrack subtitle;
+        public SubtitleInfo subtitle;
 
-        public Builder(String mediaUrl, String mediaMimeType) {
+        public Builder(@NonNull String mediaUrl, @NonNull String mediaMimeType) {
             this.url = mediaUrl;
             this.mimeType = mediaMimeType;
         }
 
-        public Builder setTitle(String title) {
+        public Builder setTitle(@NonNull String title) {
             this.title = title;
             return this;
         }
 
-        public Builder setDescription(String description) {
+        public Builder setDescription(@NonNull String description) {
             this.description = description;
             return this;
         }
 
-        public Builder setIcon(String iconUrl) {
+        public Builder setIcon(@NonNull String iconUrl) {
             createImagesList();
             allImages.set(0, new ImageInfo(iconUrl));
             return this;
         }
 
-        public Builder setIcon(ImageInfo icon) {
+        public Builder setIcon(@NonNull ImageInfo icon) {
             createImagesList();
             allImages.set(0, icon);
             return this;
         }
 
-        public Builder setPoster(String posterUrl) {
-            createImagesList();
-            allImages.set(1, new ImageInfo(posterUrl));
-            return this;
-        }
-
-        public Builder setPoster(ImageInfo poster) {
-            createImagesList();
-            allImages.set(1, poster);
-            return this;
-        }
-
-        public Builder setSubtitle(SubtitleTrack subtitle) {
+        public Builder setSubtitle(@NonNull SubtitleInfo subtitle) {
             this.subtitle = subtitle;
             return this;
         }
@@ -113,7 +103,8 @@ public class MediaInfo {
 
         private void createImagesList() {
             if (allImages == null) {
-                allImages = new ArrayList<ImageInfo>(Collections.<ImageInfo>nCopies(2, null));
+                // Currently only one image is used by all services with index 0
+                allImages = new ArrayList<ImageInfo>(Collections.<ImageInfo>nCopies(1, null));
             }
         }
     }
@@ -218,6 +209,7 @@ public class MediaInfo {
     /**
      * Gets list of ImageInfo objects for images representing a media (ex. icon, poster).
      * Where first ([0]) is icon image, and second ([1]) is poster image.
+     *
      */
     public List<ImageInfo> getImages() {
         return allImages;
@@ -272,7 +264,7 @@ public class MediaInfo {
      * Gets URL address of a subtitle file.
      * 
      */
-    public SubtitleTrack getSubtitle() {
+    public SubtitleInfo getSubtitle() {
         return subtitle;
     }
 
@@ -281,7 +273,7 @@ public class MediaInfo {
      * This method is deprecated
      */
     @Deprecated
-    public void setSubtitle(SubtitleTrack subtitle) {
+    public void setSubtitle(SubtitleInfo subtitle) {
         this.subtitle = subtitle;
     }
 

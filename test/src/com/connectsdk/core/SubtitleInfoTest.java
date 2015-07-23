@@ -26,15 +26,16 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
-public class SubtitleTrackTest {
+public class SubtitleInfoTest {
 
     @Test
     public void testCreateSubtitleWithRequiredParameters() {
         String url = "http://127.0.0.1/";
         String mimetype = "text/vtt";
-        SubtitleTrack subtitle = new SubtitleTrack.Builder(url, mimetype).build();
+        SubtitleInfo subtitle = new SubtitleInfo.Builder(url, mimetype).build();
 
         Assert.assertEquals(url, subtitle.getUrl());
         Assert.assertEquals(mimetype, subtitle.getMimeType());
@@ -48,7 +49,7 @@ public class SubtitleTrackTest {
         String mimetype = "text/vtt";
         String label = "label";
         String language = "en";
-        SubtitleTrack subtitle = new SubtitleTrack
+        SubtitleInfo subtitle = new SubtitleInfo
                 .Builder(url, mimetype)
                 .setLabel(label)
                 .setLanguage(language)

@@ -27,7 +27,7 @@ import android.util.Xml;
 
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.SubtitleTrack;
+import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -244,7 +244,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     }
 
-    public void displayMedia(String url, SubtitleTrack subtitle, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
+    private void displayMedia(String url, SubtitleInfo subtitle, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
         final String instanceId = "0";
         String[] mediaElements = mimeType.split("/");
         String mediaType = mediaElements[0];
@@ -354,7 +354,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
             LaunchListener listener) {
         String mediaUrl = null;
-        SubtitleTrack subtitle = null;
+        SubtitleInfo subtitle = null;
         String mimeType = null;
         String title = null;
         String desc = null;
@@ -654,7 +654,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         }
     }
 
-    protected String getMetadata(String mediaURL, SubtitleTrack subtitle, String mime, String title, String description, String iconUrl) {
+    protected String getMetadata(String mediaURL, SubtitleInfo subtitle, String mime, String title, String description, String iconUrl) {
         try {
             String objectClass = "";
             if (mime.startsWith("image")) {
@@ -703,7 +703,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
             if (subtitle != null) {
                 String mimeType = (subtitle.getMimeType() == null) ? "" : subtitle.getMimeType();
-                String[] typeParts =  mimeType.split("//");
+                String[] typeParts =  mimeType.split("/");
                 String type = (typeParts != null && typeParts.length == 2) ? typeParts[1] : "";
 
                 resElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:pv", "http://www.pv.com/pvns/");
@@ -839,7 +839,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         capabilities.add(Play_Audio);
         capabilities.add(Play_Playlist);
         capabilities.add(Close);
-        capabilities.add(Subtitles_Srt);
+        capabilities.add(Subtitle_SRT);
 
         capabilities.add(MetaData_Title);
         capabilities.add(MetaData_MimeType);

@@ -51,14 +51,13 @@ public class MediaInfoTest {
         String mimeType = "video/mp4";
         String description = "description";
         String iconUrl = "http://iconurl";
-        String posterUrl = "http://posterurl";
-        SubtitleTrack subtitle = new SubtitleTrack.Builder("", "").build();
+
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("", "").build();
         String title = "title";
         MediaInfo mediaInfo = new MediaInfo
                 .Builder(url, mimeType)
                 .setDescription(description)
                 .setIcon(iconUrl)
-                .setPoster(posterUrl)
                 .setSubtitle(subtitle)
                 .setTitle(title)
                 .build();
@@ -67,7 +66,7 @@ public class MediaInfoTest {
         Assert.assertEquals(mimeType, mediaInfo.getMimeType());
         Assert.assertEquals(description, mediaInfo.getDescription());
         Assert.assertEquals(iconUrl, mediaInfo.getImages().get(0).getUrl());
-        Assert.assertEquals(posterUrl, mediaInfo.getImages().get(1).getUrl());
+        Assert.assertEquals(1, mediaInfo.getImages().size());
         Assert.assertEquals(subtitle, mediaInfo.getSubtitle());
         Assert.assertEquals(title, mediaInfo.getTitle());
     }

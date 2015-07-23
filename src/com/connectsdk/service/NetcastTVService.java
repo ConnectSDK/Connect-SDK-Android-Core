@@ -2354,7 +2354,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             Collections.addAll(capabilities, KeyControl.Capabilities);
             Collections.addAll(capabilities, MediaPlayer.Capabilities);
 
-            capabilities.add(MediaPlayer.Subtitles_Srt);
+            capabilities.add(MediaPlayer.Subtitle_SRT);
 
             capabilities.add(PowerControl.Off);
 
