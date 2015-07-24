@@ -172,7 +172,8 @@ public class DLNAServiceTest {
         String serviceURN = "http://serviceurn/";
         String subtitleType = "text/vtt";
         String subtitleSubType = "vtt";
-        SubtitleInfo subtitle = new SubtitleInfo.Builder("http://subtitleurl", subtitleType)
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("http://subtitleurl")
+                .setMimeType(subtitleType)
                 .setLabel("label")
                 .setLanguage("en")
                 .build();
@@ -204,6 +205,56 @@ public class DLNAServiceTest {
                 "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
                 "&lt;res protocolInfo=\"http-get:*:smi/caption\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
                 "&lt;res protocolInfo=\"http-get:*:"+subtitle.getMimeType()+":\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;sec:CaptionInfoEx sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfoEx&gt;" +
+                "&lt;sec:CaptionInfo sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfo&gt;" +
+                "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
+                "</CurrentURIMetaData>" +
+                "</u:" + method + "></s:Body></s:Envelope>";
+
+        String metadata = service.getMetadata(mediaUrl, subtitle, mediaType, title, description, iconUrl);
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("CurrentURIMetaData", metadata);
+
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
+    }
+
+    @Test
+    public void testGetMessageXmlWithMetadataWithSubtitleUrl() throws Exception {
+        String method = "SetAVTransportUri";
+        String serviceURN = "http://serviceurn/";
+        String subtitleType = "text/srt";
+        String subtitleSubType = "srt";
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("http://subtitleurl")
+                .build();
+        String mediaUrl = "http://mediaurl/";
+        String mediaType = "audio/mp3";
+        String title = "&\"title";
+        String description = "description";
+        String iconUrl = "http://iconurl/";
+
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+                "<s:Body>" +
+                "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+                "<CurrentURIMetaData>" +
+                "&lt;DIDL-Lite " +
+                "xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" " +
+                "xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title&gt;&amp;amp;\"title&lt;/dc:title&gt;" +
+                "&lt;dc:description&gt;description&lt;/dc:description&gt;" +
+                "&lt;res xmlns:pv=\"http://www.pv.com/pvns/\" " +
+                "protocolInfo=\"http-get:*:"+mediaType+":DLNA.ORG_OP=01\" " +
+                "pv:subtitleFileType=\""+subtitleSubType+"\" " +
+                "pv:subtitleFileUri=\""+subtitle.getUrl()+"\"&gt;"+mediaUrl+"&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI&gt;"+iconUrl+"&lt;/upnp:albumArtURI&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:smi/caption\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:"+subtitleType+":\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
                 "&lt;sec:CaptionInfoEx sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfoEx&gt;" +
                 "&lt;sec:CaptionInfo sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfo&gt;" +
                 "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +

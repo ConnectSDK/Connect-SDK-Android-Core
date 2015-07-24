@@ -35,10 +35,10 @@ public class SubtitleInfoTest {
     public void testCreateSubtitleWithRequiredParameters() {
         String url = "http://127.0.0.1/";
         String mimetype = "text/vtt";
-        SubtitleInfo subtitle = new SubtitleInfo.Builder(url, mimetype).build();
+        SubtitleInfo subtitle = new SubtitleInfo.Builder(url).build();
 
         Assert.assertEquals(url, subtitle.getUrl());
-        Assert.assertEquals(mimetype, subtitle.getMimeType());
+        Assert.assertNull(subtitle.getMimeType());
         Assert.assertNull(subtitle.getLabel());
         Assert.assertNull(subtitle.getLanguage());
     }
@@ -50,7 +50,8 @@ public class SubtitleInfoTest {
         String label = "label";
         String language = "en";
         SubtitleInfo subtitle = new SubtitleInfo
-                .Builder(url, mimetype)
+                .Builder(url)
+                .setMimeType(mimetype)
                 .setLabel(label)
                 .setLanguage(language)
                 .build();

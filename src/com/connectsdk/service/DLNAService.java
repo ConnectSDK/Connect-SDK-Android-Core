@@ -702,7 +702,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             resElement.setAttribute("protocolInfo", "http-get:*:" + mime + ":DLNA.ORG_OP=01");
 
             if (subtitle != null) {
-                String mimeType = (subtitle.getMimeType() == null) ? "" : subtitle.getMimeType();
+                String mimeType = (subtitle.getMimeType() == null) ? "text/srt" : subtitle.getMimeType();
                 String[] typeParts =  mimeType.split("/");
                 String type = (typeParts != null && typeParts.length == 2) ? typeParts[1] : "";
 

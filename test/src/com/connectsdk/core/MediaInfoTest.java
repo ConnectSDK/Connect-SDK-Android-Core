@@ -52,7 +52,7 @@ public class MediaInfoTest {
         String description = "description";
         String iconUrl = "http://iconurl";
 
-        SubtitleInfo subtitle = new SubtitleInfo.Builder("", "").build();
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("").build();
         String title = "title";
         MediaInfo mediaInfo = new MediaInfo
                 .Builder(url, mimeType)

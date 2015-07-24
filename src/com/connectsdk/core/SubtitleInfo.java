@@ -47,11 +47,14 @@ public class SubtitleInfo {
          * Constructor with required fields
          * @param url subtitle URL, see requirements for Chromecast
          *            https://developers.google.com/cast/docs/chrome_sender#cors-requirements
-         * @param mimeType mime type of subtitles. It can be text/vtt, text/srt
          */
-        public Builder(@NonNull String url, @NonNull String mimeType) {
+        public Builder(@NonNull String url) {
             this.url = url;
+        }
+
+        public Builder setMimeType(@NonNull String mimeType) {
             this.mimeType = mimeType;
+            return this;
         }
 
         public Builder setLabel(@NonNull String label) {
