@@ -105,7 +105,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     protected static final String RENDERING_CONTROL = "RenderingControl";
     protected static final String GROUP_RENDERING_CONTROL = "GroupRenderingControl";
 
-    public final static String PLAY_STATE = "playState";
+    public static final String PLAY_STATE = "playState";
+    public static final String DEFAULT_SUBTITLE_MIMETYPE = "text/srt";
+    public static final String DEFAULT_SUBTITLE_TYPE = "srt";
 
     Context context;
 
@@ -702,9 +704,16 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             resElement.setAttribute("protocolInfo", "http-get:*:" + mime + ":DLNA.ORG_OP=01");
 
             if (subtitle != null) {
-                String mimeType = (subtitle.getMimeType() == null) ? "text/srt" : subtitle.getMimeType();
+                String mimeType = (subtitle.getMimeType() == null) ? DEFAULT_SUBTITLE_TYPE : subtitle.getMimeType();
+                String type;
                 String[] typeParts =  mimeType.split("/");
-                String type = (typeParts != null && typeParts.length == 2) ? typeParts[1] : "";
+                if (typeParts != null && typeParts.length == 2) {
+                    type = typeParts[1];
+                } else {
+                    mimeType = DEFAULT_SUBTITLE_MIMETYPE;
+                    type = DEFAULT_SUBTITLE_TYPE;
+                }
+
 
                 resElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:pv", "http://www.pv.com/pvns/");
                 resElement.setAttribute("pv:subtitleFileUri", subtitle.getUrl());
