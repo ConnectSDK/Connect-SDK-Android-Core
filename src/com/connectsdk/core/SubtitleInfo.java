@@ -22,29 +22,23 @@ package com.connectsdk.core;
 import android.support.annotation.NonNull;
 
 public class SubtitleInfo {
-
     final String url;
-
     final String mimeType;
-
     final String label;
-
     final String language;
 
     public static class Builder {
         // required fields
         String url;
-
         String mimeType;
 
         // optional fields
-
         String label;
-
         String language;
 
         /**
          * Constructor with required fields
+         *
          * @param url subtitle URL, see requirements for Chromecast
          *            https://developers.google.com/cast/docs/chrome_sender#cors-requirements
          */
@@ -102,8 +96,9 @@ public class SubtitleInfo {
 
         SubtitleInfo that = (SubtitleInfo) o;
 
-        if (getUrl() != null ? !getUrl().equals(that.getUrl()) : that.getUrl() != null)
+        if (getUrl() != null ? !getUrl().equals(that.getUrl()) : that.getUrl() != null) {
             return false;
+        }
         return !(getMimeType() != null ? !getMimeType().equals(that.getMimeType()) : that.getMimeType() != null);
 
     }

@@ -35,13 +35,9 @@ public class MediaInfo {
     // @cond INTERNAL
 
     private String url;
-
     private SubtitleInfo subtitle;
-
     private String mimeType;
-
     private String description;
-
     private String title;
 
     /**
@@ -121,9 +117,9 @@ public class MediaInfo {
     /**
      * This constructor is deprecated. Use `MediaInfo.Builder` instead.
      *
-     * @param url media file
-     * @param mimeType media mime type
-     * @param title optional metadata
+     * @param url         media file
+     * @param mimeType    media mime type
+     * @param title       optional metadata
      * @param description optional metadata
      */
     @Deprecated
@@ -138,11 +134,11 @@ public class MediaInfo {
     /**
      * This constructor is deprecated. Use `MediaInfo.Builder` instead.
      *
-     * @param url media file
-     * @param mimeType media mime type
-     * @param title optional metadata
+     * @param url         media file
+     * @param mimeType    media mime type
+     * @param title       optional metadata
      * @param description optional metadata
-     * @param allImages list of imageInfo objects where [0] is icon, [1] is poster
+     * @param allImages   list of imageInfo objects where [0] is icon, [1] is poster
      */
     @Deprecated
     public MediaInfo(String url, String mimeType, String title, String description,
@@ -153,8 +149,6 @@ public class MediaInfo {
 
     /**
      * Gets type of a media file.
-     * 
-     * 
      */
     public String getMimeType() {
         return mimeType;
@@ -162,7 +156,7 @@ public class MediaInfo {
 
     /**
      * Sets type of a media file.
-     * 
+     *
      * This method is deprecated
      */
     @Deprecated
@@ -172,8 +166,6 @@ public class MediaInfo {
 
     /**
      * Gets title for a media file.
-     * 
-     * 
      */
     public String getTitle() {
         return title;
@@ -181,7 +173,7 @@ public class MediaInfo {
 
     /**
      * Sets title of a media file.
-     * 
+     *
      * This method is deprecated
      */
     @Deprecated
@@ -191,7 +183,6 @@ public class MediaInfo {
 
     /**
      * Gets description for a media.
-     * 
      */
     public String getDescription() {
         return description;
@@ -209,7 +200,6 @@ public class MediaInfo {
     /**
      * Gets list of ImageInfo objects for images representing a media (ex. icon, poster).
      * Where first ([0]) is icon image, and second ([1]) is poster image.
-     *
      */
     public List<ImageInfo> getImages() {
         return allImages;
@@ -228,7 +218,6 @@ public class MediaInfo {
 
     /**
      * Gets duration of a media file.
-     * 
      */
     public long getDuration() {
         return duration;
@@ -245,7 +234,6 @@ public class MediaInfo {
 
     /**
      * Gets URL address of a media file.
-     * 
      */
     public String getUrl() {
         return url;
@@ -262,7 +250,6 @@ public class MediaInfo {
 
     /**
      * Gets URL address of a subtitle file.
-     * 
      */
     public SubtitleInfo getSubtitle() {
         return subtitle;
