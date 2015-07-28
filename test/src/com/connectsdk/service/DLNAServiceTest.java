@@ -1,5 +1,6 @@
 package com.connectsdk.service;
 
+import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.provider.ssdp.Service;
 import com.connectsdk.service.config.ServiceConfig;
@@ -8,6 +9,8 @@ import com.connectsdk.service.upnp.DLNAHttpServer;
 
 import junit.framework.Assert;
 
+import org.custommonkey.xmlunit.DetailedDiff;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,7 +18,9 @@ import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -91,29 +96,29 @@ public class DLNAServiceTest {
         String mediaURL = "http://host.com/media";
         String iconURL = "http://host.com/icon";
 
-        String expectedXml =
-                "<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">" +
+        String expectedXML = "<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\">" +
                 "<item id=\"1000\" parentID=\"0\" restricted=\"0\">" +
                 "<dc:title>&lt;title&gt;</dc:title>" +
                 "<dc:description>" + description + "</dc:description>" +
                 "<res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\">" + mediaURL + "</res>" +
                 "<upnp:albumArtURI>" + iconURL + "</upnp:albumArtURI>" +
-                "<upnp:class>object.item.audioItem</upnp:class>" +
-                "</item>" +
-                "</DIDL-Lite>";
+                "<upnp:class>object.item.audioItem</upnp:class><" +
+                "/item></DIDL-Lite>";
 
-        String fragment = service.getMetadata(mediaURL, mime, title, description, iconURL);
-        Assert.assertEquals(expectedXml, fragment);
+        String actualXML = service.getMetadata(mediaURL, null, mime, title, description, iconURL);
+        assertXMLEquals(expectedXML, actualXML);
     }
-
 
     @Test
     public void testGetMessageXml() throws Exception {
         String method = "GetPosition";
         String serviceURN = "http://serviceurn/";
 
-        String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-        "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
         "<s:Body>" +
         "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
         "<key>value</key>" +
@@ -123,42 +128,179 @@ public class DLNAServiceTest {
 
         Map<String, String> params = new HashMap<String, String>();
         params.put("key", "value");
-        String source = service.getMessageXml(serviceURN, method, null, params);
-        Assert.assertEquals(expectedXml, (source));
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
     }
 
     @Test
-    public void testGetMessageXmlWithMetadata() throws Exception {
+    public void testGetMessageXmlWithMetadataWithAllParametersExceptSubtitle() throws Exception {
         String method = "SetAVTransportUri";
         String serviceURN = "http://serviceurn/";
 
-        String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
                 "<s:Body>" +
                 "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
                 "<CurrentURIMetaData>" +
-
-                "&lt;DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;DIDL-Lite " +
+                "xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" " +
+                "xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
                 "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
                 "&lt;dc:title&gt;&amp;amp;\"title\"&lt;/dc:title&gt;" +
                 "&lt;dc:description&gt;&amp;amp;&lt;/dc:description&gt;" +
                 "&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;http://url/t&amp;amp;t&lt;/res&gt;" +
                 "&lt;upnp:albumArtURI&gt;http://host/image&lt;/upnp:albumArtURI&gt;" +
                 "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
-                "&lt;/item&gt;" +
-                "&lt;/DIDL-Lite&gt;" +
-
+                "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
                 "</CurrentURIMetaData>" +
-                "</u:" + method + ">" +
-                "</s:Body>" +
-                "</s:Envelope>";
+                "</u:" + method + "></s:Body></s:Envelope>";
 
-        String metadata = service.getMetadata("http://url/t&t", "audio/mpeg", "&\"title\"", "&", "http://host/image");
+        String metadata = service.getMetadata("http://url/t&t", null, "audio/mpeg", "&\"title\"", "&", "http://host/image");
         Map<String, String> params = new LinkedHashMap<String, String>();
         params.put("CurrentURIMetaData", metadata);
 
-        String source = service.getMessageXml(serviceURN, method, null, params);
-        Assert.assertEquals(expectedXml, (source));
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
+    }
+
+    @Test
+    public void testGetMessageXmlWithMetadataWithAllParameters() throws Exception {
+        String method = "SetAVTransportUri";
+        String serviceURN = "http://serviceurn/";
+        String subtitleType = "text/vtt";
+        String subtitleSubType = "vtt";
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("http://subtitleurl")
+                .setMimeType(subtitleType)
+                .setLabel("label")
+                .setLanguage("en")
+                .build();
+        String mediaUrl = "http://mediaurl/";
+        String mediaType = "audio/mp3";
+        String title = "&\"title";
+        String description = "description";
+        String iconUrl = "http://iconurl/";
+
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+                "<s:Body>" +
+                "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+                "<CurrentURIMetaData>" +
+                "&lt;DIDL-Lite " +
+                "xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" " +
+                "xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title&gt;&amp;amp;\"title&lt;/dc:title&gt;" +
+                "&lt;dc:description&gt;description&lt;/dc:description&gt;" +
+                "&lt;res xmlns:pv=\"http://www.pv.com/pvns/\" " +
+                "protocolInfo=\"http-get:*:"+mediaType+":DLNA.ORG_OP=01\" " +
+                "pv:subtitleFileType=\""+subtitleSubType+"\" " +
+                "pv:subtitleFileUri=\""+subtitle.getUrl()+"\"&gt;"+mediaUrl+"&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI&gt;"+iconUrl+"&lt;/upnp:albumArtURI&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:smi/caption\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:"+subtitle.getMimeType()+":\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;sec:CaptionInfoEx sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfoEx&gt;" +
+                "&lt;sec:CaptionInfo sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfo&gt;" +
+                "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
+                "</CurrentURIMetaData>" +
+                "</u:" + method + "></s:Body></s:Envelope>";
+
+        String metadata = service.getMetadata(mediaUrl, subtitle, mediaType, title, description, iconUrl);
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("CurrentURIMetaData", metadata);
+
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
+    }
+
+    @Test
+    public void testGetMessageXmlWithMetadataWithSubtitleUrl() throws Exception {
+        String method = "SetAVTransportUri";
+        String serviceURN = "http://serviceurn/";
+        String subtitleType = "text/srt";
+        String subtitleSubType = "srt";
+        SubtitleInfo subtitle = new SubtitleInfo.Builder("http://subtitleurl")
+                .build();
+        String mediaUrl = "http://mediaurl/";
+        String mediaType = "audio/mp3";
+        String title = "&\"title";
+        String description = "description";
+        String iconUrl = "http://iconurl/";
+
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+                "<s:Body>" +
+                "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+                "<CurrentURIMetaData>" +
+                "&lt;DIDL-Lite " +
+                "xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" " +
+                "xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title&gt;&amp;amp;\"title&lt;/dc:title&gt;" +
+                "&lt;dc:description&gt;description&lt;/dc:description&gt;" +
+                "&lt;res xmlns:pv=\"http://www.pv.com/pvns/\" " +
+                "protocolInfo=\"http-get:*:"+mediaType+":DLNA.ORG_OP=01\" " +
+                "pv:subtitleFileType=\""+subtitleSubType+"\" " +
+                "pv:subtitleFileUri=\""+subtitle.getUrl()+"\"&gt;"+mediaUrl+"&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI&gt;"+iconUrl+"&lt;/upnp:albumArtURI&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:smi/caption\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:"+subtitleType+":\"&gt;"+subtitle.getUrl()+"&lt;/res&gt;" +
+                "&lt;sec:CaptionInfoEx sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfoEx&gt;" +
+                "&lt;sec:CaptionInfo sec:type=\""+subtitleSubType+"\"&gt;"+subtitle.getUrl()+"&lt;/sec:CaptionInfo&gt;" +
+                "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
+                "</CurrentURIMetaData>" +
+                "</u:" + method + "></s:Body></s:Envelope>";
+
+        String metadata = service.getMetadata(mediaUrl, subtitle, mediaType, title, description, iconUrl);
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("CurrentURIMetaData", metadata);
+
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
+    }
+
+    @Test
+    public void testGetMessageXmlWithMetadataWithRequiredParameters() throws Exception {
+        String method = "SetAVTransportUri";
+        String serviceURN = "http://serviceurn/";
+
+        String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" " +
+                "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
+                "<s:Body>" +
+                "<u:" + method + " xmlns:u=\"" + serviceURN + "\">" +
+                "<CurrentURIMetaData>" +
+                "&lt;DIDL-Lite " +
+                "xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" " +
+                "xmlns:dc=\"http://purl.org/dc/elements/1.1/\" " +
+                "xmlns:sec=\"http://www.sec.co.kr/\" " +
+                "xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\"&gt;" +
+                "&lt;item id=\"1000\" parentID=\"0\" restricted=\"0\"&gt;" +
+                "&lt;dc:title/&gt;" +
+                "&lt;dc:description/&gt;" +
+                "&lt;res protocolInfo=\"http-get:*:audio/mpeg:DLNA.ORG_OP=01\"&gt;http://url/t&amp;amp;t&lt;/res&gt;" +
+                "&lt;upnp:albumArtURI/&gt;" +
+                "&lt;upnp:class&gt;object.item.audioItem&lt;/upnp:class&gt;" +
+                "&lt;/item&gt;&lt;/DIDL-Lite&gt;" +
+                "</CurrentURIMetaData>" +
+                "</u:" + method + "></s:Body></s:Envelope>";
+
+        String metadata = service.getMetadata("http://url/t&t", null, "audio/mpeg", null, null, null);
+        Map<String, String> params = new LinkedHashMap<String, String>();
+        params.put("CurrentURIMetaData", metadata);
+
+        String actualXML = service.getMessageXml(serviceURN, method, null, params);
+        assertXMLEquals(expectedXML, actualXML);
     }
 
     @Test
@@ -307,4 +449,12 @@ public class DLNAServiceTest {
         return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application, null);
     }
 
+    private void assertXMLEquals(String expectedXML, String actualXML) throws SAXException, IOException {
+        XMLUnit.setIgnoreWhitespace(true);
+        XMLUnit.setIgnoreAttributeOrder(true);
+        XMLUnit.setNormalize(true);
+        DetailedDiff diff = new DetailedDiff(XMLUnit.compareXML(expectedXML, actualXML));
+        List<?> allDifferences = diff.getAllDifferences();
+        Assert.assertEquals("XML differences found: " + diff.toString(), 0, allDifferences.size());
+    }
 }

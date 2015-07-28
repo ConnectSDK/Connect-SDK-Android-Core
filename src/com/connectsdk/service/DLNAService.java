@@ -27,6 +27,7 @@ import android.util.Xml;
 
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -104,7 +105,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     protected static final String RENDERING_CONTROL = "RenderingControl";
     protected static final String GROUP_RENDERING_CONTROL = "GroupRenderingControl";
 
-    public final static String PLAY_STATE = "playState";
+    public static final String PLAY_STATE = "playState";
+    public static final String DEFAULT_SUBTITLE_MIMETYPE = "text/srt";
+    public static final String DEFAULT_SUBTITLE_TYPE = "srt";
 
     Context context;
 
@@ -243,7 +246,12 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     }
 
+    @Deprecated
     public void displayMedia(String url, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
+        displayMedia(url, null, mimeType, title, description, iconSrc, listener);
+    }
+
+    private void displayMedia(String url, SubtitleInfo subtitle, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
         final String instanceId = "0";
         String[] mediaElements = mimeType.split("/");
         String mediaType = mediaElements[0];
@@ -295,7 +303,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         };
 
         String method = "SetAVTransportURI";
-        String metadata = getMetadata(url, mMimeType, title, description, iconSrc);
+        String metadata = getMetadata(url, subtitle, mMimeType, title, description, iconSrc);
         if (metadata == null) {
             Util.postError(listener, ServiceCommandError.getError(500));
             return;
@@ -318,7 +326,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     @Override
     public void displayImage(String url, String mimeType, String title, String description, String iconSrc, LaunchListener listener) {
-        displayMedia(url, mimeType, title, description, iconSrc, listener);
+        displayMedia(url, null, mimeType, title, description, iconSrc, listener);
     }
 
     @Override
@@ -346,13 +354,14 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     @Override
     public void playMedia(String url, String mimeType, String title, String description, String iconSrc, boolean shouldLoop, LaunchListener listener) {
-        displayMedia(url, mimeType, title, description, iconSrc, listener);
+        displayMedia(url, null, mimeType, title, description, iconSrc, listener);
     }
 
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
             LaunchListener listener) {
         String mediaUrl = null;
+        SubtitleInfo subtitle = null;
         String mimeType = null;
         String title = null;
         String desc = null;
@@ -360,6 +369,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
         if (mediaInfo != null) {
             mediaUrl = mediaInfo.getUrl();
+            subtitle = mediaInfo.getSubtitleInfo();
             mimeType = mediaInfo.getMimeType();
             title = mediaInfo.getTitle();
             desc = mediaInfo.getDescription();
@@ -370,7 +380,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             }
         }
 
-        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
+        displayMedia(mediaUrl, subtitle, mimeType, title, desc, iconSrc, listener);
     }
 
     @Override
@@ -651,7 +661,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         }
     }
 
-    protected String getMetadata(String mediaURL, String mime, String title, String description, String iconUrl) {
+    protected String getMetadata(String mediaURL, SubtitleInfo subtitle, String mime, String title, String description, String iconUrl) {
         try {
             String objectClass = "";
             if (mime.startsWith("image")) {
@@ -684,6 +694,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/");
             didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:upnp", "urn:schemas-upnp-org:metadata-1-0/upnp/");
             didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dc", "http://purl.org/dc/elements/1.1/");
+            didlRoot.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:sec", "http://www.sec.co.kr/");
 
             titleElement.setTextContent(title);
             descriptionElement.setTextContent(description);
@@ -696,6 +707,43 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             itemElement.setAttribute("restricted", "0");
 
             resElement.setAttribute("protocolInfo", "http-get:*:" + mime + ":DLNA.ORG_OP=01");
+
+            if (subtitle != null) {
+                String mimeType = (subtitle.getMimeType() == null) ? DEFAULT_SUBTITLE_TYPE : subtitle.getMimeType();
+                String type;
+                String[] typeParts =  mimeType.split("/");
+                if (typeParts != null && typeParts.length == 2) {
+                    type = typeParts[1];
+                } else {
+                    mimeType = DEFAULT_SUBTITLE_MIMETYPE;
+                    type = DEFAULT_SUBTITLE_TYPE;
+                }
+
+
+                resElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:pv", "http://www.pv.com/pvns/");
+                resElement.setAttribute("pv:subtitleFileUri", subtitle.getUrl());
+                resElement.setAttribute("pv:subtitleFileType", type);
+
+                Element smiResElement = doc.createElement("res");
+                smiResElement.setAttribute("protocolInfo", "http-get:*:smi/caption");
+                smiResElement.setTextContent(subtitle.getUrl());
+                itemElement.appendChild(smiResElement);
+
+                Element srtResElement = doc.createElement("res");
+                srtResElement.setAttribute("protocolInfo", "http-get:*:"+mimeType+":");
+                srtResElement.setTextContent(subtitle.getUrl());
+                itemElement.appendChild(srtResElement);
+
+                Element captionInfoExElement = doc.createElement("sec:CaptionInfoEx");
+                captionInfoExElement.setAttribute("sec:type", type);
+                captionInfoExElement.setTextContent(subtitle.getUrl());
+                itemElement.appendChild(captionInfoExElement);
+
+                Element captionInfoElement = doc.createElement("sec:CaptionInfo");
+                captionInfoElement.setAttribute("sec:type", type);
+                captionInfoElement.setTextContent(subtitle.getUrl());
+                itemElement.appendChild(captionInfoElement);
+            }
 
             doc.appendChild(didlRoot);
             return xmlToString(doc, false);
@@ -805,6 +853,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         capabilities.add(Play_Audio);
         capabilities.add(Play_Playlist);
         capabilities.add(Close);
+        capabilities.add(Subtitle_SRT);
 
         capabilities.add(MetaData_Title);
         capabilities.add(MetaData_MimeType);

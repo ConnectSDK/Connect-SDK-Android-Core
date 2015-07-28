@@ -1,5 +1,7 @@
 package com.connectsdk.service;
 
+import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
@@ -9,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -25,6 +28,7 @@ public class NetCastTVServiceTest {
     @Before
     public void setUp() {
         serviceDescription = Mockito.mock(ServiceDescription.class);
+        Mockito.when(serviceDescription.getModelNumber()).thenReturn("4.0");
         serviceConfig = Mockito.mock(ServiceConfig.class);
         service = new NetcastTVService(serviceDescription, serviceConfig);
     }
@@ -53,4 +57,21 @@ public class NetCastTVServiceTest {
     public void testDecToHexWithWrongCharactersArgument() {
         Assert.assertEquals("0000000000000010", service.decToHex(" 16\r\n"));
     }
+
+    @Test
+    public void testServiceShouldHasSubtitleCapabilityWhenPairingLevelOn() {
+        checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel.OFF);
+    }
+
+    @Test
+    public void testServiceShouldHasSubtitleCapabilityWhenPairingLevelOff() {
+        checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel.ON);
+    }
+
+    private void checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel level) {
+        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.getInstance().setPairingLevel(level);
+        Assert.assertTrue(service.hasCapability(MediaPlayer.Subtitle_SRT));
+    }
+
 }
