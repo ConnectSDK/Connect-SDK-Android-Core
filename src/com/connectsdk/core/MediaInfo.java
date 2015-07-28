@@ -35,7 +35,7 @@ public class MediaInfo {
     // @cond INTERNAL
 
     private String url;
-    private SubtitleInfo subtitle;
+    private SubtitleInfo subtitleInfo;
     private String mimeType;
     private String description;
     private String title;
@@ -59,7 +59,7 @@ public class MediaInfo {
         private String title;
         private String description;
         private List<ImageInfo> allImages;
-        public SubtitleInfo subtitle;
+        public SubtitleInfo subtitleInfo;
 
         public Builder(@NonNull String mediaUrl, @NonNull String mediaMimeType) {
             this.url = mediaUrl;
@@ -88,8 +88,8 @@ public class MediaInfo {
             return this;
         }
 
-        public Builder setSubtitle(@NonNull SubtitleInfo subtitle) {
-            this.subtitle = subtitle;
+        public Builder setSubtitleInfo(@NonNull SubtitleInfo subtitleInfo) {
+            this.subtitleInfo = subtitleInfo;
             return this;
         }
 
@@ -110,7 +110,7 @@ public class MediaInfo {
         mimeType = builder.mimeType;
         title = builder.title;
         description = builder.description;
-        subtitle = builder.subtitle;
+        subtitleInfo = builder.subtitleInfo;
         allImages = builder.allImages;
     }
 
@@ -249,19 +249,10 @@ public class MediaInfo {
     }
 
     /**
-     * Gets URL address of a subtitle file.
+     * Gets URL address of a subtitleInfo file.
      */
-    public SubtitleInfo getSubtitle() {
-        return subtitle;
-    }
-
-    /**
-     * Sets URL address of a subtitle file.
-     * This method is deprecated
-     */
-    @Deprecated
-    public void setSubtitle(SubtitleInfo subtitle) {
-        this.subtitle = subtitle;
+    public SubtitleInfo getSubtitleInfo() {
+        return subtitleInfo;
     }
 
     /**

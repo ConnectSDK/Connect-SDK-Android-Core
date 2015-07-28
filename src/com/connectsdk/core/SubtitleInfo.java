@@ -1,5 +1,5 @@
 /*
- * SubtitleTrack
+ * SubtitleInfo
  * Connect SDK
  *
  * Copyright (c) 2015 LG Electronics.
@@ -30,17 +30,21 @@ public class SubtitleInfo {
     public static class Builder {
         // required fields
         String url;
-        String mimeType;
 
         // optional fields
+        String mimeType;
         String label;
         String language;
 
         /**
-         * Constructor with required fields
+         * Constructor with required fields.
+         * Different services require a specific subtitle:
+         *  - DLNAService uses SRT subtitles
+         *  - CastService uses VTT subtitles and it has additional requirements
+         *  @see https://developers.google.com/cast/docs/android_sender#cors-requirements
+         *  - FireTVService uses VTT subtitles
          *
-         * @param url subtitle URL, see requirements for Chromecast
-         *            https://developers.google.com/cast/docs/chrome_sender#cors-requirements
+         * @param url subtitle URL
          */
         public Builder(@NonNull String url) {
             this.url = url;

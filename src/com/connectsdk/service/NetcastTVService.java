@@ -2354,8 +2354,6 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             Collections.addAll(capabilities, KeyControl.Capabilities);
             Collections.addAll(capabilities, MediaPlayer.Capabilities);
 
-            capabilities.add(MediaPlayer.Subtitle_SRT);
-
             capabilities.add(PowerControl.Off);
 
             capabilities.add(Play); 
@@ -2410,6 +2408,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
             capabilities.add(YouTube_Params); 
         }
 
+        capabilities.add(MediaPlayer.Subtitle_SRT);
         setCapabilities(capabilities);
     }
 

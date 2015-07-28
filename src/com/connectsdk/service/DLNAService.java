@@ -246,6 +246,11 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     }
 
+    @Deprecated
+    public void displayMedia(String url, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
+        displayMedia(url, null, mimeType, title, description, iconSrc, listener);
+    }
+
     private void displayMedia(String url, SubtitleInfo subtitle, String mimeType, String title, String description, String iconSrc, final LaunchListener listener) {
         final String instanceId = "0";
         String[] mediaElements = mimeType.split("/");
@@ -364,7 +369,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
         if (mediaInfo != null) {
             mediaUrl = mediaInfo.getUrl();
-            subtitle = mediaInfo.getSubtitle();
+            subtitle = mediaInfo.getSubtitleInfo();
             mimeType = mediaInfo.getMimeType();
             title = mediaInfo.getTitle();
             desc = mediaInfo.getDescription();

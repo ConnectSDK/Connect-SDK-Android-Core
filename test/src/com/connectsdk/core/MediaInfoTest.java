@@ -31,7 +31,7 @@ import org.robolectric.annotation.Config;
 public class MediaInfoTest {
 
     @Test
-    public void testCreateSubtitleWithRequiredParameters() {
+    public void testMediaInfoBuilderWithRequiredParameters() {
         String url = "http://127.0.0.1/";
         String mimeType = "video/mp4";
         MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType).build();
@@ -41,12 +41,12 @@ public class MediaInfoTest {
         Assert.assertNull(mediaInfo.getDescription());
         Assert.assertEquals(0, mediaInfo.getDuration());
         Assert.assertNull(mediaInfo.getImages());
-        Assert.assertNull(mediaInfo.getSubtitle());
+        Assert.assertNull(mediaInfo.getSubtitleInfo());
         Assert.assertNull(mediaInfo.getTitle());
     }
 
     @Test
-    public void testCreateSubtitleWithAllParameters() {
+    public void testMediaInfoBuilderWithAllParameters() {
         String url = "http://127.0.0.1/";
         String mimeType = "video/mp4";
         String description = "description";
@@ -58,7 +58,7 @@ public class MediaInfoTest {
                 .Builder(url, mimeType)
                 .setDescription(description)
                 .setIcon(iconUrl)
-                .setSubtitle(subtitle)
+                .setSubtitleInfo(subtitle)
                 .setTitle(title)
                 .build();
 
@@ -67,7 +67,7 @@ public class MediaInfoTest {
         Assert.assertEquals(description, mediaInfo.getDescription());
         Assert.assertEquals(iconUrl, mediaInfo.getImages().get(0).getUrl());
         Assert.assertEquals(1, mediaInfo.getImages().size());
-        Assert.assertEquals(subtitle, mediaInfo.getSubtitle());
+        Assert.assertEquals(subtitle, mediaInfo.getSubtitleInfo());
         Assert.assertEquals(title, mediaInfo.getTitle());
     }
 }

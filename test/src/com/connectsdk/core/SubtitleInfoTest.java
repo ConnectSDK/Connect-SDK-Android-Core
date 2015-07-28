@@ -34,7 +34,6 @@ public class SubtitleInfoTest {
     @Test
     public void testCreateSubtitleWithRequiredParameters() {
         String url = "http://127.0.0.1/";
-        String mimetype = "text/vtt";
         SubtitleInfo subtitle = new SubtitleInfo.Builder(url).build();
 
         Assert.assertEquals(url, subtitle.getUrl());
