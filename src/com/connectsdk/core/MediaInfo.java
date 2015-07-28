@@ -248,9 +248,6 @@ public class MediaInfo {
         this.url = url;
     }
 
-    /**
-     * Gets URL address of a subtitleInfo file.
-     */
     public SubtitleInfo getSubtitleInfo() {
         return subtitleInfo;
     }
