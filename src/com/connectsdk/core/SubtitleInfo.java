@@ -38,11 +38,14 @@ public class SubtitleInfo {
 
         /**
          * Constructor with required fields.
+         *
          * Different services require a specific subtitle:
-         *  - DLNAService uses SRT subtitles
-         *  - CastService uses VTT subtitles and it has additional requirements
-         *  @see https://developers.google.com/cast/docs/android_sender#cors-requirements
-         *  - FireTVService uses VTT subtitles
+         *  - DLNAService supports only SRT subtitles. Since there is no official specification for them,
+         *  subtitles may not work on all DLNA-compatible devices
+         *  - NetcastTVService supports only SRT subtitles and has the same restrictions as DLNAService
+         *  - CastService supports only WebVTT subtitles and it has additional requirements
+         *  @see {@link https://developers.google.com/cast/docs/android_sender#cors-requirements}
+         *  - FireTVService supports only WebVTT subtitles
          *
          * @param url subtitle URL
          */
