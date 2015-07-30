@@ -1190,6 +1190,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
                                     connection.setMethod(HttpConnection.Method.SUBSCRIBE);
                                     connection.setHeader("TIMEOUT", "Second-" + TIMEOUT);
                                     connection.setHeader("SID", SID);
+                                    connection.setHeader("Connection", "close");
                                     connection.execute();
                                 } catch (Exception e) {
                                     e.printStackTrace();
