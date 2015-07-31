@@ -198,9 +198,23 @@ public class MediaInfo {
     }
 
     /**
+     * Gets icon image
+     * @return image, can be null
+     */
+    public ImageInfo getIconImage() {
+        if (allImages == null || allImages.isEmpty()) {
+            return null;
+        }
+        return allImages.get(0);
+    }
+
+    /**
+     * This method is deprecated use `getIconImage()` instead
+     *
      * Gets list of ImageInfo objects for images representing a media (ex. icon, poster).
      * Where first ([0]) is icon image, and second ([1]) is poster image.
      */
+    @Deprecated
     public List<ImageInfo> getImages() {
         return allImages;
     }
