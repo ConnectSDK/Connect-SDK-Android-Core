@@ -26,6 +26,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
+import java.util.ArrayList;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE)
 public class MediaInfoTest {
@@ -43,6 +45,7 @@ public class MediaInfoTest {
         Assert.assertNull(mediaInfo.getImages());
         Assert.assertNull(mediaInfo.getSubtitleInfo());
         Assert.assertNull(mediaInfo.getTitle());
+        Assert.assertNull(mediaInfo.getIconImage());
     }
 
     @Test
@@ -65,9 +68,24 @@ public class MediaInfoTest {
         Assert.assertEquals(url, mediaInfo.getUrl());
         Assert.assertEquals(mimeType, mediaInfo.getMimeType());
         Assert.assertEquals(description, mediaInfo.getDescription());
+        Assert.assertEquals(iconUrl, mediaInfo.getIconImage().getUrl());
         Assert.assertEquals(iconUrl, mediaInfo.getImages().get(0).getUrl());
         Assert.assertEquals(1, mediaInfo.getImages().size());
         Assert.assertEquals(subtitle, mediaInfo.getSubtitleInfo());
         Assert.assertEquals(title, mediaInfo.getTitle());
+    }
+
+    @Test
+    public void testGetIconImageShouldReturnNullForEmptyImageList() {
+        MediaInfo mediaInfo = new MediaInfo.Builder("", "").build();
+        mediaInfo.setImages(new ArrayList<ImageInfo>());
+        Assert.assertNull(mediaInfo.getIconImage());
+    }
+
+    @Test
+    public void testAddImagesWithNullArgumentShouldDoNothing() {
+        MediaInfo mediaInfo = new MediaInfo.Builder("", "").build();
+        mediaInfo.addImages((ImageInfo[]) null);
+        Assert.assertNull(mediaInfo.getImages());
     }
 }
