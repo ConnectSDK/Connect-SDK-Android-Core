@@ -77,14 +77,18 @@ public class MediaInfo {
         }
 
         public Builder setIcon(@NonNull String iconUrl) {
-            createImagesList();
-            allImages.set(0, new ImageInfo(iconUrl));
+            if (iconUrl != null) {
+                createImagesList();
+                allImages.set(0, new ImageInfo(iconUrl));
+            }
             return this;
         }
 
         public Builder setIcon(@NonNull ImageInfo icon) {
-            createImagesList();
-            allImages.set(0, icon);
+            if (icon != null) {
+                createImagesList();
+                allImages.set(0, icon);
+            }
             return this;
         }
 
