@@ -70,4 +70,21 @@ public class MediaInfoTest {
         Assert.assertEquals(subtitle, mediaInfo.getSubtitleInfo());
         Assert.assertEquals(title, mediaInfo.getTitle());
     }
+
+    @Test
+    public void testMediaInfoBuilderWithNullIconShouldNotReturnNullImagesList() {
+        String url = "http://127.0.0.1/";
+        String mimeType = "video/mp4";
+        MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType)
+                .setIcon((String) null)
+                .build();
+
+        Assert.assertEquals(url, mediaInfo.getUrl());
+        Assert.assertEquals(mimeType, mediaInfo.getMimeType());
+        Assert.assertNull(mediaInfo.getDescription());
+        Assert.assertEquals(0, mediaInfo.getDuration());
+        Assert.assertNull(mediaInfo.getImages());
+        Assert.assertNull(mediaInfo.getSubtitleInfo());
+        Assert.assertNull(mediaInfo.getTitle());
+    }
 }
