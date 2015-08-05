@@ -33,9 +33,8 @@ import android.support.annotation.NonNull;
  *  - `CastService` supports only WebVTT subtitles and it has additional requirements
  *  @see {@link https://developers.google.com/cast/docs/android_sender#cors-requirements}
  *  - `FireTVService` supports only WebVTT subtitles
- *  - `WebOSTVService` supports WebVTT subtitles. For legacy WebOS versions without web app support
- *  and with DLNA it supports SRT subtitles only. Also the server providing subtitles should
- *  support CORS headers.
+ *  - `WebOSTVService` supports WebVTT subtitles. Server providing subtitles should
+ *  support CORS headers, similarly to Cast service's requirements.
  *
  */
 public class SubtitleInfo {
