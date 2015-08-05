@@ -936,47 +936,33 @@ public class WebOSWebAppSession extends WebAppSession {
     private JSONObject createPlayMediaJsonRequest(final MediaInfo mediaInfo, final boolean
             shouldLoop, final String requestId, final String iconSrc, final SubtitleInfo
             subtitleInfo) throws JSONException {
-
-        JSONObject message;
-        message = new JSONObject() {
-            {
-                putOpt("contentType", namespaceKey + "mediaCommand");
-                putOpt("mediaCommand", new JSONObject() {
-                    {
-                        putOpt("type", "playMedia");
-                        putOpt("mediaURL", mediaInfo.getUrl());
-                        putOpt("iconURL", iconSrc);
-                        putOpt("title", mediaInfo.getTitle());
-                        putOpt("description", mediaInfo.getDescription());
-                        putOpt("mimeType", mediaInfo.getMimeType());
-                        putOpt("shouldLoop", shouldLoop);
-                        putOpt("requestId", requestId);
-                        if (subtitleInfo != null) {
-                            putOpt("subtitles", new JSONObject() {
-                                {
-                                    putOpt("default", ENABLED_SUBTITLE_ID);
-                                    putOpt("enabled", ENABLED_SUBTITLE_ID);
-                                    putOpt("tracks", new JSONArray() {
-                                        {
-                                            put(new JSONObject() {
-                                                {
-                                                    putOpt("id", ENABLED_SUBTITLE_ID);
-                                                    putOpt("language", subtitleInfo.getLanguage());
-                                                    putOpt("source", subtitleInfo.getUrl());
-                                                    putOpt("label", subtitleInfo.getLabel());
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    }
-                });
-
-            }
-        };
-        return message;
+        return new JSONObject() {{
+            putOpt("contentType", namespaceKey + "mediaCommand");
+            putOpt("mediaCommand", new JSONObject() {{
+                putOpt("type", "playMedia");
+                putOpt("mediaURL", mediaInfo.getUrl());
+                putOpt("iconURL", iconSrc);
+                putOpt("title", mediaInfo.getTitle());
+                putOpt("description", mediaInfo.getDescription());
+                putOpt("mimeType", mediaInfo.getMimeType());
+                putOpt("shouldLoop", shouldLoop);
+                putOpt("requestId", requestId);
+                if (subtitleInfo != null) {
+                    putOpt("subtitles", new JSONObject() {{
+                        putOpt("default", ENABLED_SUBTITLE_ID);
+                        putOpt("enabled", ENABLED_SUBTITLE_ID);
+                        putOpt("tracks", new JSONArray() {{
+                            put(new JSONObject() {{
+                                putOpt("id", ENABLED_SUBTITLE_ID);
+                                putOpt("language", subtitleInfo.getLanguage());
+                                putOpt("source", subtitleInfo.getUrl());
+                                putOpt("label", subtitleInfo.getLabel());
+                            }});
+                        }});
+                    }});
+                }
+            }});
+        }};
     }
 
     /****************
