@@ -139,7 +139,9 @@ public class DIALService extends DeviceService implements Launcher {
 
     @Override
     public void launchAppWithInfo(final AppInfo appInfo, Object params, final AppLaunchListener listener) {
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
+                        requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
             @Override
             public void onError(ServiceCommandError error) {
                 Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
@@ -290,7 +292,9 @@ public class DIALService extends DeviceService implements Launcher {
 
         String uri = requestURL(appName);
 
-        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, responseListener);
+        ServiceCommand<ResponseListener<Object>> request =
+                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(), uri, null,
+                        responseListener);
         request.setHttpMethod(ServiceCommand.TYPE_GET);
 
         request.send();
@@ -460,7 +464,8 @@ public class DIALService extends DeviceService implements Launcher {
     private void hasApplication(String appID, ResponseListener<Object> listener) {
         String uri = requestURL(appID);
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, uri, null, listener);
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(), uri, null, listener);
         command.setHttpMethod(ServiceCommand.TYPE_GET);
         command.send();
     }

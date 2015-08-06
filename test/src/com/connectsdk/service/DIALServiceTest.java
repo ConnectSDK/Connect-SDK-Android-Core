@@ -30,6 +30,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -40,30 +41,19 @@ public class DIALServiceTest {
 
     private static final String APPLICATION_URL = "http://applicationurl";
 
-    private StubDialService service;
+    private DIALService service;
     private ServiceDescription serviceDescription;
     private ServiceConfig serviceConfig;
-
-    class StubDialService extends DIALService {
-
-        ServiceCommand<?> mLatestCommand;
-
-        public StubDialService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
-            super(serviceDescription, serviceConfig);
-        }
-
-        @Override
-        public void sendCommand(ServiceCommand<?> serviceCommand) {
-            mLatestCommand = serviceCommand;
-        }
-    }
+    private ServiceCommand.ServiceCommandProcessor commandProcessor;
 
     @Before
     public void setUp() {
         serviceDescription = Mockito.mock(ServiceDescription.class);
         Mockito.when(serviceDescription.getApplicationURL()).thenReturn(APPLICATION_URL);
         serviceConfig = Mockito.mock(ServiceConfig.class);
-        service = new StubDialService(serviceDescription, serviceConfig);
+        commandProcessor = Mockito.mock(ServiceCommand.ServiceCommandProcessor.class);
+        service = new DIALService(serviceDescription, serviceConfig);
+        service.setCommandProcessor(commandProcessor);
     }
 
     @Test
@@ -92,10 +82,13 @@ public class DIALServiceTest {
     }
 
     private void verifyNetflixCommand(String expectedPayload) {
-        ServiceCommand command = service.mLatestCommand;
+        ArgumentCaptor<ServiceCommand> argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+        Mockito.verify(commandProcessor).sendCommand(argCommand.capture());
+        ServiceCommand command = argCommand.getValue();
+
         Assert.assertEquals(APPLICATION_URL + "/Netflix", command.getTarget());
         Assert.assertEquals(ServiceCommand.TYPE_POST, command.getHttpMethod());
-        Assert.assertSame(service, command.getCommandProcessor());
+        Assert.assertSame(commandProcessor, command.getCommandProcessor());
         if (expectedPayload != null) {
             Assert.assertEquals(expectedPayload, command.getPayload().toString());
         } else {
