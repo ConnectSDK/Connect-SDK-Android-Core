@@ -100,7 +100,8 @@ public class DIALServiceSendCommandTest {
         TestUtil.runUtilBackgroundTasks();
 
         Assert.assertEquals(COMMAND_URL, service.connectionTarget);
-        Mockito.verify(httpConnection, Mockito.times(1)).setMethod(Mockito.eq(HttpConnection.Method.DELETE));
+        Mockito.verify(httpConnection, Mockito.times(1)).setMethod(Mockito.eq(HttpConnection
+                .Method.DELETE));
         Mockito.verify(httpConnection, Mockito.times(1)).execute();
     }
 
@@ -120,6 +121,22 @@ public class DIALServiceSendCommandTest {
                         Mockito.eq("text/plain; charset=\"utf-8\""));
         Mockito.verify(httpConnection, Mockito.times(1)).setMethod(Mockito.eq(HttpConnection.Method.POST));
         Mockito.verify(httpConnection, Mockito.times(1)).setPayload(Mockito.eq(payload.toString()));
+        Mockito.verify(httpConnection, Mockito.times(1)).execute();
+    }
+
+    @Test
+    public void testSendPostCommandWithEmptyPayload() throws Exception {
+        Object payload = null;
+        ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
+        ServiceCommand<ResponseListener<Object>> command =
+                new ServiceCommand<ResponseListener<Object>>(service, COMMAND_URL, payload, listener);
+
+        service.sendCommand(command);
+        TestUtil.runUtilBackgroundTasks();
+
+        Assert.assertEquals(COMMAND_URL, service.connectionTarget);
+        Mockito.verify(httpConnection, Mockito.times(1)).setMethod(Mockito.eq(HttpConnection.Method.POST));
+        Mockito.verify(httpConnection, Mockito.times(0)).setPayload(Mockito.anyString());
         Mockito.verify(httpConnection, Mockito.times(1)).execute();
     }
 

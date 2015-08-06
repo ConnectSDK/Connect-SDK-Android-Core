@@ -105,6 +105,8 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 
     protected DeviceServiceReachability mServiceReachability;
     protected boolean connected = false;
+
+    private ServiceCommandProcessor commandProcessor;
     // @endcond
 
     /**
@@ -137,6 +139,14 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         mCapabilities = new ArrayList<String>();
 
         updateCapabilities();
+    }
+
+    ServiceCommandProcessor getCommandProcessor() {
+        return commandProcessor == null ? this : commandProcessor;
+    }
+
+    void setCommandProcessor(ServiceCommandProcessor commandProcessor) {
+        this.commandProcessor = commandProcessor;
     }
 
     @SuppressWarnings("unchecked")
