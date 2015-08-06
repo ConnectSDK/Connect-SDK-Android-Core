@@ -53,6 +53,7 @@ import java.util.Map;
 public class DIALService extends DeviceService implements Launcher {
 
     public static final String ID = "DIAL";
+    private static final String APP_NETFLIX = "Netflix";
 
     private static List<String> registeredApps = new ArrayList<String>();
 
@@ -233,16 +234,15 @@ public class DIALService extends DeviceService implements Launcher {
 
         if (contentId != null && contentId.length() > 0) {
             try {
-                new JSONObject() {{
+                params = new JSONObject() {{
                     put("v", contentId);
                 }};
             } catch (JSONException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                Log.e(Util.T, "Launch Netflix error", e);
             }
         }
 
-        AppInfo appInfo = new AppInfo("Netflix");
+        AppInfo appInfo = new AppInfo(APP_NETFLIX);
         appInfo.setName(appInfo.getId());
 
         launchAppWithInfo(appInfo, params, listener);
@@ -396,10 +396,13 @@ public class DIALService extends DeviceService implements Launcher {
 
                 try {
                     HttpConnection connection = createHttpConnection(mCommand.getTarget());
-                    if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                        connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; charset=\"utf-8\"");
+                    if (payload != null || command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
                         connection.setMethod(HttpConnection.Method.POST);
-                        connection.setPayload(payload.toString());
+                        if (payload != null) {
+                            connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; " +
+                                    "charset=\"utf-8\"");
+                            connection.setPayload(payload.toString());
+                        }
                     } else if (command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_DEL)) {
                         connection.setMethod(HttpConnection.Method.DELETE);
                     }
