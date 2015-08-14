@@ -42,6 +42,7 @@ public class SubtitleInfo {
     final String mimeType;
     final String label;
     final String language;
+    final SubtitleTrackStyle trackStyle;
 
     public static class Builder {
         // required fields
@@ -51,6 +52,7 @@ public class SubtitleInfo {
         String mimeType;
         String label;
         String language;
+        SubtitleTrackStyle trackStyle;
 
         public Builder(@NonNull String url) {
             this.url = url;
@@ -71,6 +73,11 @@ public class SubtitleInfo {
             return this;
         }
 
+        public Builder setTrackStyle(@NonNull SubtitleTrackStyle trackStyle) {
+            this.trackStyle = trackStyle;
+            return this;
+        }
+
         public SubtitleInfo build() {
             return new SubtitleInfo(this);
         }
@@ -81,6 +88,7 @@ public class SubtitleInfo {
         mimeType = builder.mimeType;
         label = builder.label;
         language = builder.language;
+        trackStyle = builder.trackStyle;
     }
 
     public String getUrl() {
@@ -97,6 +105,10 @@ public class SubtitleInfo {
 
     public String getLanguage() {
         return language;
+    }
+
+    public SubtitleTrackStyle getTrackStyle() {
+        return trackStyle;
     }
 
     @Override
