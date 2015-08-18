@@ -25,6 +25,7 @@ import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.ToastControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceCommandError;
 import com.connectsdk.service.command.ServiceCommand;
@@ -79,6 +80,22 @@ public class WebOSTVServiceTest {
     @After
     public void tearDown() {
         DiscoveryManager.getInstance().getAllDevices().clear();
+    }
+
+    @Test
+    public void testCapabilitiesShouldContainToastControlWhenPairingOn() {
+        DiscoveryManager.getInstance().setPairingLevel(DiscoveryManager.PairingLevel.ON);
+        service.updateCapabilities();
+
+        Assert.assertTrue(service.hasCapabilities(ToastControl.Capabilities));
+    }
+
+    @Test
+    public void testCapabilitiesShouldNotContainToastControlWhenPairingOff() {
+        DiscoveryManager.getInstance().setPairingLevel(DiscoveryManager.PairingLevel.OFF);
+        service.updateCapabilities();
+        
+        Assert.assertFalse(service.hasCapabilities(ToastControl.Capabilities));
     }
 
     @Test

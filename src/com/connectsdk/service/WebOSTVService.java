@@ -2900,6 +2900,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             Collections.addAll(capabilities, Launcher.Capabilities);
             Collections.addAll(capabilities, TVControl.Capabilities);
             Collections.addAll(capabilities, ExternalInputControl.Capabilities);
+            Collections.addAll(capabilities, ToastControl.Capabilities);
             capabilities.add(PowerControl.Off);
         } else {
             capabilities.add(Application);
