@@ -410,6 +410,7 @@ public class WebOSWebAppSession extends WebAppSession {
 
         if (socket != null) {
             socket.setListener(null);
+            socket.clearRequests();
             socket.disconnect();
             socket = null;
         }
