@@ -144,6 +144,12 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             mListener.onCloseWithError(error);
     }
 
+    public void clearRequests() {
+        if (requests != null) {
+            requests.clear();
+        }
+    }
+
     private void setDefaultManifest() {
         manifest = new JSONObject();
         List<String> permissions = mService.getPermissions();
@@ -716,7 +722,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 Util.postError(request.getResponseListener(), new ServiceCommandError(0, "connection lost", null));
         }
 
-        requests.clear();
+        clearRequests();
     }
 
     public void setServerCertificate(X509Certificate cert) {
