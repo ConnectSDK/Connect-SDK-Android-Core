@@ -193,6 +193,7 @@ public class SimpleDevicePicker implements ConnectableDeviceListener {
             break;
 
         case PIN_CODE:
+        case MIXED:
             pairingDialog = createPinPairingDialog();
             break;
 
