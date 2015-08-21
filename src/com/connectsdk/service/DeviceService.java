@@ -89,7 +89,13 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
          * In this mode user must enter a pin code from a mobile device and send it to the first
          * screen device
          */
-        PIN_CODE
+        PIN_CODE,
+
+        /**
+         * In this mode user can either enter a pin code from a mobile device or confirm
+         * pairing on the TV
+         */
+        MIXED,
     }
 
     // @cond INTERNAL

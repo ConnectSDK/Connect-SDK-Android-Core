@@ -53,6 +53,11 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 
 @SuppressLint("DefaultLocale")
 public class WebOSTVServiceSocketClient extends WebSocketClient implements ServiceCommandProcessor {
+
+    static final String WEBOS_PAIRING_PROMPT = "PROMPT";
+    static final String WEBOS_PAIRING_PIN = "PIN";
+    static final String WEBOS_PAIRING_COMBINED = "COMBINED";
+
     public enum State {
         NONE,
         INITIAL,
@@ -433,18 +438,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             @Override
             public void onSuccess(Object object) {
                 if (object instanceof JSONObject) {
-                    PairingType pairingType = PairingType.NONE;
-                    
                     JSONObject jsonObj = (JSONObject)object;
                     String type = jsonObj.optString("pairingType");
-                    
-                    if (type.equalsIgnoreCase("PROMPT")) {
-                        pairingType = PairingType.FIRST_SCREEN;
-                    }
-                    else if (type.equalsIgnoreCase("PIN")) {
-                        pairingType = PairingType.PIN_CODE;
-                    }
-                    
+                    PairingType pairingType = getPairingTypeFromString(type);
+
                     if (mListener != null)
                         mListener.onBeforeRegister(pairingType);
                 }
@@ -471,8 +468,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
             }
 
-            if (PairingType.PIN_CODE.equals(mService.getPairingType())) {
-                payload.put("pairingType", "PIN");
+            String pairingTypeString = getPairingTypeString();
+            if (pairingTypeString != null) {
+                payload.put("pairingType", pairingTypeString);
             }
 
             if (manifest != null) {
@@ -486,7 +484,31 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
         sendMessage(headers, payload);
     }
-    
+
+    private PairingType getPairingTypeFromString(String pairingTypeString) {
+        if (WEBOS_PAIRING_PROMPT.equalsIgnoreCase(pairingTypeString)) {
+            return PairingType.FIRST_SCREEN;
+        } else if (WEBOS_PAIRING_PIN.equalsIgnoreCase(pairingTypeString)) {
+            return PairingType.PIN_CODE;
+        } else if (WEBOS_PAIRING_COMBINED.equalsIgnoreCase(pairingTypeString)) {
+            return PairingType.MIXED;
+        }
+        return PairingType.NONE;
+    }
+
+    private String getPairingTypeString() {
+        PairingType pairingType = mService.getPairingType();
+        switch (pairingType) {
+            case FIRST_SCREEN:
+                return WEBOS_PAIRING_PROMPT;
+            case PIN_CODE:
+                return WEBOS_PAIRING_PIN;
+            case MIXED:
+                return WEBOS_PAIRING_COMBINED;
+        }
+        return null;
+    }
+
     public void sendPairingKey(String pairingKey) {
         ResponseListener<Object> listener = new ResponseListener<Object>() {
 
