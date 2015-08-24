@@ -498,7 +498,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     private String getPairingTypeString() {
         PairingType pairingType = mService.getPairingType();
-        if (pairingType == null) {
+        if (pairingType != null) {
             switch (pairingType) {
                 case FIRST_SCREEN:
                     return WEBOS_PAIRING_PROMPT;
