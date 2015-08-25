@@ -19,6 +19,7 @@
  */
 package com.connectsdk.service;
 
+import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.device.ConnectableDevice;
@@ -310,6 +311,63 @@ public class WebOSTVServiceTest {
     public void testPlayMediaWithRequiredParametersOnTheWebOSV4WithoutDlna() throws JSONException {
         MediaInfo mediaInfo = createMediaInfoWithSubtitles();
         verifyPlayMediaOnTheWebOSV4WithoutDlna(mediaInfo, false);
+    }
+
+    @Test
+    public void testSetChannelWithIdArgument() throws JSONException {
+        ChannelInfo channelInfo = new ChannelInfo();
+        channelInfo.setId("id");
+
+        JSONObject payload = verifySetChannel(channelInfo);
+        Assert.assertEquals("id", payload.getString("channelId"));
+        Assert.assertFalse(payload.has("channelNumber"));
+    }
+
+    @Test
+    public void testSetChannelWithNumberArgument() throws JSONException {
+        ChannelInfo channelInfo = new ChannelInfo();
+        channelInfo.setNumber("number");
+
+        JSONObject payload = verifySetChannel(channelInfo);
+        Assert.assertEquals("number", payload.getString("channelNumber"));
+        Assert.assertFalse(payload.has("channelId"));
+    }
+
+    @Test
+    public void testSetChannelWithIdAndNumberArguments() throws JSONException {
+        ChannelInfo channelInfo = new ChannelInfo();
+        channelInfo.setNumber("number");
+        channelInfo.setId("id");
+
+        JSONObject payload = verifySetChannel(channelInfo);
+        Assert.assertEquals("number", payload.getString("channelNumber"));
+        Assert.assertEquals("id", payload.getString("channelId"));
+    }
+
+    @Test
+    public void testSetChannelWithEmptyArguments() throws JSONException {
+        ChannelInfo channelInfo = new ChannelInfo();
+
+        JSONObject payload = verifySetChannel(channelInfo);
+        Assert.assertEquals(0, payload.length());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testSetChannelWithNullChannelInfo() throws JSONException {
+        JSONObject payload = verifySetChannel(null);
+        Assert.assertEquals(0, payload.length());
+    }
+
+    private JSONObject verifySetChannel(ChannelInfo channelInfo) {
+        ResponseListener<Object> response = Mockito.mock(ResponseListener.class);
+        ArgumentCaptor<ServiceCommand> argCommand = ArgumentCaptor.forClass(ServiceCommand.class);
+
+        service.setChannel(channelInfo, response);
+        Mockito.verify(socket).sendCommand(argCommand.capture());
+        ServiceCommand command = argCommand.getValue();
+        JSONObject payload = (JSONObject) command.getPayload();
+        Assert.assertEquals("ssap://tv/openChannel", command.getTarget());
+        return payload;
     }
 
 
