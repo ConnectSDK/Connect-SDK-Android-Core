@@ -1515,13 +1515,27 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
+    /**
+     * Sets current channel
+     * @param channelInfo must not be null
+     * @param listener
+     * @throws NullPointerException if channelInfo is null
+     */
     @Override
     public void setChannel(ChannelInfo channelInfo, ResponseListener<Object> listener) {
+        if (channelInfo == null) {
+            throw new NullPointerException("channelInfo must not be null");
+        }
         String uri = "ssap://tv/openChannel";
         JSONObject payload = new JSONObject();
 
         try {
-            payload.put("channelNumber", channelInfo.getNumber());
+            if (channelInfo.getId() != null) {
+                payload.put("channelId", channelInfo.getId());
+            }
+            if (channelInfo.getNumber() != null) {
+                payload.put("channelNumber", channelInfo.getNumber());
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
