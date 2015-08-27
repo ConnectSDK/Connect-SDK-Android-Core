@@ -1,7 +1,13 @@
 package com.connectsdk.service;
 
 import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.service.capability.CapabilityMethods;
+import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.NotSupportedServiceCommandError;
+import com.connectsdk.service.command.ServiceCommand;
+import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
@@ -10,6 +16,7 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -60,18 +67,76 @@ public class NetCastTVServiceTest {
 
     @Test
     public void testServiceShouldHasSubtitleCapabilityWhenPairingLevelOn() {
-        checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel.OFF);
+        setPairingLevel(DiscoveryManager.PairingLevel.OFF);
+        Assert.assertTrue(service.hasCapability(MediaPlayer.Subtitle_SRT));
     }
 
     @Test
     public void testServiceShouldHasSubtitleCapabilityWhenPairingLevelOff() {
-        checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel.ON);
+        setPairingLevel(DiscoveryManager.PairingLevel.ON);
+        Assert.assertTrue(service.hasCapability(MediaPlayer.Subtitle_SRT));
     }
 
-    private void checkSubtitleCapabilityWithPairingLevel(DiscoveryManager.PairingLevel level) {
+    @Test
+    public void testShouldNotContainRewindCapabilityWhenPairingLevelOff() {
+        setPairingLevel(DiscoveryManager.PairingLevel.OFF);
+        Assert.assertFalse(service.hasCapability(MediaControl.Rewind));
+    }
+
+    @Test
+    public void testShouldNotContainRewindCapabilityWhenPairingLevelOn() {
+        setPairingLevel(DiscoveryManager.PairingLevel.ON);
+        Assert.assertFalse(service.hasCapability(MediaControl.Rewind));
+    }
+
+    @Test
+    public void testShouldNotContainFastForwardCapabilityWhenPairingLevelOff() {
+        setPairingLevel(DiscoveryManager.PairingLevel.OFF);
+        Assert.assertFalse(service.hasCapability(MediaControl.FastForward));
+    }
+
+    @Test
+    public void testShouldNotContainFastForwardCapabilityWhenPairingLevelOn() {
+        setPairingLevel(DiscoveryManager.PairingLevel.ON);
+        Assert.assertFalse(service.hasCapability(MediaControl.FastForward));
+    }
+
+    @Test
+    public void testRewindShouldSendNotSupportedError() {
+        ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
+        service.rewind(listener);
+        verifyNotImplemented(listener);
+    }
+
+    @Test
+    public void testFastForwardShouldSendNotSupportedError() {
+        ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
+        service.fastForward(listener);
+        verifyNotImplemented(listener);
+    }
+
+    @Test
+    public void testMediaPlayerPriorityShouldBeHigh() {
+        Assert.assertEquals(CapabilityMethods.CapabilityPriorityLevel.HIGH,
+                service.getMediaPlayerCapabilityLevel());
+    }
+
+    @Test
+    public void testMediaControlPriorityShouldBeHigh() {
+        Assert.assertEquals(CapabilityMethods.CapabilityPriorityLevel.HIGH,
+                service.getMediaControlCapabilityLevel());
+    }
+
+    private void verifyNotImplemented(ResponseListener<Object> listener) {
+        ArgumentCaptor<ServiceCommandError> argError
+                = ArgumentCaptor.forClass(ServiceCommandError.class);
+        Mockito.verify(listener).onError(argError.capture());
+        Assert.assertTrue(argError.getValue() instanceof NotSupportedServiceCommandError);
+    }
+
+    private void setPairingLevel(DiscoveryManager.PairingLevel level) {
         DiscoveryManager.init(Robolectric.application);
         DiscoveryManager.getInstance().setPairingLevel(level);
-        Assert.assertTrue(service.hasCapability(MediaPlayer.Subtitle_SRT));
     }
 
 }
