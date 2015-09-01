@@ -65,28 +65,6 @@ public class SSDPDiscoveryProviderTest{
         dp.stop();
     }
 
-
-    @Test
-    public void testStart() throws JSONException, InterruptedException, IOException{
-        //Test Desc. : Test to verify if the socket is created and is not null also sendSearch().
-
-        dp.start();
-        //assert that after start() SSDPClient was created.
-        Assert.assertTrue(ssdpClient != null);
-
-        //verify after socket create , sendSearch() is successful.
-        DiscoveryFilter filter = new DiscoveryFilter("DLNA", "urn:schemas-upnp-org:device:MediaRenderer:1");
-        dp.serviceFilters.add(filter);
-        String msg = SSDPClient.getSSDPSearchMessage(filter.getServiceFilter());
-
-        Thread.sleep(4000);
-        dp.stop();
-        ArgumentCaptor<String> argument = ArgumentCaptor.forClass(String.class);
-        verify(ssdpClient, Mockito.times(3)).send(argument.capture());
-        Assert.assertEquals(msg, argument.getValue());
-
-    }
-
     @Test
     public void testStop() throws JSONException, InterruptedException, IOException{
         //Test Desc. : Test to verify if the sendSearch is stopped then the dataGramSocket is disconnected and closed.
