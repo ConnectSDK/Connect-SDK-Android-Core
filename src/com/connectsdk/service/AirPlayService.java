@@ -45,7 +45,6 @@ import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
-import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -69,17 +68,15 @@ import java.util.UUID;
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
     public static final String X_APPLE_SESSION_ID = "X-Apple-Session-ID";
     public static final String ID = "AirPlay";
-    private static final long KEEP_ALIVE_PERIOD = 15000;
-
-    private final static String CHARSET = "UTF-8";
-
-    private String mSessionId;
-
-    private Timer timer;
+    public static final String USER_AGENT = "User-Agent";
 
     ServiceCommand pendingCommand = null;
     String authenticate = null;
     String password = null;
+
+    private static final long KEEP_ALIVE_PERIOD = 15000;
+    private String mSessionId;
+    private Timer timer;
 
     @Override
     public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
@@ -532,7 +529,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
                     sb.append(serviceCommand.getTarget());
 
                     HttpConnection connection = HttpConnection.newInstance(URI.create(sb.toString()));
-                    connection.setHeader(HTTP.USER_AGENT, "ConnectSDK MediaControl/1.0");
+                    connection.setHeader(USER_AGENT, "ConnectSDK MediaControl/1.0");
                     connection.setHeader(X_APPLE_SESSION_ID, mSessionId);
                     if (password != null) {
                         String authorization = getAuthenticate(serviceCommand.getHttpMethod(), serviceCommand.getTarget(), authenticate);

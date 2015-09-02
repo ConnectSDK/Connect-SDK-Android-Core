@@ -20,11 +20,6 @@
 
 package com.connectsdk.service.command;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.json.JSONObject;
 
 import com.connectsdk.service.capability.listeners.ResponseListener;
@@ -108,24 +103,6 @@ public class ServiceCommand<T extends ResponseListener<? extends Object>> {
 
     public void setRequestId(int requestId) {
         this.requestId = requestId;
-    }
-
-    public HttpRequestBase getRequest() {
-        if (target == null) {
-            throw new IllegalStateException("ServiceCommand has no target url");
-        }
-
-        if (this.httpMethod.equalsIgnoreCase(TYPE_GET)) {
-            return new HttpGet(target);
-        } else if (this.httpMethod.equalsIgnoreCase(TYPE_POST)) {
-            return new HttpPost(target);
-        } else if (this.httpMethod.equalsIgnoreCase(TYPE_DEL)) {
-            return new HttpDelete(target);
-        } else if (this.httpMethod.equalsIgnoreCase(TYPE_PUT)) {
-            return new HttpPut(target);
-        } else {
-            return null;
-        }
     }
 
     public ResponseListener<Object> getResponseListener() {

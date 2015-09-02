@@ -27,8 +27,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.http.conn.util.InetAddressUtils;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.net.wifi.WifiInfo;
@@ -41,13 +40,23 @@ import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 
 public final class Util {
-    static public String T = "Connect SDK";
+    public static String T = "Connect SDK";
 
-    static private Handler handler;
+    private static Handler handler;
+    private static final int NUM_OF_THREADS = 20;
+    private static Executor executor;
+    private static final Pattern IPV4_PATTERN =
+            Pattern.compile(
+                    "^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$");
 
-    static private final int NUM_OF_THREADS = 20;
+    private static final Pattern IPV6_STD_PATTERN =
+            Pattern.compile(
+                    "^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
 
-    static private Executor executor;
+    private static final Pattern IPV6_HEX_COMPRESSED_PATTERN =
+            Pattern.compile(
+                    "^((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)::((?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?)$");
+
 
     static {
         createExecutor();
@@ -121,22 +130,14 @@ public final class Util {
 
     public static byte[] convertIpAddress(int ip) {
         return new byte[] {
-                (byte) (ip & 0xFF), 
-                (byte) ((ip >> 8) & 0xFF), 
-                (byte) ((ip >> 16) & 0xFF), 
+                (byte) (ip & 0xFF),
+                (byte) ((ip >> 8) & 0xFF),
+                (byte) ((ip >> 16) & 0xFF),
                 (byte) ((ip >> 24) & 0xFF)};
     }
 
     public static long getTime() {
         return TimeUnit.MILLISECONDS.toSeconds(new Date().getTime());
-    }
-
-    public static boolean isIPv4Address(String ipAddress) {
-        return InetAddressUtils.isIPv4Address(ipAddress);
-    }
-
-    public static boolean isIPv6Address(String ipAddress) {
-        return InetAddressUtils.isIPv6Address(ipAddress);
     }
 
     public static InetAddress getIpAddress(Context context) throws UnknownHostException {
@@ -151,5 +152,21 @@ public final class Util {
             byte[] ipAddress = convertIpAddress(ip);
             return InetAddress.getByAddress(ipAddress);
         }
+    }
+
+    public static boolean isIPv4Address(final String input) {
+        return IPV4_PATTERN.matcher(input).matches();
+    }
+
+    public static boolean isIPv6StdAddress(final String input) {
+        return IPV6_STD_PATTERN.matcher(input).matches();
+    }
+
+    public static boolean isIPv6HexCompressedAddress(final String input) {
+        return IPV6_HEX_COMPRESSED_PATTERN.matcher(input).matches();
+    }
+
+    public static boolean isIPv6Address(final String input) {
+        return isIPv6StdAddress(input) || isIPv6HexCompressedAddress(input);
     }
 }
