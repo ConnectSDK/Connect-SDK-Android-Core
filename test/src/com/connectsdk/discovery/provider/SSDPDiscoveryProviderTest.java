@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class SSDPDiscoveryProviderTest{
         byte[] data = new byte[1];
         when(ssdpClient.responseReceive()).thenReturn(new DatagramPacket(data, 1));
         when(ssdpClient.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
-        dp = new StubSSDPDiscoveryProvider(Robolectric.application);
+        dp = new StubSSDPDiscoveryProvider(RuntimeEnvironment.application);
         assertNotNull(dp);
     }
     @After

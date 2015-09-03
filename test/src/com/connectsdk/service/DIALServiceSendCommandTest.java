@@ -151,7 +151,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         Mockito.verify(listener).onSuccess(Mockito.eq(response));
     }
@@ -167,7 +167,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         Mockito.verify(listener).onSuccess(Mockito.eq(response));
     }
@@ -197,7 +197,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
     }

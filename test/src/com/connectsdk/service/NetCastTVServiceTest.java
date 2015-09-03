@@ -20,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 @RunWith(RobolectricTestRunner.class)
@@ -135,7 +136,7 @@ public class NetCastTVServiceTest {
     }
 
     private void setPairingLevel(DiscoveryManager.PairingLevel level) {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(RuntimeEnvironment.application);
         DiscoveryManager.getInstance().setPairingLevel(level);
     }
 

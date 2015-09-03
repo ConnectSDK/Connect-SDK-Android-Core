@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import android.content.Context;
@@ -78,7 +79,7 @@ public class ZeroConfDiscoveryPrividerTest {
 
     @Before
     public void setUp() {
-        dp = new StubZeroConfDiscoveryProvider(Robolectric.application);
+        dp = new StubZeroConfDiscoveryProvider(RuntimeEnvironment.application);
         mDNS = mock(StubJmDNS.class);
         eventMock = mock(StubServiceEvent.class);
 
@@ -297,7 +298,7 @@ public class ZeroConfDiscoveryPrividerTest {
 
         // when
         dp.jmdnsListener.serviceRemoved(event);
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         // then
         verify(listener).onServiceRemoved(any(DiscoveryProvider.class), any(ServiceDescription.class));

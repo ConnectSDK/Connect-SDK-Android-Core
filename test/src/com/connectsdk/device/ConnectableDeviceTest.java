@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class ConnectableDeviceTest {
 
     @Before
     public void setUp() {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(RuntimeEnvironment.application);
         device = new ConnectableDevice();
     }
 

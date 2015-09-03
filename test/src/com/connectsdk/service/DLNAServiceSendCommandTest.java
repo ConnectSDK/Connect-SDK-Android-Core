@@ -104,7 +104,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
@@ -121,7 +121,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));

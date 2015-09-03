@@ -452,7 +452,7 @@ public class WebOSTVServiceTest {
         // run join success
         ResponseListener webAppListener = argListener.getValue();
         webAppListener.onSuccess(null);
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
 
         // should delegate playing media to the WebAppSession
         ArgumentCaptor<MediaInfo> argMediaInfo = ArgumentCaptor.forClass(MediaInfo.class);

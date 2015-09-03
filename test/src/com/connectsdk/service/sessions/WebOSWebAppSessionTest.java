@@ -73,7 +73,7 @@ public class WebOSWebAppSessionTest {
         ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
         session.previous(listener);
 
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
         ArgumentCaptor<JSONObject> argPacket = ArgumentCaptor.forClass(JSONObject.class);
         ArgumentCaptor<JSONObject> argPayload = ArgumentCaptor.forClass(JSONObject.class);
         Mockito.verify(socket).sendMessage(argPacket.capture(), argPayload.capture());
@@ -94,7 +94,7 @@ public class WebOSWebAppSessionTest {
         ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
         session.next(listener);
 
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
         ArgumentCaptor<JSONObject> argPacket = ArgumentCaptor.forClass(JSONObject.class);
         ArgumentCaptor<JSONObject> argPayload = ArgumentCaptor.forClass(JSONObject.class);
         Mockito.verify(socket).sendMessage(argPacket.capture(), argPayload.capture());
@@ -115,7 +115,7 @@ public class WebOSWebAppSessionTest {
         ResponseListener<Object> listener = Mockito.mock(ResponseListener.class);
         session.jumpToTrack(7, listener);
 
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        Robolectric.flushForegroundThreadScheduler();;
         ArgumentCaptor<JSONObject> argPacket = ArgumentCaptor.forClass(JSONObject.class);
         ArgumentCaptor<JSONObject> argPayload = ArgumentCaptor.forClass(JSONObject.class);
         Mockito.verify(socket).sendMessage(argPacket.capture(), argPayload.capture());

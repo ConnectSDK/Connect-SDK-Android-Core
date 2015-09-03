@@ -11,6 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class SSDPClientTest {
 
     @Before
     public void setUp() throws IOException {
-        localAddress = Util.getIpAddress(Robolectric.application);
+        localAddress = Util.getIpAddress(RuntimeEnvironment.application);
         ssdpClient = new SSDPClient(localAddress, mLocalSocket, wildSocket);
     }
 

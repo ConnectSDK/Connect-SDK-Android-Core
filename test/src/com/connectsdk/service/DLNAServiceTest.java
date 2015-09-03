@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.xml.sax.SAXException;
 
@@ -42,7 +43,7 @@ public class DLNAServiceTest {
     public void setUp() {
         dlnaServer = Mockito.mock(DLNAHttpServer.class);
         service = new DLNAService(Mockito.mock(ServiceDescription.class),
-                Mockito.mock(ServiceConfig.class), Robolectric.application, dlnaServer);
+                Mockito.mock(ServiceConfig.class), RuntimeEnvironment.application, dlnaServer);
     }
 
     @Test
@@ -446,7 +447,7 @@ public class DLNAServiceTest {
 
         ServiceDescription description = Mockito.mock(ServiceDescription.class);
         Mockito.when(description.getServiceList()).thenReturn(services);
-        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application, null);
+        return new DLNAService(description, Mockito.mock(ServiceConfig.class), RuntimeEnvironment.application, null);
     }
 
     private void assertXMLEquals(String expectedXML, String actualXML) throws SAXException, IOException {
