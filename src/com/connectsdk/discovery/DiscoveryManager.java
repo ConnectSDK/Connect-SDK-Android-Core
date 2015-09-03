@@ -107,7 +107,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     // @cond INTERNAL
 
-    public static String CONNECT_SDK_VERSION = "1.5.0";
+    public static String CONNECT_SDK_VERSION = "1.6.0";
 
     private static DiscoveryManager instance;
 
