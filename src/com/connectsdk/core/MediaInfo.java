@@ -50,6 +50,7 @@ public class MediaInfo {
     // @endcond
 
     public static class Builder {
+        // @cond INTERNAL
 
         // required parameters
         private String url;
@@ -59,7 +60,9 @@ public class MediaInfo {
         private String title;
         private String description;
         private List<ImageInfo> allImages;
-        public SubtitleInfo subtitleInfo;
+        private SubtitleInfo subtitleInfo;
+
+        // @endcond
 
         public Builder(@NonNull String mediaUrl, @NonNull String mediaMimeType) {
             this.url = mediaUrl;
