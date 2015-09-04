@@ -38,19 +38,19 @@ import android.support.annotation.NonNull;
  *
  */
 public class SubtitleInfo {
-    final String url;
-    final String mimeType;
-    final String label;
-    final String language;
+    private final String url;
+    private final String mimeType;
+    private final String label;
+    private final String language;
 
     public static class Builder {
         // required fields
-        String url;
+        private String url;
 
         // optional fields
-        String mimeType;
-        String label;
-        String language;
+        private String mimeType;
+        private String label;
+        private String language;
 
         public Builder(@NonNull String url) {
             this.url = url;
