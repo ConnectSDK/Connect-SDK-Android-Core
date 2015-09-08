@@ -1104,7 +1104,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             public void run() {
                 httpServer.stop();
             }
-        });
+        }, true);
 
     }
 
