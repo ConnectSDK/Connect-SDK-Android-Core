@@ -40,6 +40,7 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -1281,90 +1282,107 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void playMedia(final String url, final String mimeType, final String title, final String description, final String iconSrc, final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
+    public void playMedia(String url, String mimeType, String title, String description,
+                          String iconSrc, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
+        MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType)
+                .setTitle(title)
+                .setDescription(description)
+                .setIcon(iconSrc)
+                .build();
+        playMedia(mediaInfo, shouldLoop, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
+                          MediaPlayer.LaunchListener listener) {
         if ("4.0.0".equalsIgnoreCase(this.serviceDescription.getVersion())) {
-            DeviceService dlnaService = this.getDLNAService();
-
-            if (dlnaService != null) {
-                MediaPlayer mediaPlayer = dlnaService.getAPI(MediaPlayer.class);
-
-                if (mediaPlayer != null) {
-                    mediaPlayer.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
-                    return;
-                }
-            }
-
-            JSONObject params = null;
-
-            try {
-                params = new JSONObject() {{
-                    put("target", url);
-                    put("title", title == null ? NULL : title);
-                    put("description", description == null ? NULL : description);
-                    put("mimeType", mimeType == null ? NULL : mimeType);
-                    put("iconSrc", iconSrc == null ? NULL : iconSrc);
-                    put("loop", shouldLoop);
-                }};
-            } catch (JSONException ex) {
-                ex.printStackTrace();
-                Util.postError(listener, new ServiceCommandError(-1, ex.getLocalizedMessage(), ex));
-            }
-
-            if (params != null)
-                this.displayMedia(params, listener);
+            playMediaByNativeApp(mediaInfo, shouldLoop, listener);
         } else {
-            final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
-
-                @Override
-                public void onError(ServiceCommandError error) {
-                    listener.onError(error);
-                }
-
-                @Override
-                public void onSuccess(WebAppSession webAppSession) {
-                    webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
-                }
-            };
-
-            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
-
-                @Override
-                public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
-                }
-
-                @Override
-                public void onSuccess(WebAppSession webAppSession) {
-                    webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
-                }
-            });
+            playMediaByWebApp(mediaInfo, shouldLoop, listener);
         }
     }
 
-    @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
-        String mediaUrl = null;
-        String mimeType = null;
-        String title = null;
-        String desc = null;
-        String iconSrc = null;
+    private void playMediaByWebApp(final MediaInfo mediaInfo, final boolean shouldLoop,
+                                   final LaunchListener listener) {
+        final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
-        if (mediaInfo != null) {
-            mediaUrl = mediaInfo.getUrl();
-            mimeType = mediaInfo.getMimeType();
-            title = mediaInfo.getTitle();
-            desc = mediaInfo.getDescription();
+            @Override
+            public void onError(ServiceCommandError error) {
+                listener.onError(error);
+            }
 
-            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
-                ImageInfo imageInfo = mediaInfo.getImages().get(0);
-                iconSrc = imageInfo.getUrl();
+            @Override
+            public void onSuccess(WebAppSession webAppSession) {
+                webAppSession.playMedia(mediaInfo, shouldLoop, listener);
+            }
+        };
+
+        getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
+            }
+
+            @Override
+            public void onSuccess(WebAppSession webAppSession) {
+                webAppSession.playMedia(mediaInfo, shouldLoop, listener);
+            }
+        });
+    }
+
+    private void playMediaByNativeApp(MediaInfo mediaInfo, boolean shouldLoop,
+                                      LaunchListener listener) {
+        DeviceService dlnaService = this.getDLNAService();
+
+        if (dlnaService != null) {
+            MediaPlayer mediaPlayer = dlnaService.getAPI(MediaPlayer.class);
+
+            if (mediaPlayer != null) {
+                mediaPlayer.playMedia(mediaInfo, shouldLoop, listener);
+                return;
             }
         }
 
-        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
+        String iconSrc = null;
+        List<ImageInfo> images = mediaInfo.getImages();
+
+        if (images != null && !images.isEmpty()) {
+            ImageInfo iconImage = images.get(0);
+            if (iconImage != null) {
+                iconSrc = iconImage.getUrl();
+            }
+        }
+
+        try {
+            JSONObject params =
+                    createPlayMediaJsonRequestForSsap(mediaInfo, shouldLoop, iconSrc);
+            displayMedia(params, listener);
+        } catch (JSONException ex) {
+            Util.postError(listener, new ServiceCommandError(-1, ex.getLocalizedMessage(), ex));
+            Log.e(Util.T, "Create JSON request for ssap://media.viewer/open failure", ex);
+        }
     }
 
-    @Override
+    @NonNull
+    private JSONObject createPlayMediaJsonRequestForSsap(final MediaInfo mediaInfo, final boolean
+            shouldLoop, final String iconSrc) throws JSONException {
+        return new JSONObject() {{
+            put("target", mediaInfo.getUrl());
+            put("title", getJsonValue(mediaInfo.getTitle()));
+            put("description", getJsonValue(mediaInfo.getDescription()));
+            put("mimeType", getJsonValue(mediaInfo.getMimeType()));
+            put("iconSrc", getJsonValue(iconSrc));
+            put("loop", shouldLoop);
+        }};
+    }
+
+    private Object getJsonValue(Object value) {
+        return value == null ? JSONObject.NULL : value;
+    }
+
+
+        @Override
     public void closeMedia(LaunchSession launchSession, ResponseListener<Object> listener) {
         JSONObject payload = new JSONObject();
 
@@ -1497,13 +1515,27 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
+    /**
+     * Sets current channel
+     * @param channelInfo must not be null
+     * @param listener
+     * @throws NullPointerException if channelInfo is null
+     */
     @Override
     public void setChannel(ChannelInfo channelInfo, ResponseListener<Object> listener) {
+        if (channelInfo == null) {
+            throw new NullPointerException("channelInfo must not be null");
+        }
         String uri = "ssap://tv/openChannel";
         JSONObject payload = new JSONObject();
 
         try {
-            payload.put("channelNumber", channelInfo.getNumber());
+            if (channelInfo.getId() != null) {
+                payload.put("channelId", channelInfo.getId());
+            }
+            if (channelInfo.getNumber() != null) {
+                payload.put("channelNumber", channelInfo.getNumber());
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -2871,6 +2903,9 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
+        Collections.addAll(capabilities, VolumeControl.Capabilities);
+        Collections.addAll(capabilities, MediaPlayer.Capabilities);
+
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
             Collections.addAll(capabilities, TextInputControl.Capabilities);
             Collections.addAll(capabilities, MouseControl.Capabilities);
@@ -2879,14 +2914,9 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             Collections.addAll(capabilities, Launcher.Capabilities);
             Collections.addAll(capabilities, TVControl.Capabilities);
             Collections.addAll(capabilities, ExternalInputControl.Capabilities);
-            Collections.addAll(capabilities, VolumeControl.Capabilities);
             Collections.addAll(capabilities, ToastControl.Capabilities);
-
             capabilities.add(PowerControl.Off);
         } else {
-            Collections.addAll(capabilities, VolumeControl.Capabilities);
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
-
             capabilities.add(Application);
             capabilities.add(Application_Params);
             capabilities.add(Application_Close);
@@ -2903,8 +2933,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             capabilities.add(AppState_Subscribe);
         }
 
-        if (serviceDescription != null && serviceDescription.getVersion() != null) {
-            if (serviceDescription.getVersion().contains("4.0.0") || serviceDescription.getVersion().contains("4.0.1")) {
+        if (serviceDescription != null) {
+            if (serviceDescription.getVersion() != null
+                    && (serviceDescription.getVersion().contains("4.0.0")
+                    || serviceDescription.getVersion().contains("4.0.1"))) {
                 capabilities.add(Launch);
                 capabilities.add(Launch_Params);
 
@@ -2917,9 +2949,15 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 capabilities.add(PlayState);
 
                 capabilities.add(WebAppLauncher.Close);
+
+                if (getDLNAService() != null) {
+                    capabilities.add(MediaPlayer.Subtitle_SRT);
+                }
             } else {
                 Collections.addAll(capabilities, WebAppLauncher.Capabilities);
                 Collections.addAll(capabilities, MediaControl.Capabilities);
+
+                capabilities.add(MediaPlayer.Subtitle_WebVTT);
 
                 capabilities.add(PlaylistControl.JumpToTrack);
                 capabilities.add(PlaylistControl.Next);
@@ -2927,6 +2965,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 capabilities.add(MediaPlayer.Loop);
             }
+
         }
 
         setCapabilities(capabilities);

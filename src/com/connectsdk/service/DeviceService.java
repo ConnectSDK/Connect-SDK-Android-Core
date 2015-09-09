@@ -89,7 +89,13 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
          * In this mode user must enter a pin code from a mobile device and send it to the first
          * screen device
          */
-        PIN_CODE
+        PIN_CODE,
+
+        /**
+         * In this mode user can either enter a pin code from a mobile device or confirm
+         * pairing on the TV
+         */
+        MIXED,
     }
 
     // @cond INTERNAL
@@ -105,6 +111,8 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 
     protected DeviceServiceReachability mServiceReachability;
     protected boolean connected = false;
+
+    private ServiceCommandProcessor commandProcessor;
     // @endcond
 
     /**
@@ -137,6 +145,14 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         mCapabilities = new ArrayList<String>();
 
         updateCapabilities();
+    }
+
+    ServiceCommandProcessor getCommandProcessor() {
+        return commandProcessor == null ? this : commandProcessor;
+    }
+
+    void setCommandProcessor(ServiceCommandProcessor commandProcessor) {
+        this.commandProcessor = commandProcessor;
     }
 
     @SuppressWarnings("unchecked")
