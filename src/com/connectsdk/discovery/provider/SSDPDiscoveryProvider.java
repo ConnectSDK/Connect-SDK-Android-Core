@@ -45,6 +45,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,6 +73,9 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     private Thread responseThread;
     private Thread notifyThread;
+
+    /** three threads as a minimal amount of connecting devices. */
+    private ScheduledExecutorService executorService;
 
     boolean isRunning = false;
 
@@ -111,7 +117,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         isRunning = true;
 
         openSocket();
-
+        executorService = Executors.newScheduledThreadPool(3);
         scanTimer = new Timer();
         scanTimer.schedule(new TimerTask() {
 
@@ -177,6 +183,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             ssdpClient.close();
             ssdpClient = null;
         }
+
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+            executorService = null;
+        }
     }
 
     @Override
@@ -194,26 +205,23 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void rescan() {
+        if (executorService == null || executorService.isShutdown()) { return; }
         for (DiscoveryFilter searchTarget : serviceFilters) {
             final String message = SSDPClient.getSSDPSearchMessage(searchTarget.getServiceFilter());
 
-            Timer timer = new Timer();
             /* Send 3 times like WindowsMedia */
             for (int i = 0; i < 3; i++) {
-                TimerTask task = new TimerTask() {
-
+                executorService.schedule(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             if (ssdpClient != null)
                                 ssdpClient.send(message);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        } catch (IOException ex) {
+                            Log.e(Util.T, ex.getMessage());
                         }
                     }
-                };
-
-                timer.schedule(task, i * 1000);
+                }, i, TimeUnit.SECONDS);
             }
         }
 
