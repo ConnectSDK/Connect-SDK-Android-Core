@@ -38,7 +38,7 @@ public class SSDPDiscoveryProviderTest{
     SSDPDiscoveryProvider dp;
     private SSDPClient ssdpClient = Mockito.mock(SSDPClient.class);
 
-    class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
+        class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
 
         public StubSSDPDiscoveryProvider(Context context) {
             super(context);
