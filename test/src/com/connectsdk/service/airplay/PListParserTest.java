@@ -32,8 +32,8 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class PListParserTest {
 
     @Test

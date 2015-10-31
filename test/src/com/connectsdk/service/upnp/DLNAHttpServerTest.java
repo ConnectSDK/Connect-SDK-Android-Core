@@ -12,8 +12,8 @@ import org.robolectric.annotation.Config;
 /**
  * Created by oleksii on 4/27/15.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class DLNAHttpServerTest {
 
     DLNAHttpServer server;

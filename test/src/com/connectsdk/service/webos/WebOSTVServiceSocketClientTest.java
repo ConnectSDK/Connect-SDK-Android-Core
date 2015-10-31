@@ -17,8 +17,8 @@ import org.robolectric.annotation.Config;
 
 import java.net.URI;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class WebOSTVServiceSocketClientTest {
 
     private WebOSTVServiceSocketClient socketClient;
