@@ -20,8 +20,8 @@ import java.io.IOException;
 /**
  * Created by Oleksii Frolov on 3/19/2015.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class AirPlayServiceTest {
 
     private StubAirPlayService service;

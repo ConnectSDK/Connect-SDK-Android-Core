@@ -47,8 +47,8 @@ import org.robolectric.annotation.Config;
 
 import android.support.annotation.NonNull;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class WebOSWebAppSessionTest {
 
     private WebOSWebAppSession session;

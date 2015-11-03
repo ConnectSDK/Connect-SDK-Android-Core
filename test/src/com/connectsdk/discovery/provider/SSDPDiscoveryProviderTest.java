@@ -30,8 +30,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE,shadows={WifiInfoShadow.class})
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, shadows={WifiInfoShadow.class})
 public class SSDPDiscoveryProviderTest{
 
 

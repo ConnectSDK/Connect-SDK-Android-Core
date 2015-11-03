@@ -42,8 +42,8 @@ import org.robolectric.annotation.Config;
 import java.io.IOException;
 
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class DLNAServiceSendCommandTest {
 
     public static final String COMMAND_URL = "http://host:8080/path";

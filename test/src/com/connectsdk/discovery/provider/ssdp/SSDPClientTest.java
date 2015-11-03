@@ -22,8 +22,8 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE ,shadows = { WifiInfoShadow.class })
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, shadows = { WifiInfoShadow.class })
 public class SSDPClientTest {
 
     InetAddress localAddress;

@@ -30,8 +30,8 @@ import java.util.Map;
 /**
  * Created by oleksii.frolov on 1/13/2015.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class DLNAServiceTest {
 
     private DLNAService service;

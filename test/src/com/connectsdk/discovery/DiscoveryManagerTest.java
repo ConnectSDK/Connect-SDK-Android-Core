@@ -20,8 +20,8 @@ import java.util.Objects;
  * Created by oleksii.frolov on 2/16/2015.
  */
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class)
 public class DiscoveryManagerTest {
     
     DiscoveryManager discovery;

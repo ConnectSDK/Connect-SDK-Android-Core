@@ -34,9 +34,8 @@ import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.shadow.WifiInfoShadow;
-
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE, shadows = { WifiInfoShadow.class })
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, shadows = {WifiInfoShadow.class })
 public class ZeroConfDiscoveryPrividerTest {
 
     private ZeroconfDiscoveryProvider dp;
