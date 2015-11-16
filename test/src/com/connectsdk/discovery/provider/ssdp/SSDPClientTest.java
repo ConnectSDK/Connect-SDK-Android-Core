@@ -1,5 +1,6 @@
 package com.connectsdk.discovery.provider.ssdp;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.Util;
 import com.connectsdk.shadow.WifiInfoShadow;
 
@@ -9,8 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.net.NetworkInterface;
 import java.net.SocketAddress;
 
 @RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, shadows = { WifiInfoShadow.class })
+@Config(constants = BuildConfig.class, shadows = { WifiInfoShadow.class }, sdk = 21)
 public class SSDPClientTest {
 
     InetAddress localAddress;
@@ -38,7 +39,7 @@ public class SSDPClientTest {
 
     @Before
     public void setUp() throws IOException {
-        localAddress = Util.getIpAddress(Robolectric.application);
+        localAddress = Util.getIpAddress(RuntimeEnvironment.application);
         ssdpClient = new SSDPClient(localAddress, mLocalSocket, wildSocket);
     }
 

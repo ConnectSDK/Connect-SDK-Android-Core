@@ -20,6 +20,7 @@
 
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
@@ -35,14 +36,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.io.IOException;
 
 @RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class DIALServiceSendCommandTest {
 
     public static final String COMMAND_URL = "http://host:8080/path";
@@ -150,7 +151,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Mockito.verify(listener).onSuccess(Mockito.eq(response));
     }
@@ -166,7 +167,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Mockito.verify(listener).onSuccess(Mockito.eq(response));
     }
@@ -196,7 +197,7 @@ public class DIALServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
     }
