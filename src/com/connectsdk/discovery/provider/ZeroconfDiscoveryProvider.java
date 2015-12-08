@@ -20,6 +20,16 @@
 
 package com.connectsdk.discovery.provider;
 
+import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.connectsdk.core.Util;
+import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.DiscoveryProvider;
+import com.connectsdk.discovery.DiscoveryProviderListener;
+import com.connectsdk.service.config.ServiceDescription;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -34,15 +44,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceListener;
-
-import android.content.Context;
-import android.util.Log;
-
-import com.connectsdk.core.Util;
-import com.connectsdk.discovery.DiscoveryFilter;
-import com.connectsdk.discovery.DiscoveryProvider;
-import com.connectsdk.discovery.DiscoveryProviderListener;
-import com.connectsdk.service.config.ServiceDescription;
 
 public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     private static final String HOSTNAME = "connectsdk";
@@ -216,7 +217,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         if (jmdns != null) {
             for (DiscoveryFilter searchTarget : serviceFilters) {
                 String filter = searchTarget.getServiceFilter();
-                jmdns.removeServiceListener(filter, jmdnsListener);
+                if (!TextUtils.isEmpty(filter)) {
+                    jmdns.removeServiceListener(filter, jmdnsListener);
+                }
             }
         }
     }
@@ -245,7 +248,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (jmdns != null) {
                 for (DiscoveryFilter searchTarget : serviceFilters) {
                     String filter = searchTarget.getServiceFilter();
-                    jmdns.addServiceListener(filter, jmdnsListener);
+                    if (!TextUtils.isEmpty(filter)) {
+                        jmdns.addServiceListener(filter, jmdnsListener);
+                    }
                 }
             }
         } catch (IOException e) {
