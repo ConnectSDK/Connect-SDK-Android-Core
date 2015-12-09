@@ -29,7 +29,8 @@ public class DiscoveryManagerTest {
     
     @Before
     public void setUp() {
-        discovery = new DiscoveryManager(RuntimeEnvironment.application);
+        DiscoveryManager.init(RuntimeEnvironment.application);
+        discovery = DiscoveryManager.getInstance();
     }
     
     @Test
