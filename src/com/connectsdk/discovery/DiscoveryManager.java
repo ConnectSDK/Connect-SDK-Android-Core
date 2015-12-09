@@ -145,7 +145,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      @endcode
      */
     public static synchronized void init(Context context) {
-        instance = new DiscoveryManager(context);
+        if (instance == null) {
+            instance = new DiscoveryManager(context);
+        }
     }
 
     public static synchronized void destroy() {
@@ -163,7 +165,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      @endcode
      */
     public static synchronized void init(Context context, ConnectableDeviceStore connectableDeviceStore) {
-        instance = new DiscoveryManager(context, connectableDeviceStore);
+        if (instance == null) {
+            instance = new DiscoveryManager(context, connectableDeviceStore);
+        }
     }
 
     /**
@@ -182,7 +186,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * Direct use of this constructor is not recommended. In most cases,
      * you should use DiscoveryManager.getInstance() instead.
      */
-    public DiscoveryManager(Context context) {
+    private DiscoveryManager(Context context) {
         this(context, new DefaultConnectableDeviceStore(context));
     }
 
@@ -191,7 +195,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * Direct use of this constructor is not recommended. In most cases,
      * you should use DiscoveryManager.getInstance() instead.
      */
-    public DiscoveryManager(Context context, ConnectableDeviceStore connectableDeviceStore) {
+    private DiscoveryManager(Context context, ConnectableDeviceStore connectableDeviceStore) {
         this.context = context;
         this.connectableDeviceStore = connectableDeviceStore;
 
