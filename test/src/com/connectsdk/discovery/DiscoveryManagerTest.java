@@ -28,7 +28,8 @@ public class DiscoveryManagerTest {
     
     @Before
     public void setUp() {
-        discovery = new DiscoveryManager(Robolectric.application);
+        DiscoveryManager.init(Robolectric.application);
+        discovery = DiscoveryManager.getInstance();
     }
     
     @Test
