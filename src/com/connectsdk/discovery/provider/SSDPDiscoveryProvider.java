@@ -208,6 +208,12 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         if (executorService == null || executorService.isShutdown()) {
             Log.w(Util.T, "There are no filters added");
         } else {
+            if (executorService.isTerminated() || executorService.isShutdown()) {
+                if (serviceFilters != null && !serviceFilters.isEmpty()) {
+                    int poolSize = serviceFilters.size() * 3;
+                    executorService = Executors.newScheduledThreadPool(poolSize);
+                }
+            }
             for (DiscoveryFilter filter : serviceFilters) {
                 final String message = SSDPClient.getSSDPSearchMessage(filter.getServiceFilter());
                 /* Send 3 times like WindowsMedia */
