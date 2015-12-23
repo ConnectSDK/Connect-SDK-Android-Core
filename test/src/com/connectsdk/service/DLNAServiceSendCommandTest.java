@@ -22,6 +22,7 @@ package com.connectsdk.service;
 
 import com.connectsdk.BuildConfig;
 import com.connectsdk.core.TestUtil;
+import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 
@@ -69,6 +71,7 @@ public class DLNAServiceSendCommandTest {
 
     @Before
     public void setUp() {
+        DiscoveryManager.init(RuntimeEnvironment.application);
         httpConnection = Mockito.mock(HttpConnection.class);
         service = new StubDLNAService(Mockito.mock(ServiceDescription.class),
                 Mockito.mock(ServiceConfig.class));

@@ -129,6 +129,25 @@ public class ConnectableDevice implements DeviceServiceListener {
         setLastSeenOnWifi(json.optString(KEY_LAST_SEEN, null));
         setLastConnected(json.optLong(KEY_LAST_CONNECTED, 0));
         setLastDetection(json.optLong(KEY_LAST_DETECTED, 0));
+
+        //Deserialize the associated services as well
+        try {
+            JSONObject jsonServices = json.getJSONObject(KEY_SERVICES);
+            Iterator<?> keys = jsonServices.keys();
+            if(keys!=null) {
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    if (jsonServices.get(key) instanceof JSONObject) {
+                        JSONObject serviceObject = (JSONObject) jsonServices.get(key);
+                        DeviceService service = DeviceService.getService(serviceObject);
+                        addService(service);
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public static ConnectableDevice createFromConfigString(String ipAddress, String friendlyName, String modelName, String modelNumber) {
@@ -816,6 +835,9 @@ public class ConnectableDevice implements DeviceServiceListener {
         setModelName(description.getModelName());
         setModelNumber(description.getModelNumber());
         setLastConnected(description.getLastDetection());
+
+        if(description.getUUID()!=null && description.getUUID().length()>0)
+            setId(description.getUUID());
     }
 
     public JSONObject toJSONObject() {

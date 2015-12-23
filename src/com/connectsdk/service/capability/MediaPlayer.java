@@ -25,6 +25,8 @@ import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.sessions.LaunchSession;
 
+import org.json.JSONObject;
+
 public interface MediaPlayer extends CapabilityMethods {
     public final static String Any = "MediaPlayer.Any";
 
@@ -81,6 +83,10 @@ public interface MediaPlayer extends CapabilityMethods {
     public void displayImage(MediaInfo mediaInfo, LaunchListener listener);
 
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, LaunchListener listener);
+
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, LaunchListener listener);
+
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, LaunchListener listener);
 
     public void closeMedia(LaunchSession launchSession, ResponseListener<Object> listener);
 

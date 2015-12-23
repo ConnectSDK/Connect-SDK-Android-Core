@@ -358,8 +358,17 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
     }
 
     @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-            LaunchListener listener) {
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, 0, null, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, startPosition, null, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, LaunchListener listener) {
         String mediaUrl = null;
         SubtitleInfo subtitle = null;
         String mimeType = null;

@@ -304,6 +304,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return service;
     }
 
+    @Override
+    public String getWebAppId() {
+        return MEDIA_PLAYER_ID;
+    }
+
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:lge-com:service:webos-second-screen:1");
     }
@@ -1293,8 +1298,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-                          MediaPlayer.LaunchListener listener) {
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, 0, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, startPosition, null, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, LaunchListener listener) {
         if ("4.0.0".equalsIgnoreCase(this.serviceDescription.getVersion())) {
             playMediaByNativeApp(mediaInfo, shouldLoop, listener);
         } else {

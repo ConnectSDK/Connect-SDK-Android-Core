@@ -23,6 +23,8 @@ import com.connectsdk.BuildConfig;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
@@ -54,6 +56,14 @@ public class MediaInfoTest {
         String mimeType = "video/mp4";
         String description = "description";
         String iconUrl = "http://iconurl";
+        JSONObject customData = new JSONObject(){{
+            try {
+                put("data1", 1);
+                put("data2", 2);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }};
 
         SubtitleInfo subtitle = new SubtitleInfo.Builder("").build();
         String title = "title";
@@ -63,6 +73,7 @@ public class MediaInfoTest {
                 .setIcon(iconUrl)
                 .setSubtitleInfo(subtitle)
                 .setTitle(title)
+                .setCustomData(customData)
                 .build();
 
         Assert.assertEquals(url, mediaInfo.getUrl());
@@ -72,6 +83,7 @@ public class MediaInfoTest {
         Assert.assertEquals(1, mediaInfo.getImages().size());
         Assert.assertEquals(subtitle, mediaInfo.getSubtitleInfo());
         Assert.assertEquals(title, mediaInfo.getTitle());
+        Assert.assertEquals(customData, mediaInfo.getCustomData());
     }
 
     @Test
