@@ -131,21 +131,19 @@ public class ConnectableDevice implements DeviceServiceListener {
         setLastDetection(json.optLong(KEY_LAST_DETECTED, 0));
 
         //Deserialize the associated services as well
-        try {
-            JSONObject jsonServices = json.getJSONObject(KEY_SERVICES);
+        JSONObject jsonServices = json.optJSONObject(KEY_SERVICES);
+        if(jsonServices!=null) {
             Iterator<?> keys = jsonServices.keys();
-            if(keys!=null) {
+            if (keys != null) {
                 while (keys.hasNext()) {
                     String key = (String) keys.next();
-                    if (jsonServices.get(key) instanceof JSONObject) {
-                        JSONObject serviceObject = (JSONObject) jsonServices.get(key);
+                    JSONObject serviceObject = jsonServices.optJSONObject(key);
+                    if (serviceObject!=null) {
                         DeviceService service = DeviceService.getService(serviceObject);
                         addService(service);
                     }
                 }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
         }
 
     }
