@@ -59,6 +59,7 @@ public interface WebAppLauncher extends CapabilityMethods {
     };
 
     public WebAppLauncher getWebAppLauncher();
+    public String getWebAppId();
     public CapabilityPriorityLevel getWebAppLauncherCapabilityLevel();
 
     public void launchWebApp(String webAppId, LaunchListener listener);

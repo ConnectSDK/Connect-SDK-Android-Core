@@ -1558,6 +1558,16 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, 0, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, startPosition, null, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, final LaunchListener listener) {
         if (getDLNAService() != null) {
             final MediaPlayer.LaunchListener launchListener = new LaunchListener() {
 

@@ -1,7 +1,10 @@
 package com.connectsdk.device;
 
+
 import com.connectsdk.BuildConfig;
 import com.connectsdk.discovery.DiscoveryManager;
+import com.connectsdk.discovery.DiscoveryManagerListener;
+import com.connectsdk.discovery.provider.SSDPDiscoveryProvider;
 import com.connectsdk.service.AirPlayService;
 import com.connectsdk.service.DIALService;
 import com.connectsdk.service.DLNAService;
@@ -16,6 +19,7 @@ import com.connectsdk.service.config.ServiceDescription;
 
 import junit.framework.Assert;
 
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +31,9 @@ import org.robolectric.annotation.Config;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
@@ -136,6 +143,64 @@ public class ConnectableDeviceTest {
         Assert.assertEquals(DeviceService.PairingType.PIN_CODE, device.getServiceByName(AirPlayService.ID).getPairingType());
     }
 
+    @Test
+    public void testDeviceIdWhenServiceHasUUID(){
+        String uuid = "myServiceUUID";
+        String ip = "192.168.0.1";
+        String name = "Test Name";
+        String serviceId = DIALService.ID;
+        ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, ip);
+        serviceDescription.setServiceID(serviceId);
+        serviceDescription.setFriendlyName(name);
+        SSDPDiscoveryProvider provider = mock(SSDPDiscoveryProvider.class);
+        DiscoveryManager.getInstance().registerDeviceService(DIALService.class, SSDPDiscoveryProvider.class);
+        DiscoveryManager.getInstance().onServiceAdded(provider, serviceDescription);
+
+        ConnectableDevice device = DiscoveryManager.getInstance().getAllDevices().get(serviceDescription.getIpAddress());
+        Assert.assertNotNull(device);
+        Assert.assertEquals(device.getId(), uuid);
+    }
+
+    @Test
+    public void testServiceDescriptionIsSetAfterFirstDiscovery(){
+        String uuid = "myServiceUUID";
+        String ip = "192.168.0.1";
+        String name = "Test Name";
+        String serviceId = DIALService.ID;
+        ServiceDescription serviceDescription = new ServiceDescription("_testservicetype._tcp.local.", uuid, ip);
+        serviceDescription.setServiceID(serviceId);
+        serviceDescription.setFriendlyName(name);
+        DiscoveryManager manager = DiscoveryManager.getInstance();
+        SSDPDiscoveryProvider provider = mock(SSDPDiscoveryProvider.class);
+        DiscoveryManagerListener listener = mock(DiscoveryManagerListener.class);
+        manager.addListener(listener);
+        manager.registerDeviceService(DIALService.class, SSDPDiscoveryProvider.class);
+
+        //When
+        manager.onServiceAdded(provider, serviceDescription);
+
+        //Then
+        ConnectableDevice device = DiscoveryManager.getInstance().getAllDevices().get(serviceDescription.getIpAddress());
+        verify(listener).onDeviceAdded(manager, device);
+        Assert.assertNotNull(device.getServiceDescription());
+    }
+
+    @Test
+    public void testServicesSerialization() throws IOException {
+        // given
+        ServiceDescription serviceDesc = createServiceDescription(WebOSTVService.ID, WebOSTVService.ID);
+        device.services.put(WebOSTVService.ID, new WebOSTVService(serviceDesc, new ServiceConfig(serviceDesc)));
+        serviceDesc = createServiceDescription(NetcastTVService.ID, NetcastTVService.ID);
+        device.services.put(NetcastTVService.ID, new NetcastTVService(serviceDesc, new ServiceConfig(serviceDesc)));
+
+        // when
+        JSONObject json = device.toJSONObject();
+        ConnectableDevice newDevice = new ConnectableDevice(json);
+
+        // then
+        Assert.assertEquals(device.services.size(), newDevice.services.size());
+    }
+
     private void addAllCoreServicesToDevice() throws IOException {
         DeviceService webOSService = new WebOSTVService(createServiceDescription(WebOSTVService.ID), Mockito.mock(ServiceConfig.class));
         DeviceService netCastService = new NetcastTVService(createServiceDescription(NetcastTVService.ID), Mockito.mock(ServiceConfig.class));
@@ -152,15 +217,18 @@ public class ConnectableDeviceTest {
     }
 
     private ServiceDescription createServiceDescription(String serviceId) {
+        return createServiceDescription(serviceId, "");
+    }
+
+    private ServiceDescription createServiceDescription(String serviceId, String UUID) {
         ServiceDescription description = new ServiceDescription();
         description.setFriendlyName("");
         description.setManufacturer("");
-        description.setUUID("");
+        description.setUUID(UUID);
         description.setModelDescription("");
         description.setModelName("");
         description.setModelNumber("");
         description.setServiceID(serviceId);
         return description;
     }
-
 }

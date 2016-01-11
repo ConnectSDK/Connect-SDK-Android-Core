@@ -9,6 +9,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 
@@ -84,7 +85,7 @@ public class SSDPDeviceTest {
         try {
             new SSDPDevice("http://unknown.host", null);
             Assert.fail("MalformedURLException should be thrown");
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException | ConnectException e) {
             // OK
         } catch (Exception e) {
             Assert.fail("MalformedURLException should be thrown");

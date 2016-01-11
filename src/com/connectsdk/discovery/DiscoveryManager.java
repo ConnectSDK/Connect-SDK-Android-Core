@@ -590,16 +590,16 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         compatibleDevices.put(device.getIpAddress(), device);
 
-        for (DiscoveryManagerListener listenter: discoveryListeners) {
-            listenter.onDeviceAdded(this, device);
+        for (DiscoveryManagerListener listener: discoveryListeners) {
+            listener.onDeviceAdded(this, device);
         }
     }
 
     public void handleDeviceUpdate(ConnectableDevice device) {
         if (deviceIsCompatible(device)) {
             if (device.getIpAddress() != null && compatibleDevices.containsKey(device.getIpAddress())) {
-                for (DiscoveryManagerListener listenter: discoveryListeners) {
-                    listenter.onDeviceUpdated(this, device);
+                for (DiscoveryManagerListener listener: discoveryListeners) {
+                    listener.onDeviceUpdated(this, device);
                 }
             }
             else {
@@ -613,8 +613,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     public void handleDeviceLoss(ConnectableDevice device) {
-        for (DiscoveryManagerListener listenter: discoveryListeners) {
-            listenter.onDeviceRemoved(this, device);
+        for (DiscoveryManagerListener listener: discoveryListeners) {
+            listener.onDeviceRemoved(this, device);
         }
 
         device.disconnect();
@@ -732,7 +732,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         if (device == null) {
             device = new ConnectableDevice(serviceDescription);
-            device.setIpAddress(serviceDescription.getIpAddress());
             allDevices.put(serviceDescription.getIpAddress(), device);
             deviceIsNew = true;
         }
@@ -850,6 +849,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         if (deviceService != null) {
             deviceService.setServiceDescription(desc);
             device.addService(deviceService);
+            device.setServiceDescription(desc);
         }
     }
     // @endcond

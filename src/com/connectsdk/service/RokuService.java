@@ -735,8 +735,17 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-            MediaPlayer.LaunchListener listener) {
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, 0, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, LaunchListener listener) {
+        playMedia(mediaInfo, shouldLoop, startPosition, null, listener);
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, LaunchListener listener) {
         String mediaUrl = null;
         String mimeType = null;
         String title = null;

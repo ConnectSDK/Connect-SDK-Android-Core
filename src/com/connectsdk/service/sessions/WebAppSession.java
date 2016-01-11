@@ -418,8 +418,17 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     }
 
     @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-            MediaPlayer.LaunchListener listener) {
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, MediaPlayer.LaunchListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, long startPosition, Object customData, MediaPlayer.LaunchListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 

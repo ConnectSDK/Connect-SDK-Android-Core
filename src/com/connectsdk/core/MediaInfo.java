@@ -39,6 +39,7 @@ public class MediaInfo {
     private String mimeType;
     private String description;
     private String title;
+    private Object customData;
 
     /**
      * list of imageInfo objects where [0] is icon, [1] is poster
@@ -61,6 +62,7 @@ public class MediaInfo {
         private String description;
         private List<ImageInfo> allImages;
         private SubtitleInfo subtitleInfo;
+        private Object customData;
 
         // @endcond
 
@@ -100,6 +102,11 @@ public class MediaInfo {
             return this;
         }
 
+        public Builder setCustomData(@NonNull Object customData) {
+            this.customData = customData;
+            return this;
+        }
+
         public MediaInfo build() {
             return new MediaInfo(this);
         }
@@ -119,6 +126,7 @@ public class MediaInfo {
         description = builder.description;
         subtitleInfo = builder.subtitleInfo;
         allImages = builder.allImages;
+        customData = builder.customData;
     }
 
     /**
@@ -272,6 +280,16 @@ public class MediaInfo {
         List<ImageInfo> list = new ArrayList<ImageInfo>();
         Collections.addAll(list, images);
         this.setImages(list);
+    }
+
+    /** Gets the raw data associated to this MediaInfo. In most cases, this is a Map or JSONObject. */
+    public Object getCustomData() {
+        return customData;
+    }
+
+    /** Sets the raw data associated to this MediaInfo.. In most cases, this is a Map or JSONObject. */
+    public void setCustomData(Object customData) {
+        this.customData = customData;
     }
 
 }
