@@ -141,7 +141,7 @@ public class DIALService extends DeviceService implements Launcher {
     public void launchAppWithInfo(final AppInfo appInfo, Object params, final AppLaunchListener listener) {
         ServiceCommand<ResponseListener<Object>> command =
                 new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
-                        requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
+                        requestURL(appInfo.getId()), params, new ResponseListener<Object>() {
             @Override
             public void onError(ServiceCommandError error) {
                 Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
