@@ -1,5 +1,6 @@
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
@@ -12,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -20,8 +21,8 @@ import java.io.IOException;
 /**
  * Created by Oleksii Frolov on 3/19/2015.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class AirPlayServiceTest {
 
     private StubAirPlayService service;

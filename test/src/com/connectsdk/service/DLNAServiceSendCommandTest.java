@@ -20,9 +20,9 @@
 
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.etc.helper.HttpConnection;
-import com.connectsdk.etc.helper.HttpMessage;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
@@ -35,15 +35,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.io.IOException;
 
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class DLNAServiceSendCommandTest {
 
     public static final String COMMAND_URL = "http://host:8080/path";
@@ -104,7 +104,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
@@ -121,7 +121,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));

@@ -1,10 +1,9 @@
 package com.connectsdk.service.webos;
 
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.service.WebOSTVService;
-import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
-import com.connectsdk.service.command.ServiceCommandError;
 
 import junit.framework.Assert;
 
@@ -12,13 +11,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.net.URI;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class WebOSTVServiceSocketClientTest {
 
     private WebOSTVServiceSocketClient socketClient;

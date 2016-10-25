@@ -1,5 +1,6 @@
 package com.connectsdk.device;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.AirPlayService;
 import com.connectsdk.service.DIALService;
@@ -19,23 +20,23 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class ConnectableDeviceTest {
 
     private ConnectableDevice device;
 
     @Before
     public void setUp() {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(RuntimeEnvironment.application);
         device = new ConnectableDevice();
     }
 

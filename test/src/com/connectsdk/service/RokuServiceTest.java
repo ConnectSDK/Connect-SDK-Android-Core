@@ -19,6 +19,7 @@
  */
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.service.capability.MediaPlayer;
@@ -32,11 +33,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class RokuServiceTest {
 
     private StubRokuService service;

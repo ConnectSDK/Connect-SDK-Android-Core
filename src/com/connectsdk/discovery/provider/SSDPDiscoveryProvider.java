@@ -45,6 +45,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,7 +73,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     private Thread responseThread;
     private Thread notifyThread;
-
+    private ScheduledExecutorService executorService;
     boolean isRunning = false;
 
     public SSDPDiscoveryProvider(Context context) {
@@ -111,7 +114,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         isRunning = true;
 
         openSocket();
-
+        if (serviceFilters != null && !serviceFilters.isEmpty()) {
+            //three tasks for each service filter
+            int poolSize = serviceFilters.size() * 3;
+            executorService = Executors.newScheduledThreadPool(poolSize);
+        }
         scanTimer = new Timer();
         scanTimer.schedule(new TimerTask() {
 
@@ -177,6 +184,10 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             ssdpClient.close();
             ssdpClient = null;
         }
+
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+        }
     }
 
     @Override
@@ -194,26 +205,31 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void rescan() {
-        for (DiscoveryFilter searchTarget : serviceFilters) {
-            final String message = SSDPClient.getSSDPSearchMessage(searchTarget.getServiceFilter());
-
-            Timer timer = new Timer();
-            /* Send 3 times like WindowsMedia */
-            for (int i = 0; i < 3; i++) {
-                TimerTask task = new TimerTask() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            if (ssdpClient != null)
-                                ssdpClient.send(message);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+        if (executorService == null || executorService.isShutdown()) {
+            Log.w(Util.T, "There are no filters added");
+        } else {
+            if (executorService.isTerminated() || executorService.isShutdown()) {
+                if (serviceFilters != null && !serviceFilters.isEmpty()) {
+                    int poolSize = serviceFilters.size() * 3;
+                    executorService = Executors.newScheduledThreadPool(poolSize);
+                }
+            }
+            for (DiscoveryFilter filter : serviceFilters) {
+                final String message = SSDPClient.getSSDPSearchMessage(filter.getServiceFilter());
+                /* Send 3 times like WindowsMedia */
+                for (int i = 0; i < 3; i++) {
+                    executorService.schedule(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                if (ssdpClient != null)
+                                    ssdpClient.send(message);
+                            } catch (IOException ex) {
+                                Log.e(Util.T, ex.getMessage());
+                            }
                         }
-                    }
-                };
-
-                timer.schedule(task, i * 1000);
+                    }, i, TimeUnit.SECONDS);
+                }
             }
         }
 

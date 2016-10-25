@@ -1,19 +1,20 @@
 package com.connectsdk.service.upnp;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.service.command.URLServiceSubscription;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 /**
  * Created by oleksii on 4/27/15.
  */
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class DLNAHttpServerTest {
 
     DLNAHttpServer server;

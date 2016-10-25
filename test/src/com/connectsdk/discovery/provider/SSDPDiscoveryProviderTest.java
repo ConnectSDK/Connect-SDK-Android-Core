@@ -2,6 +2,7 @@ package com.connectsdk.discovery.provider;
 
 import android.content.Context;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.provider.ssdp.SSDPClient;
@@ -14,10 +15,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.IOException;
@@ -30,15 +30,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE,shadows={WifiInfoShadow.class})
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, shadows={WifiInfoShadow.class}, sdk = 21)
 public class SSDPDiscoveryProviderTest{
 
 
     SSDPDiscoveryProvider dp;
     private SSDPClient ssdpClient = Mockito.mock(SSDPClient.class);
 
-    class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
+        class StubSSDPDiscoveryProvider extends SSDPDiscoveryProvider {
 
         public StubSSDPDiscoveryProvider(Context context) {
             super(context);
@@ -57,7 +57,7 @@ public class SSDPDiscoveryProviderTest{
         byte[] data = new byte[1];
         when(ssdpClient.responseReceive()).thenReturn(new DatagramPacket(data, 1));
         when(ssdpClient.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
-        dp = new StubSSDPDiscoveryProvider(Robolectric.application);
+        dp = new StubSSDPDiscoveryProvider(RuntimeEnvironment.application);
         assertNotNull(dp);
     }
     @After

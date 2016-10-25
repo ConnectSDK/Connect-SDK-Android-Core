@@ -19,21 +19,23 @@
  */
 package com.connectsdk.service.airplay;
 
+import com.connectsdk.BuildConfig;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class PListParserTest {
 
     @Test

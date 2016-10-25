@@ -1,16 +1,18 @@
 package com.connectsdk.discovery.provider.ssdp;
 
+import com.connectsdk.BuildConfig;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import java.net.DatagramPacket;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class SSDPPacketTest {
 
     DatagramPacket mDatagramPacket;

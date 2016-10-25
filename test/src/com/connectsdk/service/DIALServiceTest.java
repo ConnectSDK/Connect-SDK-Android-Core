@@ -20,6 +20,7 @@
 
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.config.ServiceConfig;
@@ -32,11 +33,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class DIALServiceTest {
 
     private static final String APPLICATION_URL = "http://applicationurl";

@@ -1,5 +1,6 @@
 package com.connectsdk.discovery;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.discovery.provider.SSDPDiscoveryProvider;
 import com.connectsdk.discovery.provider.ZeroconfDiscoveryProvider;
 import com.connectsdk.service.DIALService;
@@ -10,8 +11,8 @@ import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.Objects;
@@ -20,15 +21,15 @@ import java.util.Objects;
  * Created by oleksii.frolov on 2/16/2015.
  */
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class DiscoveryManagerTest {
     
     DiscoveryManager discovery;
     
     @Before
     public void setUp() {
-        discovery = new DiscoveryManager(Robolectric.application);
+        discovery = new DiscoveryManager(RuntimeEnvironment.application);
     }
     
     @Test
@@ -48,7 +49,7 @@ public class DiscoveryManagerTest {
 
     @Test
     public void testUnregisterDeviceServiceWithWrongProvider() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(RuntimeEnvironment.application));
         discovery.deviceClasses.put(DIALService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());
@@ -60,7 +61,7 @@ public class DiscoveryManagerTest {
 
     @Test
     public void testUnregisterDeviceServiceWithWrongServiceID() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(RuntimeEnvironment.application));
         discovery.deviceClasses.put(DLNAService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());
@@ -72,7 +73,7 @@ public class DiscoveryManagerTest {
     
     @Test
     public void testUnregisterDeviceService() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(RuntimeEnvironment.application));
         discovery.deviceClasses.put(DIALService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());

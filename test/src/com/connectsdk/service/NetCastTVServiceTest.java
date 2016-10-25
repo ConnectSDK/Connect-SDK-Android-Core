@@ -1,12 +1,12 @@
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceCommandError;
-import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
@@ -18,12 +18,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class NetCastTVServiceTest {
 
     private NetcastTVService service;
@@ -135,7 +135,7 @@ public class NetCastTVServiceTest {
     }
 
     private void setPairingLevel(DiscoveryManager.PairingLevel level) {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(RuntimeEnvironment.application);
         DiscoveryManager.getInstance().setPairingLevel(level);
     }
 

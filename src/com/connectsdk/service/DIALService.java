@@ -54,6 +54,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     public static final String ID = "DIAL";
     private static final String APP_NETFLIX = "Netflix";
+    private static final String APP_YOUTUBE = "YouTube";
 
     private static List<String> registeredApps = new ArrayList<String>();
 
@@ -206,9 +207,9 @@ public class DIALService extends DeviceService implements Launcher {
     @Override
     public void launchYouTube(String contentId, float startTime, AppLaunchListener listener) {
         String params = null;
-        AppInfo appInfo = new AppInfo("YouTube");
+        AppInfo appInfo = new AppInfo(APP_YOUTUBE);
         appInfo.setName(appInfo.getId());
-
+        JSONObject jsonParams = null;
         if (contentId != null && contentId.length() > 0) {
             if (startTime < 0.0) {
                 if (listener != null) {
@@ -219,6 +220,16 @@ public class DIALService extends DeviceService implements Launcher {
             }
 
             String pairingCode = java.util.UUID.randomUUID().toString();
+            /*
+            jsonParams = new JSONObject();
+            try {
+                //jsonParams.put("pairingCode", pairingCode);
+                jsonParams.put("v", contentId);
+                jsonParams.put("t", startTime);
+            } catch (JSONException e) {
+                Log.e(Util.T, "Launch YouTube error", e);
+            }
+            */
             params = String.format(Locale.US, "pairingCode=%s&v=%s&t=%.1f", pairingCode, contentId, startTime);
         }
 

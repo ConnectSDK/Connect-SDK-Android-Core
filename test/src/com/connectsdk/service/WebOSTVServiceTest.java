@@ -19,6 +19,7 @@
  */
 package com.connectsdk.service;
 
+import com.connectsdk.BuildConfig;
 import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.SubtitleInfo;
@@ -47,17 +48,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(manifest=Config.NONE)
+@RunWith(RobolectricGradleTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 21)
 public class WebOSTVServiceTest {
 
     private WebOSTVService service;
@@ -452,7 +453,7 @@ public class WebOSTVServiceTest {
         // run join success
         ResponseListener webAppListener = argListener.getValue();
         webAppListener.onSuccess(null);
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks();
 
         // should delegate playing media to the WebAppSession
         ArgumentCaptor<MediaInfo> argMediaInfo = ArgumentCaptor.forClass(MediaInfo.class);
