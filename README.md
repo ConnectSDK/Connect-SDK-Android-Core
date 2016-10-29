@@ -1,4 +1,7 @@
-#Connect SDK Core (Android)
+#Connect SDK Core
+
+This is a fork from the Android version of Connect SDK. In this version all dependencies to android are removed.
+
 The Connect SDK Core contains all of the core classes required for basic operation of Connect SDK. The core also includes support for some select protocols which do not have any heavy and/or external dependencies. These protocols include:
 - Apple TV
 - DIAL

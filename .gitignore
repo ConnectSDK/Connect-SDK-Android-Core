@@ -29,3 +29,4 @@ local.properties
 *.DS_Store
 bin/jarlist.cache
 test/test-reports/
+/target/
