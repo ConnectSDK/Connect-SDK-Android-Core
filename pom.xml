@@ -11,7 +11,19 @@
 			<url>http://clojars.org/repo</url>
 		</repository>
 	</repositories>
-
+<build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source/>
+          <target/>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 	<dependencies>
 		<dependency>
 			<groupId>org.json</groupId>
