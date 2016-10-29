@@ -24,61 +24,46 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.util.InetAddressUtils;
-
-import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Handler;
-import android.os.Looper;
 
 import com.connectsdk.service.capability.listeners.ErrorListener;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 
+import android.content.Context;
+
 public final class Util {
     static public String T = "Connect SDK";
 
-    static private Handler handler;
+    static private ExecutorService executor;
+    static private InetAddress localIP;
 
-    static private final int NUM_OF_THREADS = 20;
-
-    static private Executor executor;
-
-    static {
-        createExecutor();
+    /**
+     * Configure Util on component start.
+     *
+     * @param e must not be <code>null</null>
+     * @param ip may be <code>null</code>
+     */
+    public static void start(ExecutorService e, InetAddress ip) {
+        executor = e;
+        localIP = ip;
     }
 
-    static void createExecutor() {
-        Util.executor = Executors.newFixedThreadPool(NUM_OF_THREADS, new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable r) {
-                Thread th = new Thread(r);
-                th.setName("2nd Screen BG");
-                return th;
-            }
-        });
+    public static void stop() {
+        executor = null;
+        localIP = null;
     }
 
     public static void runOnUI(Runnable runnable) {
-        if (handler == null) {
-            handler = new Handler(Looper.getMainLooper());
-        }
-
-        handler.post(runnable);
+        // no UI in openhab
+        runInBackground(runnable, true);
     }
 
     public static void runInBackground(Runnable runnable, boolean forceNewThread) {
-        if (forceNewThread || isMain()) {
-            executor.execute(runnable);
-        } else {
-            runnable.run();
-        }
-
+        executor.execute(runnable);
     }
 
     public static void runInBackground(Runnable runnable) {
@@ -90,7 +75,7 @@ public final class Util {
     }
 
     public static boolean isMain() {
-        return Looper.myLooper() == Looper.getMainLooper();
+        return true;
     }
 
     public static <T> void postSuccess(final ResponseListener<T> listener, final T object) {
@@ -140,16 +125,6 @@ public final class Util {
     }
 
     public static InetAddress getIpAddress(Context context) throws UnknownHostException {
-        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
-        int ip = wifiInfo.getIpAddress();
-
-        if (ip == 0) {
-            return null;
-        }
-        else {
-            byte[] ipAddress = convertIpAddress(ip);
-            return InetAddress.getByAddress(ipAddress);
-        }
+        return localIP;
     }
 }

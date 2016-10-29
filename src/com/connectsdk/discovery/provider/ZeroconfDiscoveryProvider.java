@@ -21,7 +21,6 @@
 package com.connectsdk.discovery.provider;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.connectsdk.core.Util;
@@ -217,7 +216,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         if (jmdns != null) {
             for (DiscoveryFilter searchTarget : serviceFilters) {
                 String filter = searchTarget.getServiceFilter();
-                if (!TextUtils.isEmpty(filter)) {
+                if (filter != null && !filter.isEmpty()) {
                     jmdns.removeServiceListener(filter, jmdnsListener);
                 }
             }
@@ -248,7 +247,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (jmdns != null) {
                 for (DiscoveryFilter searchTarget : serviceFilters) {
                     String filter = searchTarget.getServiceFilter();
-                    if (!TextUtils.isEmpty(filter)) {
+                    if (filter != null && !filter.isEmpty()) {
                         jmdns.addServiceListener(filter, jmdnsListener);
                     }
                 }

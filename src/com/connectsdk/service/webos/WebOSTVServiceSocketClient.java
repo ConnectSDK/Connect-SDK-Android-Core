@@ -1,6 +1,7 @@
 package com.connectsdk.service.webos;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,7 +21,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
+//2016-01-01: Moved from 1.3.0 to 1.3.1-snapshot
+//import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
@@ -36,8 +38,8 @@ import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.Display;
-import android.view.WindowManager;
+//import android.view.Display;
+//import android.view.WindowManager;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -372,16 +374,16 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         String OSVersion = String.valueOf(android.os.Build.VERSION.SDK_INT);
 
         // resolution
-        WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        Display display = wm.getDefaultDisplay();
+        //WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        //Display display = wm.getDefaultDisplay();
 
-        @SuppressWarnings("deprecation")
-        int width = display.getWidth(); // deprecated, but still needed for supporting API levels 10-12
+        //@SuppressWarnings("deprecation")
+        //int width = display.getWidth(); // deprecated, but still needed for supporting API levels 10-12
 
-        @SuppressWarnings("deprecation")
-        int height = display.getHeight(); // deprecated, but still needed for supporting API levels 10-12
+        //@SuppressWarnings("deprecation")
+        //int height = display.getHeight(); // deprecated, but still needed for supporting API levels 10-12
 
-        String screenResolution = String.format("%dx%d", width, height); 
+        String screenResolution = String.format("%dx%d", 0, 0); 
 
         // app Name
         ApplicationInfo applicationInfo;
@@ -393,7 +395,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         String applicationName = (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo) : "(unknown)");
 
         // app Region
-        Locale current = context.getResources().getConfiguration().locale;
+        //Locale current = context.getResources().getConfiguration().locale;
+        Locale current = Locale.getDefault();
         String appRegion = current.getDisplayCountry();
 
         JSONObject payload = new JSONObject();
@@ -677,8 +680,15 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         }
     }
 
+   // 2016-01-01: Moved from 1.3.0 to 1.3.1-snapshot
     private void setSSLContext(SSLContext sslContext) {
-        setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+        //setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+    	try {
+			super.setSocket(sslContext.getSocketFactory().createSocket());
+		} catch (IOException e) {
+			Log.e("SSL Setup", "failed to setup ssl socket",e);
+		}
+        
     }
 
     protected void setupSSL() {

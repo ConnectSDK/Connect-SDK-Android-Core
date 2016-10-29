@@ -366,7 +366,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     public void registerDefaultDeviceTypes() {
         final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
 
-        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
+        for (Map.Entry<String, String> entry : devicesList.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             try { 
