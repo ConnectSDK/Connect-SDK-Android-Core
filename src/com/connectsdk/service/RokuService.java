@@ -20,7 +20,7 @@
 
 package com.connectsdk.service;
 
-import android.text.TextUtils;
+
 import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
@@ -677,16 +677,16 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
             param = String.format(
                     "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
                     HttpMessage.encode(url),
-                    TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
+                    (title != null && !title.isEmpty()) ? "(null)" : HttpMessage.encode(title),
                             HttpMessage.encode(mediaFormat));
         } else { // if (mimeType.contains("audio")) {
             param = String
                     .format("15985?t=a&u=%s&k=(null)&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
                             HttpMessage.encode(url),
-                            TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
-                            TextUtils.isEmpty(description) ? "(null)" : HttpMessage.encode(description),
+                            (title != null && !title.isEmpty()) ? "(null)" : HttpMessage.encode(title),
+                            (description != null && !description.isEmpty()) ? "(null)" : HttpMessage.encode(description),
                             HttpMessage.encode(mediaFormat),
-                            TextUtils.isEmpty(iconSrc) ? "(null)" : HttpMessage.encode(iconSrc));
+                            (iconSrc != null && !iconSrc.isEmpty()) ? "(null)" : HttpMessage.encode(iconSrc));
         }
 
         String uri = requestURL(action, param);
