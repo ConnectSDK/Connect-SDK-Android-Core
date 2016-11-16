@@ -45,7 +45,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
+//import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
@@ -375,10 +375,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         String sdkVersion = DiscoveryManager.CONNECT_SDK_VERSION;
 
         // Device Model
-        String deviceModel = Build.MODEL;
+        String deviceModel = null; //Build.MODEL;
 
         // OS Version
-        String OSVersion = String.valueOf(android.os.Build.VERSION.SDK_INT);
+        String OSVersion = null; //String.valueOf(android.os.Build.VERSION.SDK_INT);
 
         // resolution
         // WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);

@@ -136,7 +136,7 @@ public class NetcastHttpServer {
             SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
             dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
             String date = dateFormat.format(calendar.getTime());
-            String androidOSVersion = android.os.Build.VERSION.RELEASE;
+            //String androidOSVersion = android.os.Build.VERSION.RELEASE;
 
             PrintWriter out = null;
 
@@ -144,7 +144,7 @@ public class NetcastHttpServer {
                 outToClient = new DataOutputStream(connectionSocket.getOutputStream());
                 out = new PrintWriter(outToClient);
                 out.println("HTTP/1.1 200 OK");
-                out.println("Server: Android/" + androidOSVersion + " UDAP/2.0 ConnectSDK/1.2.1");
+                //out.println("Server: Android/" + androidOSVersion + " UDAP/2.0 ConnectSDK/1.2.1");
                 out.println("Cache-Control: no-store, no-cache, must-revalidate");
                 out.println("Date: " + date);
                 out.println("Connection: Close");

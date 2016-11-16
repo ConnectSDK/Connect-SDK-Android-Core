@@ -1,5 +1,7 @@
 package android.content;
 
+
+/** Context that must be implemented for the library to interface with surrounding systems. */
 public abstract class Context
 {
 public abstract  android.content.pm.PackageManager getPackageManager();
@@ -32,9 +34,9 @@ public abstract  java.lang.String getPackageName();
 //public abstract  void setWallpaper(java.io.InputStream data) throws java.io.IOException;
 //@java.lang.Deprecated()
 //public abstract  void clearWallpaper() throws java.io.IOException;
-public abstract  android.content.Intent registerReceiver(android.content.BroadcastReceiver receiver, android.content.IntentFilter filter);
-public abstract  void unregisterReceiver(android.content.BroadcastReceiver receiver);
-public abstract  java.lang.Object getSystemService(java.lang.String name);
+//public abstract  android.content.Intent registerReceiver(android.content.BroadcastReceiver receiver, android.content.IntentFilter filter);
+//public abstract  void unregisterReceiver(android.content.BroadcastReceiver receiver);
+//public abstract  java.lang.Object getSystemService(java.lang.String name);
 //public abstract  int checkPermission(java.lang.String permission, int pid, int uid);
 //public abstract  int checkCallingPermission(java.lang.String permission);
 //public abstract  int checkCallingOrSelfPermission(java.lang.String permission);
@@ -72,8 +74,8 @@ public abstract  java.lang.Object getSystemService(java.lang.String name);
 //public static final java.lang.String STORAGE_SERVICE = "storage";
 //public static final java.lang.String WALLPAPER_SERVICE = "wallpaper";
 //public static final java.lang.String VIBRATOR_SERVICE = "vibrator";
-public static final java.lang.String CONNECTIVITY_SERVICE = "connectivity";
-public static final java.lang.String WIFI_SERVICE = "wifi";
+//public static final java.lang.String CONNECTIVITY_SERVICE = "connectivity";
+//public static final java.lang.String WIFI_SERVICE = "wifi";
 //public static final java.lang.String WIFI_P2P_SERVICE = "wifip2p";
 //public static final java.lang.String NSD_SERVICE = "servicediscovery";
 //public static final java.lang.String AUDIO_SERVICE = "audio";

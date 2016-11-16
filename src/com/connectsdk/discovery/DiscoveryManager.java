@@ -47,14 +47,14 @@ import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
 import com.connectsdk.service.config.ServiceDescription;
 
-import android.content.BroadcastReceiver;
+//import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.MulticastLock;
+//import android.content.Intent;
+//import android.content.IntentFilter;
+//import android.net.ConnectivityManager;
+//import android.net.NetworkInfo;
+//import android.net.wifi.WifiManager;
+//import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
 
 /**
@@ -133,8 +133,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     private CopyOnWriteArrayList<DiscoveryManagerListener> discoveryListeners;
     List<CapabilityFilter> capabilityFilters;
 
-    MulticastLock multicastLock;
-    BroadcastReceiver receiver;
+    //MulticastLock multicastLock;
+    //BroadcastReceiver receiver;
     boolean isBroadcastReceiverRegistered = false;
 
     Timer rescanTimer;
@@ -214,82 +214,82 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         discoveryListeners = new CopyOnWriteArrayList<DiscoveryManagerListener>();
 
-        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        multicastLock = wifiMgr.createMulticastLock(Util.T);
-        multicastLock.setReferenceCounted(true);
+//        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+//        multicastLock = wifiMgr.createMulticastLock(Util.T);
+//        multicastLock.setReferenceCounted(true);
 
         capabilityFilters = new ArrayList<CapabilityFilter>();
         pairingLevel = PairingLevel.OFF;
 
-        receiver = new BroadcastReceiver() {
+//        receiver = new BroadcastReceiver() {
+//
+//            @Override
+//            public void onReceive(Context context, Intent intent) {
+//                String action = intent.getAction();
+//
+//                if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
+//                    NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+//
+//                    switch (networkInfo.getState()) {
+//                        case CONNECTED:
+//                            if (mSearching) {
+//                                for (DiscoveryProvider provider : discoveryProviders) {
+//                                    provider.restart();
+//                                }
+//                            }
+//
+//                            break;
+//
+//                        case DISCONNECTED:
+//                            Log.w(Util.T, "Network connection is disconnected");
+//
+//                            for (DiscoveryProvider provider : discoveryProviders) {
+//                                provider.reset();
+//                            }
+//
+//                            allDevices.clear();
+//
+//                            for (ConnectableDevice device : compatibleDevices.values()) {
+//                                handleDeviceLoss(device);
+//                            }
+//                            compatibleDevices.clear();
+//
+//                            break;
+//
+//                        case CONNECTING:
+//                            break;
+//                        case DISCONNECTING:
+//                            break;
+//                        case SUSPENDED:
+//                            break;
+//                        case UNKNOWN:
+//                            break;
+//                    }
+//                }
+//            }
+//        };
 
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String action = intent.getAction();
-
-                if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
-                    NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-
-                    switch (networkInfo.getState()) {
-                        case CONNECTED:
-                            if (mSearching) {
-                                for (DiscoveryProvider provider : discoveryProviders) {
-                                    provider.restart();
-                                }
-                            }
-
-                            break;
-
-                        case DISCONNECTED:
-                            Log.w(Util.T, "Network connection is disconnected");
-
-                            for (DiscoveryProvider provider : discoveryProviders) {
-                                provider.reset();
-                            }
-
-                            allDevices.clear();
-
-                            for (ConnectableDevice device : compatibleDevices.values()) {
-                                handleDeviceLoss(device);
-                            }
-                            compatibleDevices.clear();
-
-                            break;
-
-                        case CONNECTING:
-                            break;
-                        case DISCONNECTING:
-                            break;
-                        case SUSPENDED:
-                            break;
-                        case UNKNOWN:
-                            break;
-                    }
-                }
-            }
-        };
-
-        registerBroadcastReceiver();
+        //registerBroadcastReceiver();
     }
     // @endcond
 
-    private void registerBroadcastReceiver() {
-        if (!isBroadcastReceiverRegistered) {
-            isBroadcastReceiverRegistered = true;
-
-            IntentFilter intentFilter = new IntentFilter();
-            intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-            context.registerReceiver(receiver, intentFilter);
-        }
-    }
-
-    private void unregisterBroadcastReceiver() {
-        if (isBroadcastReceiverRegistered) {
-            isBroadcastReceiverRegistered = false;
-
-            context.unregisterReceiver(receiver);
-        }
-    }
+//    private void registerBroadcastReceiver() {
+//        if (!isBroadcastReceiverRegistered) {
+//            isBroadcastReceiverRegistered = true;
+//
+//            IntentFilter intentFilter = new IntentFilter();
+//            intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+//            context.registerReceiver(receiver, intentFilter);
+//        }
+//    }
+//
+//    private void unregisterBroadcastReceiver() {
+//        if (isBroadcastReceiverRegistered) {
+//            isBroadcastReceiverRegistered = false;
+//
+//            context.unregisterReceiver(receiver);
+//        }
+//    }
 
     /**
      * Listener which should receive discovery updates. It is not necessary to set this listener property unless you are
@@ -547,7 +547,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         }
 
         mSearching = true;
-        multicastLock.acquire();
+//        multicastLock.acquire();
 
         Util.runOnUI(new Runnable() {
 
@@ -557,28 +557,28 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                     registerDefaultDeviceTypes();
                 }
 
-                ConnectivityManager connManager = (ConnectivityManager) context
-                        .getSystemService(Context.CONNECTIVITY_SERVICE);
-                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-
-                if (mWifi.isConnected()) {
+//                ConnectivityManager connManager = (ConnectivityManager) context
+//                        .getSystemService(Context.CONNECTIVITY_SERVICE);
+//                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+//
+//                if (mWifi.isConnected()) {
                     for (DiscoveryProvider provider : discoveryProviders) {
                         provider.start();
                     }
-                } else {
-                    Log.w(Util.T, "Wifi is not connected yet");
-
-                    Util.runOnUI(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            for (DiscoveryManagerListener listener : discoveryListeners) {
-                                listener.onDiscoveryFailed(DiscoveryManager.this,
-                                        new ServiceCommandError(0, "No wifi connection", null));
-                            }
-                        }
-                    });
-                }
+//                } else {
+//                    Log.w(Util.T, "Wifi is not connected yet");
+//
+//                    Util.runOnUI(new Runnable() {
+//
+//                        @Override
+//                        public void run() {
+//                            for (DiscoveryManagerListener listener : discoveryListeners) {
+//                                listener.onDiscoveryFailed(DiscoveryManager.this,
+//                                        new ServiceCommandError(0, "No wifi connection", null));
+//                            }
+//                        }
+//                    });
+//                }
             }
         });
     }
@@ -597,9 +597,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             provider.stop();
         }
 
-        if (multicastLock.isHeld()) {
-            multicastLock.release();
-        }
+//        if (multicastLock.isHeld()) {
+//            multicastLock.release();
+//        }
     }
 
     /**
@@ -742,7 +742,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     public void onDestroy() {
-        unregisterBroadcastReceiver();
+        //unregisterBroadcastReceiver();
     }
 
     public List<DiscoveryProvider> getDiscoveryProviders() {
