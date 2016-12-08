@@ -30,8 +30,6 @@ import java.util.regex.Matcher;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.SparseArray;
-
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
@@ -128,7 +126,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     // @cond INTERNAL
     protected DeviceServiceListener listener;
 
-    public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
+    //public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
 
     public DeviceService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         this.serviceDescription = serviceDescription;

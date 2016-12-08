@@ -12,6 +12,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,7 +46,6 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 import android.content.Context;
 //import android.os.Build;
 import android.util.Log;
-import android.util.SparseArray;
 //import android.view.Display;
 //import android.view.WindowManager;
 
@@ -79,8 +79,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     // Queue of commands that should be sent once register is complete
     LinkedHashSet<ServiceCommand<ResponseListener<Object>>> commandQueue = new LinkedHashSet<ServiceCommand<ResponseListener<Object>>>();
 
-    public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
-
+    private HashMap<Integer, ServiceCommand<? extends Object>> requests = new HashMap<Integer,ServiceCommand<? extends Object>>();
+    
     boolean mConnectSucceeded = false;
     Boolean mConnected;
 
@@ -750,10 +750,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             mListener.onCloseWithError(error);
         }
 
-        for (int i = 0; i < requests.size(); i++) {
-            ServiceCommand<ResponseListener<Object>> request = (ServiceCommand<ResponseListener<Object>>) requests
-                    .get(requests.keyAt(i));
-
+        for(ServiceCommand<? extends Object> request : requests.values()){
             if (request != null) {
                 Util.postError(request.getResponseListener(), new ServiceCommandError(0, "connection lost", null));
             }
