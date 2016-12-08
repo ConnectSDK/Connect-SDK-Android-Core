@@ -902,17 +902,19 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         return null;
     }
 
-    private boolean isXmlEncoded(final String xml) {
+   /* private boolean isXmlEncoded(final String xml) {
         if (xml == null || xml.length() < 4) {
             return false;
         }
         return xml.trim().substring(0, 4).equals("&lt;");
-    }
+    }*/
 
     String parseData(String response, String key) {
-        if (isXmlEncoded(response)) {
-            response = Html.fromHtml(response).toString();
-        }
+        
+        // commented out to remove dependency to Html and Spanned - review if this is acutally required
+        //if (isXmlEncoded(response)) {
+        //    response = Html.fromHtml(response).toString();
+        //}
         try {
             XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
             
