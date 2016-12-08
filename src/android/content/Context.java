@@ -4,6 +4,5 @@ package android.content;
 public abstract class Context {
     public abstract String getPackageName();
     public abstract String getDataDir();
-    public abstract android.graphics.drawable.Drawable getIcon();
     public abstract String getApplicationName();
 }
