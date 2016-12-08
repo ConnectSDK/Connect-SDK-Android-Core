@@ -19,8 +19,6 @@
  */
 package com.connectsdk.core;
 
-import android.support.annotation.NonNull;
-
 /**
  * Normalized reference object for information about a subtitle track. It's used in `MediaInfo` class.
  * The only one required parameter is `url`, others can be `null`. This class is immutable and has

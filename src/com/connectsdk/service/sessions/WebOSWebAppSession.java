@@ -20,8 +20,6 @@
 
 package com.connectsdk.service.sessions;
 
-import android.support.annotation.NonNull;
-
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +32,7 @@ import org.json.JSONObject;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.NonNull;
 import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
