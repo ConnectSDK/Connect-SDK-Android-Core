@@ -84,7 +84,6 @@ import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
-import android.util.Base64;
 import android.util.Log;
 
 public class WebOSTVService extends DeviceService
@@ -893,31 +892,6 @@ public class WebOSTVService extends DeviceService
     }
 
     private void sendToast(JSONObject payload, ResponseListener<Object> listener) {
-        if (!payload.has("iconData")) {
-            Context context = DiscoveryManager.getInstance().getContext();
-
-            try {
-                Drawable drawable = context.getIcon();
-
-                if (drawable != null) {
-                    BitmapDrawable bitDw = ((BitmapDrawable) drawable);
-                    Bitmap bitmap = bitDw.getBitmap();
-
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-
-                    byte[] bitmapByte = stream.toByteArray();
-                    bitmapByte = Base64.encode(bitmapByte, Base64.NO_WRAP);
-                    String bitmapData = new String(bitmapByte);
-
-                    payload.put("iconData", bitmapData);
-                    payload.put("iconExtension", "png");
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
         String uri = "palm://system.notifications/createToast";
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri,
                 payload, true, listener);

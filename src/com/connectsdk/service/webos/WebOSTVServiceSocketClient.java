@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509TrustManager;
+import javax.xml.bind.DatatypeConverter;
 
 import org.java_websocket.WebSocket;
 //2016-01-01: Moved from 1.3.0 to 1.3.1-snapshot
@@ -43,7 +44,6 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 
 import android.content.Context;
 //import android.os.Build;
-import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
 //import android.view.Display;
@@ -796,7 +796,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     private String exportCertificateToPEM(X509Certificate cert) {
         try {
-            return Base64.encodeToString(cert.getEncoded(), Base64.DEFAULT);
+            //return java.util.Base64.getEncoder().encodeToString(cert.getEncoded()); // only available in java 1.8
+            return DatatypeConverter.printBase64Binary(cert.getEncoded());
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
             return null;
