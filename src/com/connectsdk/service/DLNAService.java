@@ -20,11 +20,11 @@
 
 package com.connectsdk.service;
 
-import android.content.Context;
 import android.text.Html;
 import android.util.Log;
-import android.util.Xml;
 
+
+import com.connectsdk.core.Context;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.SubtitleInfo;
@@ -57,6 +57,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -912,8 +913,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         if (isXmlEncoded(response)) {
             response = Html.fromHtml(response).toString();
         }
-        XmlPullParser parser = Xml.newPullParser();
         try {
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+            
             parser.setInput(new StringReader(response));
             int event;
             boolean isFound = false;
@@ -1123,12 +1125,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             @Override
             public void run() {
                 String myIpAddress = null;
-                try {
-                    myIpAddress = Util.getIpAddress(context).getHostAddress();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-
+                
+                myIpAddress = context.getIpAddress().getHostAddress();
+                
                 List<Service> serviceList = serviceDescription.getServiceList();
 
                 if (serviceList != null) {

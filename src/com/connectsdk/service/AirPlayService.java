@@ -20,8 +20,6 @@
 
 package com.connectsdk.service;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.connectsdk.core.ImageInfo;
@@ -48,6 +46,7 @@ import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +64,8 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+
+import javax.imageio.ImageIO;
 
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
     public static final String X_APPLE_SESSION_ID = "X-Apple-Session-ID";
@@ -381,33 +382,10 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
                 try {
                     URL imagePath = new URL(url);
-                    HttpURLConnection connection = (HttpURLConnection) imagePath.openConnection();
-                    connection.setInstanceFollowRedirects(true);
-                    connection.setDoInput(true);
-                    connection.connect();
-
-                    int responseCode = connection.getResponseCode();
-                    boolean redirect = (responseCode == HttpURLConnection.HTTP_MOVED_TEMP
-                            || responseCode == HttpURLConnection.HTTP_MOVED_PERM
-                            || responseCode == HttpURLConnection.HTTP_SEE_OTHER);
-
-                    if(redirect) {
-                        String newPath = connection.getHeaderField("Location");
-                        URL newImagePath = new URL(newPath);
-                        connection = (HttpURLConnection) newImagePath.openConnection();
-                        connection.setInstanceFollowRedirects(true);
-                        connection.setDoInput(true);
-                        connection.connect();
-                    }
-
-                    InputStream input = connection.getInputStream();
-                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
-
+                    BufferedImage image = ImageIO.read(imagePath);
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    ImageIO.write(image, "jpg", stream);
                     payload = stream.toByteArray();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e) {

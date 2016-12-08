@@ -20,9 +20,9 @@
 
 package com.connectsdk.discovery.provider;
 
-import android.content.Context;
 import android.util.Log;
 
+import com.connectsdk.core.Context;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
@@ -141,11 +141,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
         serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 
-        try {
-            srcAddress = Util.getIpAddress(context);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+        
+        srcAddress = context.getIpAddress();
+        
     }
 
     @Override

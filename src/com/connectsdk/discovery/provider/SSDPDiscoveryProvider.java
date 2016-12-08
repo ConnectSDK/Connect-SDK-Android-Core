@@ -41,6 +41,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
+import com.connectsdk.core.Context;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
@@ -50,7 +51,6 @@ import com.connectsdk.discovery.provider.ssdp.SSDPDevice;
 import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
 import com.connectsdk.service.config.ServiceDescription;
 
-import android.content.Context;
 import android.util.Log;
 
 public class SSDPDiscoveryProvider implements DiscoveryProvider {
@@ -91,15 +91,13 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         }
 
         try {
-            InetAddress source = Util.getIpAddress(context);
+            InetAddress source = context.getIpAddress();
             if (source == null) {
                 return;
             }
 
             ssdpClient = createSocket(source);
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        }  catch (IOException e) {
             e.printStackTrace();
         }
     }

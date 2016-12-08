@@ -20,10 +20,9 @@
 
 package com.connectsdk.core;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+
+
 import java.util.Date;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -33,13 +32,12 @@ import com.connectsdk.service.capability.listeners.ErrorListener;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 
-import android.content.Context;
+
 
 public final class Util {
     static public String T = "Connect SDK";
 
     static private ExecutorService executor;
-    static private InetAddress localIP;
 
     /**
      * Configure Util on component start.
@@ -47,14 +45,12 @@ public final class Util {
      * @param e must not be <code>null</null>
      * @param ip may be <code>null</code>
      */
-    public static void start(ExecutorService e, InetAddress ip) {
+    public static void init(ExecutorService e) {
         executor = e;
-        localIP = ip;
     }
 
-    public static void stop() {
+    public static void uninit() {
         executor = null;
-        localIP = null;
     }
 
     public static void runOnUI(Runnable runnable) {
@@ -70,13 +66,7 @@ public final class Util {
         runInBackground(runnable, false);
     }
 
-    public static Executor getExecutor() {
-        return executor;
-    }
-
-    public static boolean isMain() {
-        return true;
-    }
+    
 
     public static <T> void postSuccess(final ResponseListener<T> listener, final T object) {
         if (listener == null)
@@ -102,15 +92,7 @@ public final class Util {
                 listener.onError(error);
             }
         });
-    }
-
-    public static byte[] convertIpAddress(int ip) {
-        return new byte[] {
-                (byte) (ip & 0xFF), 
-                (byte) ((ip >> 8) & 0xFF), 
-                (byte) ((ip >> 16) & 0xFF), 
-                (byte) ((ip >> 24) & 0xFF)};
-    }
+    }    
 
     public static long getTime() {
         return TimeUnit.MILLISECONDS.toSeconds(new Date().getTime());
@@ -120,11 +102,5 @@ public final class Util {
         return InetAddressUtils.isIPv4Address(ipAddress);
     }
 
-    public static boolean isIPv6Address(String ipAddress) {
-        return InetAddressUtils.isIPv6Address(ipAddress);
-    }
-
-    public static InetAddress getIpAddress(Context context) throws UnknownHostException {
-        return localIP;
-    }
+    
 }

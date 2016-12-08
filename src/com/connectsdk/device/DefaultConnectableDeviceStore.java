@@ -33,8 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
-
+import com.connectsdk.core.Context;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.config.ServiceConfig;

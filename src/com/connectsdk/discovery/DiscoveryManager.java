@@ -33,6 +33,7 @@ import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.connectsdk.core.Context;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
@@ -47,8 +48,6 @@ import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
 import com.connectsdk.service.config.ServiceDescription;
 
-//import android.content.BroadcastReceiver;
-import android.content.Context;
 //import android.content.Intent;
 //import android.content.IntentFilter;
 //import android.net.ConnectivityManager;
