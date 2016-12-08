@@ -20,7 +20,6 @@
 
 package com.connectsdk.service;
 
-import android.text.Html;
 import android.util.Log;
 
 
