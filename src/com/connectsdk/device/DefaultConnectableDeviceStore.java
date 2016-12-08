@@ -101,16 +101,6 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     private boolean waitToWrite = false;
 
     public DefaultConnectableDeviceStore(Context context) { 
-        String dirPath;
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        }
-        else {
-            dirPath = Environment.MEDIA_UNMOUNTED;
-        }
-        fileFullPath = dirPath + DIRPATH + FILENAME;
-
-        
         fileFullPath = context.getDataDir() + "/" + FILENAME;
         
         load();
