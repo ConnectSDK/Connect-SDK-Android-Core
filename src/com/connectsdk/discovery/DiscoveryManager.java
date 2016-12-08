@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.connectsdk.core.Context;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
@@ -47,14 +48,6 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceConfig.ServiceConfigListener;
 import com.connectsdk.service.config.ServiceDescription;
-
-//import android.content.Intent;
-//import android.content.IntentFilter;
-//import android.net.ConnectivityManager;
-//import android.net.NetworkInfo;
-//import android.net.wifi.WifiManager;
-//import android.net.wifi.WifiManager.MulticastLock;
-import android.util.Log;
 
 /**
  * ###Overview

@@ -20,9 +20,8 @@
 
 package com.connectsdk.discovery.provider;
 
-import android.util.Log;
-
 import com.connectsdk.core.Context;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;

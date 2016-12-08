@@ -21,10 +21,9 @@
 package com.connectsdk.service;
 
 
-import android.util.Log;
-
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;

@@ -32,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.connectsdk.core.Context;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService.PairingType;
@@ -43,11 +44,6 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
-
-//import android.os.Build;
-import android.util.Log;
-//import android.view.Display;
-//import android.view.WindowManager;
 
 public class WebOSTVServiceSocketClient extends WebSocketClient implements ServiceCommandProcessor {
 

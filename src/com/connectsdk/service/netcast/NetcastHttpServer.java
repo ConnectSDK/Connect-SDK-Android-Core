@@ -44,9 +44,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xml.sax.SAXException;
 
-import android.util.Log;
-
 import com.connectsdk.core.ChannelInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.TextInputStatusInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.NetcastTVService;

@@ -42,6 +42,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import com.connectsdk.core.Context;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryProvider;
@@ -50,8 +51,6 @@ import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.discovery.provider.ssdp.SSDPDevice;
 import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
 import com.connectsdk.service.config.ServiceDescription;
-
-import android.util.Log;
 
 public class SSDPDiscoveryProvider implements DiscoveryProvider {
     Context context;

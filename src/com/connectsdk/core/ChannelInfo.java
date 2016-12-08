@@ -23,8 +23,6 @@ package com.connectsdk.core;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 /**
  * Normalized reference object for information about a TVs channels. This object is required to set the channel on a TV.
  */
