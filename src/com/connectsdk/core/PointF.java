@@ -1,5 +1,5 @@
-package android.graphics;
-// maybe replace with point2d in awt
+package com.connectsdk.core;
+
 public class PointF {
     public PointF(float x, float y) {
         this.x = x;

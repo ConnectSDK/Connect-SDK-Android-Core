@@ -40,6 +40,7 @@ import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.NonNull;
+import com.connectsdk.core.PointF;
 import com.connectsdk.core.ProgramInfo;
 import com.connectsdk.core.ProgramList;
 import com.connectsdk.core.Util;
@@ -79,8 +80,6 @@ import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
-
-import android.graphics.PointF;
 
 public class WebOSTVService extends DeviceService
         implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl,

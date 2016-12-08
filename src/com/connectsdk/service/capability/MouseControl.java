@@ -20,7 +20,7 @@
 
 package com.connectsdk.service.capability;
 
-import android.graphics.PointF;
+import com.connectsdk.core.PointF;
 
 
 public interface MouseControl extends CapabilityMethods {

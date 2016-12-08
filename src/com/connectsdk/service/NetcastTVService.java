@@ -20,14 +20,13 @@
 
 package com.connectsdk.service;
 
-import android.graphics.PointF;
-
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.ExternalInputInfo;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.PointF;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
