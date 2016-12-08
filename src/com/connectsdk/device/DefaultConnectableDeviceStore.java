@@ -34,7 +34,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Environment;
 
 import com.connectsdk.core.Util;
@@ -111,12 +110,9 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
         }
         fileFullPath = dirPath + DIRPATH + FILENAME;
 
-        try {
-            fileFullPath = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.dataDir + "/" + FILENAME;
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
+        
+        fileFullPath = context.getDataDir() + "/" + FILENAME;
+        
         load();
     }
     // @endcond

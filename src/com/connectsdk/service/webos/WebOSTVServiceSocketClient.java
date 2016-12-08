@@ -42,9 +42,6 @@ import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 //import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
@@ -366,8 +363,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     private void helloTV() {
         Context context = DiscoveryManager.getInstance().getContext();
-        PackageManager packageManager = context.getPackageManager();
-
+        
         // app Id
         String packageName = context.getPackageName();
 
@@ -393,14 +389,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         String screenResolution = String.format("%dx%d", 0, 0);
 
         // app Name
-        ApplicationInfo applicationInfo;
-        try {
-            applicationInfo = packageManager.getApplicationInfo(context.getPackageName(), 0);
-        } catch (final NameNotFoundException e) {
-            applicationInfo = null;
-        }
-        String applicationName = (String) (applicationInfo != null ? packageManager.getApplicationLabel(applicationInfo)
-                : "(unknown)");
+        
+        String applicationName = context.getApplicationName();
 
         // app Region
         // Locale current = context.getResources().getConfiguration().locale;

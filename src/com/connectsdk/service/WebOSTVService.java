@@ -79,7 +79,6 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
 import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
@@ -898,7 +897,7 @@ public class WebOSTVService extends DeviceService
             Context context = DiscoveryManager.getInstance().getContext();
 
             try {
-                Drawable drawable = context.getPackageManager().getApplicationIcon(context.getPackageName());
+                Drawable drawable = context.getIcon();
 
                 if (drawable != null) {
                     BitmapDrawable bitDw = ((BitmapDrawable) drawable);
@@ -914,8 +913,6 @@ public class WebOSTVService extends DeviceService
                     payload.put("iconData", bitmapData);
                     payload.put("iconExtension", "png");
                 }
-            } catch (NameNotFoundException e) {
-                e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
