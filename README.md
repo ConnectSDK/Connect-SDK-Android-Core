@@ -13,8 +13,7 @@ The Connect SDK Core contains all of the core classes required for basic operati
 ##General Information
 For more information about Connect SDK, visit the [main repository](https://github.com/ConnectSDK/Connect-SDK-Android).
 
-##Setup
-Unless you are doing very specialized work to extend the SDK, you should not need to make direct use of this repository. Instead, clone the [main repository](https://github.com/ConnectSDK/Connect-SDK-Android), which includes this repository as a submodule.
+For details on this fork, visit the [project page](http://sprehn.github.io/Connect-SDK-Java-Core/).
 
 ##License
 Copyright (c) 2013-2015 LG Electronics.
