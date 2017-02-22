@@ -55,7 +55,8 @@ public class TextInputStatusInfo {
         this.focused = focused;
     }
 
-    /** Gets the type of keyboard that should be displayed to the user. */
+    /** Gets the type of keyboard that should be displayed to the user. 
+     * @return the keyboard type */
     public TextInputType getTextInputType() {
         TextInputType textInputType = TextInputType.DEFAULT;
 
@@ -77,7 +78,8 @@ public class TextInputStatusInfo {
         return textInputType;
     }
 
-    /** Sets the type of keyboard that should be displayed to the user. */
+    /** Sets the type of keyboard that should be displayed to the user. 
+     * @param textInputType the keyboard type*/
     public void setTextInputType(TextInputType textInputType) {
         switch (textInputType) {
         case NUMBER:
@@ -135,12 +137,12 @@ public class TextInputStatusInfo {
         this.hiddenText = hiddenText;
     }
 
-    /** Gets the raw data from the first screen device about the text input status. */
+    /** @return the raw data from the first screen device about the text input status. */
     public JSONObject getRawData() {
         return rawData;
     }
 
-    /** Sets the raw data from the first screen device about the text input status. */
+    /** @param data the raw data from the first screen device about the text input status. */
     public void setRawData(JSONObject data) {
         rawData = data;
     }

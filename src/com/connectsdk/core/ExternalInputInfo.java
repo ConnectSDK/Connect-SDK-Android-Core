@@ -40,52 +40,52 @@ public class ExternalInputInfo implements JSONSerializable {
     public ExternalInputInfo() {
     }
 
-    /** Gets the ID of the external input on the first screen device. */
+    /** @return the ID of the external input on the first screen device. */
     public String getId() {
         return id;
     }
 
-    /** Sets the ID of the external input on the first screen device. */
+    /** @param inputId the ID of the external input on the first screen device. */
     public void setId(String inputId) {
         this.id = inputId;
     }
 
-    /** Gets the user-friendly name of the external input (ex. AV, HDMI1, etc). */
+    /** @return the user-friendly name of the external input (ex. AV, HDMI1, etc). */
     public String getName() {
         return name;
     }
 
-    /** Sets the user-friendly name of the external input (ex. AV, HDMI1, etc). */
+    /** @param inputName the user-friendly name of the external input (ex. AV, HDMI1, etc). */
     public void setName(String inputName) {
         this.name = inputName;
     }
 
-    /** Sets the raw data from the first screen device about the external input. */
+    /** @param rawData the raw data from the first screen device about the external input. */
     public void setRawData(JSONObject rawData) {
         this.rawData = rawData;
     }
 
-    /** Gets the raw data from the first screen device about the external input. */
+    /** @return the raw data from the first screen device about the external input. */
     public JSONObject getRawData() {
         return rawData;
     }
 
-    /** Whether the DeviceService is currently connected to this external input. */
+    /** @return true if the DeviceService is currently connected to this external input. */
     public boolean isConnected() {
         return connected;
     }
 
-    /** Sets whether the DeviceService is currently connected to this external input. */
+    /** @param connected whether the DeviceService is currently connected to this external input. */
     public void setConnected(boolean connected) {
         this.connected = connected;
     }
 
-    /** Gets the URL to an icon representing this external input. */
+    /** @return the URL to an icon representing this external input. */
     public String getIconURL() {
         return iconURL;
     }
 
-    /** Sets the URL to an icon representing this external input. */
+    /** @param iconURL the URL to an icon representing this external input. */
     public void setIconURL(String iconURL) {
         this.iconURL = iconURL;
     }
@@ -108,9 +108,9 @@ public class ExternalInputInfo implements JSONSerializable {
     /**
      * Compares two ExternalInputInfo objects.
      *
-     * @param externalInputInfo ExternalInputInfo object to compare.
+     * @param o ExternalInputInfo object to compare.
      *
-     * @return YES if both ExternalInputInfo id & name values are equal
+     * @return true if both ExternalInputInfo id &amp; name values are equal
      */
     @Override
     public boolean equals(Object o) {

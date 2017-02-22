@@ -214,7 +214,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     /**
      * AirPlay has the same response for Buffering and Finished states that's why this method
      * always returns Finished state for video which is not ready to play.
-     * @param listener
+     * @param listener the play state listener
      */
     @Override
     public void getPlayState(final PlayStateListener listener) {

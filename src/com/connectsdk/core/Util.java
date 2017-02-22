@@ -42,8 +42,7 @@ public final class Util {
     /**
      * Configure Util on component start.
      *
-     * @param e must not be <code>null</null>
-     * @param ip may be <code>null</code>
+     * @param e must not be <code>null</code>
      */
     public static void init(ExecutorService e) {
         executor = e;

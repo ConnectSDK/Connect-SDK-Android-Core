@@ -193,44 +193,49 @@ public interface MediaControl extends CapabilityMethods {
 
     /**
      * This method is deprecated.
-     * Use `PlaylistControl#previous(ResponseListener<Object> listener)` instead.
+     * Use `PlaylistControl#previous(ResponseListener&lt;Object&gt; listener)` instead.
+     * @param listener the listener
      */
     @Deprecated
     public void previous(ResponseListener<Object> listener);
 
     /**
      * This method is deprecated.
-     * Use `PlaylistControl#next(ResponseListener<Object> listener)` instead.
+     * Use `PlaylistControl#next(ResponseListener&lt;Object&gt; listener)` instead.
+     * @param listener the listener
      */
     @Deprecated
     public void next(ResponseListener<Object> listener);
 
     /**
      * @param position The new position, in milliseconds from the beginning of the stream
-     * @param listener (optional) ResponseListener< Object > with methods to be called on success
+     * @param listener (optional) ResponseListener&lt;Object&gt; with methods to be called on success
      *                 or failure
      */
     public void seek(long position, ResponseListener<Object> listener);
 
     /**
-     * Get the current media duration in milliseconds
+     * Get the current media duration in milliseconds.
+     * @param listener the listener that receives the result
      */
     public void getDuration(DurationListener listener);
 
     /**
-     * Get the current playback position in milliseconds
+     * Get the current playback position in milliseconds.
+     * @param listener the listener that receives the result
      */
     public void getPosition(PositionListener listener);
 
     /**
-     * Get the current state of playback
+     * Get the current state of playback.
+     * @param listener the listener that receives the result
      */
     public void getPlayState(PlayStateListener listener);
 
     /**
      * Subscribe for playback state changes
      * @param listener receives play state notifications
-     * @return ServiceSubscription<PlayStateListener>
+     * @return ServiceSubscription&lt;PlayStateListener&gt;
      */
     public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener);
 

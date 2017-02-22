@@ -87,6 +87,12 @@ public interface MediaPlayer extends CapabilityMethods {
     /**
      * This method is deprecated.
      * Use `MediaPlayer#displayImage(MediaInfo mediaInfo, LaunchListener listener)` instead.
+     * @param url the url
+     * @param mimeType the mime type
+     * @param title the title
+     * @param description description
+     * @param iconSrc the icon src
+     * @param listener the listener
      */
     @Deprecated
     public void displayImage(String url, String mimeType, String title, String description, String iconSrc, LaunchListener listener);
@@ -95,6 +101,13 @@ public interface MediaPlayer extends CapabilityMethods {
      * This method is deprecated.
      * Use `MediaPlayer#playMedia(MediaInfo mediaInfo, boolean shouldLoop, LaunchListener listener)`
      * instead.
+     * @param url the url
+     * @param mimeType the mime type
+     * @param title the title
+     * @param description description
+     * @param iconSrc the icon src
+     * @param shouldLoop should it loop
+     * @param listener the listener
      */
     @Deprecated
     public void playMedia(String url, String mimeType, String title, String description, String iconSrc, boolean shouldLoop, LaunchListener listener);

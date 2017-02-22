@@ -74,14 +74,12 @@ import com.connectsdk.service.config.ServiceDescription;
  *
  * Example:
  *
- * @capability kMediaControlPlay
- *
- * @code
+ * <code>
  *       DiscoveryManager.init(getApplicationContext());
  *       DiscoveryManager discoveryManager = DiscoveryManager.getInstance();
  *       discoveryManager.addListener(this);
  *       discoveryManager.start();
- * @endcode
+ * </code>
  *
  *          [0]: http://tools.ietf.org/html/draft-cai-ssdp-v1-03
  */
@@ -141,9 +139,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * Initilizes the Discovery manager with a valid context. This should be done as soon as possible and it should use
      * getApplicationContext() as the Discovery manager could persist longer than the current Activity.
      * 
-     * @code
+     * <code>
      *       DiscoveryManager.init(getApplicationContext());
-     * @endcode
+     * </code>
+     * 
+     * @param context a valid context
      */
     public static synchronized void init(Context context) {
         instance = new DiscoveryManager(context);
@@ -159,17 +159,20 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *
      * This accepts a ConnectableDeviceStore to use instead of the default device store.
      * 
-     * @code
+     * <code>
      *       MyConnectableDeviceStore myDeviceStore = new MyConnectableDeviceStore();
      *       DiscoveryManager.init(getApplicationContext(), myDeviceStore);
-     * @endcode
+     * </code>
+     * 
+     * @param context a valid context
+     * @param connectableDeviceStore a device store
      */
     public static synchronized void init(Context context, ConnectableDeviceStore connectableDeviceStore) {
         instance = new DiscoveryManager(context, connectableDeviceStore);
     }
 
     /**
-     * Get a shared instance of DiscoveryManager.
+     * @return a shared instance of DiscoveryManager.
      */
     public static synchronized DiscoveryManager getInstance() {
         if (instance == null) {
@@ -184,6 +187,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * Create a new instance of DiscoveryManager.
      * Direct use of this constructor is not recommended. In most cases,
      * you should use DiscoveryManager.getInstance() instead.
+     * @param context a valid context
      */
     public DiscoveryManager(Context context) {
         this(context, new DefaultConnectableDeviceStore(context));
@@ -193,6 +197,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      * Create a new instance of DiscoveryManager.
      * Direct use of this constructor is not recommended. In most cases,
      * you should use DiscoveryManager.getInstance() instead.
+     * 
+     * @param context a valid context
+     * @param connectableDeviceStore a device store
      */
     public DiscoveryManager(Context context, ConnectableDeviceStore connectableDeviceStore) {
         this.context = context;
@@ -284,13 +291,15 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 //    }
 
     /**
-     * Listener which should receive discovery updates. It is not necessary to set this listener property unless you are
+     * It is not necessary to set this listener property unless you are
      * implementing your own device picker. Connect SDK provides a default DevicePicker which acts as a
      * DiscoveryManagerListener, and should work for most cases.
      *
      * If you have provided a capabilityFilters array, the listener will only receive update messages for
      * ConnectableDevices which satisfy at least one of the CapabilityFilters. If no capabilityFilters array is
      * provided, the listener will receive update messages for all ConnectableDevice objects that are discovered.
+     * 
+     * @param listener Listener which should receive discovery updates
      */
     public void addListener(DiscoveryManagerListener listener) {
         // notify listener of all devices so far
@@ -302,6 +311,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     /**
      * Removes a previously added listener
+     * 
+     *  @param listener Listener which should be removed
      */
     public void removeListener(DiscoveryManagerListener listener) {
         discoveryListeners.remove(listener);
@@ -330,7 +341,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     /**
-     * Returns the list of capability filters.
+     * @return the list of capability filters.
      */
     public List<CapabilityFilter> getCapabilityFilters() {
         return capabilityFilters;
@@ -595,9 +606,6 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     /**
-     * ConnectableDeviceStore object which loads & stores references to all discovered devices. Pairing codes/keys, SSL
-     * certificates, recent access times, etc are kept in the device store.
-     *
      * ConnectableDeviceStore is a protocol which may be implemented as needed. A default implementation,
      * DefaultConnectableDeviceStore, exists for convenience and will be used if no other device store is provided.
      *
@@ -606,15 +614,16 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *
      * To disable the ConnectableDeviceStore capabilities of Connect SDK, set this value to nil. This may be done at the
      * time of instantiation with `DiscoveryManager.init(context, null);`.
+     * 
+     * @param connectableDeviceStore ConnectableDeviceStore object which loads &amp; stores references to all discovered devices. Pairing codes/keys, SSL
+     * certificates, recent access times, etc are kept in the device store.
+     *
      */
     public void setConnectableDeviceStore(ConnectableDeviceStore connectableDeviceStore) {
         this.connectableDeviceStore = connectableDeviceStore;
     }
 
     /**
-     * ConnectableDeviceStore object which loads & stores references to all discovered devices. Pairing codes/keys, SSL
-     * certificates, recent access times, etc are kept in the device store.
-     *
      * ConnectableDeviceStore is a protocol which may be implemented as needed. A default implementation,
      * DefaultConnectableDeviceStore, exists for convenience and will be used if no other device store is provided.
      *
@@ -623,6 +632,9 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *
      * To disable the ConnectableDeviceStore capabilities of Connect SDK, set this value to nil. This may be done at the
      * time of instantiation with `DiscoveryManager.init(context, null);`.
+     * 
+     * @return ConnectableDeviceStore object which loads &amp; stores references to all discovered devices. Pairing codes/keys, SSL
+     * certificates, recent access times, etc are kept in the device store.
      */
     public ConnectableDeviceStore getConnectableDeviceStore() {
         return connectableDeviceStore;
@@ -684,7 +696,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     // @endcond
 
     /**
-     * List of all devices discovered by DiscoveryManager. Each ConnectableDevice object is keyed against its current IP
+     * @return List of all devices discovered by DiscoveryManager. Each ConnectableDevice object is keyed against its current IP
      * address.
      */
     public Map<String, ConnectableDevice> getAllDevices() {
@@ -692,7 +704,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     /**
-     * Filtered list of discovered ConnectableDevices, limited to devices that match at least one of the
+     * @return Filtered list of discovered ConnectableDevices, limited to devices that match at least one of the
      * CapabilityFilters in the capabilityFilters array. Each ConnectableDevice object is keyed against its current IP
      * address.
      */
@@ -709,6 +721,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *
      * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid
      * requiring pairing if possible but some capabilities may not be available.
+     * 
+     * @return the pairing level
      */
     public PairingLevel getPairingLevel() {
         return pairingLevel;
@@ -723,6 +737,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *
      * If pairingLevel is set to ConnectableDevicePairingLevelOff (the default), connecting to the device will avoid
      * requiring pairing if possible but some capabilities may not be available.
+     * 
+     * @param pairingLevel the pairing level
      */
     public void setPairingLevel(PairingLevel pairingLevel) {
         this.pairingLevel = pairingLevel;

@@ -51,7 +51,7 @@ public interface TextInputControl extends CapabilityMethods {
     /**
      * Response block that is fired on any change of keyboard visibility.
      *
-     * Passes TextInputStatusInfo object that provides keyboard type & visibility information
+     * Passes TextInputStatusInfo object that provides keyboard type &amp; visibility information
      */
     public static interface TextInputStatusListener extends ResponseListener<TextInputStatusInfo> { }
 }

@@ -57,6 +57,7 @@ public class AppInfo implements JSONSerializable {
      * Gets the ID of the app on the first screen device. Format is different
      * depending on the platform. (ex. youtube.leanback.v4, 0000001134, netflix,
      * etc).
+     * @return ID of the app on the first screen device
      */
     public String getId() {
         return id;
@@ -66,6 +67,7 @@ public class AppInfo implements JSONSerializable {
      * Sets the ID of the app on the first screen device. Format is different
      * depending on the platform. (ex. youtube.leanback.v4, 0000001134, netflix,
      * etc).
+     * @param id ID of the app on the first screen device
      */
     public void setId(String id) {
         this.id = id;
@@ -74,6 +76,7 @@ public class AppInfo implements JSONSerializable {
     /**
      * Gets the user-friendly name of the app (ex. YouTube, Browser, Netflix,
      * etc).
+     * @return user-friendly name of the app
      */
     public String getName() {
         return name;
@@ -82,17 +85,18 @@ public class AppInfo implements JSONSerializable {
     /**
      * Sets the user-friendly name of the app (ex. YouTube, Browser, Netflix,
      * etc).
+     * @param name user-friendly name of the app
      */
     public void setName(String name) {
         this.name = name.trim();
     }
 
-    /** Gets the raw data from the first screen device about the app. */
+    /** @return the raw data from the first screen device about the app. */
     public JSONObject getRawData() {
         return raw;
     }
 
-    /** Sets the raw data from the first screen device about the app. */
+    /** @param data  the raw data from the first screen device about the app. */
     public void setRawData(JSONObject data) {
         raw = data;
     }

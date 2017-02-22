@@ -25,14 +25,16 @@ package com.connectsdk.core;
  * a builder for easy construction.
  *
  * Different services support specific subtitle formats:
- *  - `DLNAService` supports only SRT subtitles. Since there is no official specification for them,
- *  subtitles may not work on all DLNA-compatible devices
- *  - `NetcastTVService` supports only SRT subtitles and has the same restrictions as `DLNAService`
- *  - `CastService` supports only WebVTT subtitles and it has additional requirements
- *  @see {@link https://developers.google.com/cast/docs/android_sender#cors-requirements}
- *  - `FireTVService` supports only WebVTT subtitles
- *  - `WebOSTVService` supports WebVTT subtitles. Server providing subtitles should
- *  support CORS headers, similarly to Cast service's requirements.
+ * <ul>
+ *  <li> `DLNAService` supports only SRT subtitles. Since there is no official specification for them,
+ *  subtitles may not work on all DLNA-compatible devices</li>
+ *  <li> `NetcastTVService` supports only SRT subtitles and has the same restrictions as `DLNAService`</li>
+ *  <li> `CastService` supports only WebVTT subtitles and it has additional 
+ *  <a href="https://developers.google.com/cast/docs/android_sender#cors-requirements">requirements</a></li>
+ *  <li> `FireTVService` supports only WebVTT subtitles</li>
+ *  <li> `WebOSTVService` supports WebVTT subtitles. Server providing subtitles should
+ *  support CORS headers, similarly to Cast service's requirements.</li>
+ *  </ul>
  *
  */
 public class SubtitleInfo {

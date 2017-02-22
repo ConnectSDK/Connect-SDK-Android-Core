@@ -94,7 +94,7 @@ public interface PlaylistControl extends CapabilityMethods {
     /**
      * Set order of playing tracks
      *
-     * @param playMode
+     * @param playMode the play mode
      * @param listener optional response listener
      */
     public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener);

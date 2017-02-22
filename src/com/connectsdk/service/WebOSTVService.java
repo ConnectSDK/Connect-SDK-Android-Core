@@ -1488,7 +1488,7 @@ public class WebOSTVService extends DeviceService
      * Sets current channel
      *
      * @param channelInfo must not be null
-     * @param listener
+     * @param listener the response listener
      * @throws NullPointerException if channelInfo is null
      */
     @Override
@@ -2734,9 +2734,9 @@ public class WebOSTVService extends DeviceService
         }
     }
 
-    /**************
+    /* *************
      * SYSTEM CONTROL
-     **************/
+     ************* */
     public void getServiceInfo(final ServiceInfoListener listener) {
         String uri = "ssap://api/getServiceList";
 

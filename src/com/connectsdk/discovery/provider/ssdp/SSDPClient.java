@@ -83,7 +83,9 @@ public class SSDPClient {
         datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
 
-    /** Used to send SSDP packet */
+    /** Used to send SSDP packet.
+     * @param data the data 
+     * @throws IOException in case of network problems */
     public void send(String data) throws IOException {
         DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), multicastGroup);
 
@@ -91,7 +93,9 @@ public class SSDPClient {
     }
 
 
-    /** Used to receive SSDP Response packet */
+    /** Used to receive SSDP Response packet.
+     * @return response 
+     * @throws IOException in case of network problems */
     public DatagramPacket responseReceive() throws IOException {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
@@ -101,7 +105,9 @@ public class SSDPClient {
         return dp;
     }
 
-    /** Used to receive SSDP Multicast packet */
+    /** Used to receive SSDP Multicast packet.
+     * @return multicast packet 
+     * @throws IOException in case of network problems */
     public DatagramPacket multicastReceive() throws IOException {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
@@ -120,7 +126,7 @@ public class SSDPClient {
         return datagramSocket != null && multicastSocket != null && datagramSocket.isConnected() && multicastSocket.isConnected();
     }
 
-    /** Close the socket */
+    /** Close the socket. */
     public void close() {
         if (multicastSocket != null) {
             try {

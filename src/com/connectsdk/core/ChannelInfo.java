@@ -43,62 +43,62 @@ public class ChannelInfo implements JSONSerializable {
     public ChannelInfo() {
     }
 
-    /** Gets the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
+    /** @return the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
     public JSONObject getRawData() {
         return rawData;
     }
 
-    /** Sets the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
+    /** @param rawData the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
     public void setRawData(JSONObject rawData) {
         this.rawData = rawData;
     }
 
-    /** Gets the user-friendly name of the channel */
+    /** @return the user-friendly name of the channel */
     public String getName() {
         return channelName;
     }
 
-    /** Sets the user-friendly name of the channel */
+    /** @param channelName the user-friendly name of the channel */
     public void setName(String channelName) {
         this.channelName = channelName;
     }
 
-    /** Gets the TV's unique ID for the channel */
+    /** @return the TV's unique ID for the channel */
     public String getId() {
         return channelId;
     }
 
-    /** Sets the TV's unique ID for the channel */
+    /** @param channelId the TV's unique ID for the channel */
     public void setId(String channelId) {
         this.channelId = channelId;
     }
 
-    /** Gets the TV channel's number (likely to be a combination of the major & minor numbers) */
+    /** @return the TV channel's number (likely to be a combination of the major &amp; minor numbers) */
     public String getNumber() {
         return channelNumber;
     }
 
-    /** Sets the TV channel's number (likely to be a combination of the major & minor numbers) */
+    /** @param channelNumber the TV channel's number (likely to be a combination of the major &amp; minor numbers) */
     public void setNumber(String channelNumber) {
         this.channelNumber = channelNumber;
     }
 
-    /** Gets the TV channel's minor number */
+    /** @return the TV channel's minor number */
     public int getMinorNumber() {
         return minorNumber;
     }
 
-    /** Sets the TV channel's minor number */
+    /** @param minorNumber the TV channel's minor number */
     public void setMinorNumber(int minorNumber) {
         this.minorNumber = minorNumber;
     }
 
-    /** Gets the TV channel's major number */
+    /** @return the TV channel's major number */
     public int getMajorNumber() {
         return majorNumber;
     }
 
-    /** Sets the TV channel's major number */
+    /** @param majorNumber the TV channel's major number */
     public void setMajorNumber(int majorNumber) {
         this.majorNumber = majorNumber;
     }
@@ -106,9 +106,9 @@ public class ChannelInfo implements JSONSerializable {
     /**
      * Compares two ChannelInfo objects.
      *
-     * @param channelInfo ChannelInfo object to compare.
+     * @param o ChannelInfo object to compare.
      *
-     * @return YES if both ChannelInfo number & name values are equal
+     * @return true if both ChannelInfo number &amp; name values are equal
      */
     @Override
     public boolean equals(Object o) {

@@ -44,7 +44,7 @@ import org.json.JSONObject;
  * with web app
  * 
  * MediaPlayer and MediaControl are provided to allow for the most common first
- * screen use cases -- a media player (audio, video, & images).
+ * screen use cases -- a media player (audio, video, &amp; images).
  * 
  * The Connect SDK JavaScript Bridge has been produced to provide normalized
  * support for these capabilities across protocols (Chromecast, webOS, etc).
@@ -66,15 +66,13 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     }
 
     /**
-     * Success block that is called upon successfully getting a web app's status.
-     *
-     * @param status The current running & foreground status of the web app
+     * Called upon successfully getting a web app's status.
      */
     public static interface WebAppPinStatusListener extends ResponseListener<Boolean> { }
 
     /**
      * LaunchSession object containing key session information. Much of this
-     * information is required for web app messaging & closing the web app.
+     * information is required for web app messaging &amp; closing the web app.
      */
     public LaunchSession launchSession;
 
@@ -99,7 +97,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     }
 
     /**
-     * DeviceService that was responsible for launching this web app.
+     * @param service DeviceService that was responsible for launching this web app.
      */
     protected void setService(DeviceService service) {
     }
@@ -108,8 +106,8 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     /**
      * Subscribes to changes in the web app's status.
      * 
-     * @param listener
-     *            (optional) MessageListener to be called on app status change
+     * @param listener (optional) MessageListener to be called on app status change
+     * @return the subscription
      */
     public ServiceSubscription<MessageListener> subscribeWebAppStatus(
             MessageListener listener) {
@@ -122,8 +120,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     /**
      * Establishes a communication channel with the web app.
      * 
-     * @param connectionListener
-     *            (optional) ResponseListener to be called on success
+     * @param connectionListener (optional) ResponseListener to be called on success
      */
     public void connect(ResponseListener<Object> connectionListener) {
         Util.postError(connectionListener, ServiceCommandError.notSupported());
@@ -132,7 +129,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     /**
      * Establishes a communication channel with a currently running web app.
      * 
-     * @param connectionListener
+     * @param connectionListener (optional) ResponseListener to be called on success
      */
     public void join(ResponseListener<Object> connectionListener) {
         Util.postError(connectionListener, ServiceCommandError.notSupported());
@@ -146,6 +143,8 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
 
     /**
      * Pin the web app on the launcher.
+     * @param webAppId the web app id
+     * @param listener (optional) ResponseListener to be called on success
      */
     public void pinWebApp(String webAppId, ResponseListener<Object> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
@@ -155,6 +154,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      * UnPin the web app on the launcher.
      *
      * @param webAppId NSString webAppId to be unpinned.
+     * @param listener (optional) ResponseListener to be called on success
      */
     public void unPinWebApp(String webAppId, ResponseListener<Object> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
@@ -162,6 +162,8 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
 
     /**
      * To check if the web app is pinned or not
+     * @param webAppId the web app id
+     * @param listener (optional) ResponseListener to be called on success
      */
     public void isWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
@@ -169,6 +171,9 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
 
     /**
      * Subscribe to check if the web app is pinned or not
+     * @param webAppId the web app id
+     * @param listener (optional) ResponseListener to be called on success
+     * @return the subscription
      */
     public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(String webAppId, WebAppPinStatusListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
@@ -178,8 +183,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     /**
      * Closes the web app on the first screen device.
      * 
-     * @param listener
-     *            (optional) ResponseListener to be called on success
+     * @param listener (optional) ResponseListener to be called on success
      */
     public void close(ResponseListener<Object> listener) {
         if (listener != null)
@@ -190,6 +194,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      * Sends a simple string to the web app. The Connect SDK JavaScript Bridge
      * will receive this message and hand it off as a string object.
      * 
+     * @param message the message
      * @param listener
      *            (optional) ResponseListener to be called on success
      */
@@ -202,7 +207,8 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      * Sends a JSON object to the web app. The Connect SDK JavaScript Bridge
      * will receive this message and hand it off as a JavaScript object.
      * 
-     * @param success
+     * @param message the message
+     * @param listener
      *            (optional) ResponseListener to be called on success
      */
     public void sendMessage(JSONObject message,
@@ -459,6 +465,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      * When messages are received from a web app, they are parsed into the
      * appropriate object type (string vs JSON/NSDictionary) and routed to the
      * WebAppSessionListener.
+     * @return the session listener
      */
     public WebAppSessionListener getWebAppSessionListener() {
         return webAppListener;
@@ -493,7 +500,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      * Success block that is called upon successfully getting a web app's
      * status.
      * 
-     * Passes a WebAppStatus of the current running & foreground status of the
+     * Passes a WebAppStatus of the current running &amp; foreground status of the
      * web app
      */
     public static interface StatusListener extends

@@ -152,58 +152,35 @@ public class MediaInfo {
         this.allImages = allImages;
     }
 
-    /**
-     * Gets type of a media file.
-     */
     public String getMimeType() {
         return mimeType;
     }
 
-    /**
-     * Sets type of a media file.
-     *
-     * This method is deprecated
-     */
     @Deprecated
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
     }
 
-    /**
-     * Gets title for a media file.
-     */
     public String getTitle() {
         return title;
     }
 
-    /**
-     * Sets title of a media file.
-     *
-     * This method is deprecated
-     */
     @Deprecated
     public void setTitle(String title) {
         this.title = title;
     }
 
-    /**
-     * Gets description for a media.
-     */
     public String getDescription() {
         return description;
     }
 
-    /**
-     * Sets description for a media.
-     * This method is deprecated
-     */
     @Deprecated
     public void setDescription(String description) {
         this.description = description;
     }
 
     /**
-     * Gets list of ImageInfo objects for images representing a media (ex. icon, poster).
+     * @return list of ImageInfo objects for images representing a media (ex. icon, poster).
      * Where first ([0]) is icon image, and second ([1]) is poster image.
      */
     public List<ImageInfo> getImages() {
@@ -214,40 +191,26 @@ public class MediaInfo {
      * Sets list of ImageInfo objects for images representing a media (ex. icon, poster).
      * Where first ([0]) is icon image, and second ([1]) is poster image.
      *
-     * This method is deprecated
+     * @param images the pair of images 
      */
     @Deprecated
     public void setImages(List<ImageInfo> images) {
         this.allImages = images;
     }
 
-    /**
-     * Gets duration of a media file.
-     */
     public long getDuration() {
         return duration;
     }
 
-    /**
-     * Sets duration of a media file.
-     * This method is deprecated
-     */
     @Deprecated
     public void setDuration(long duration) {
         this.duration = duration;
     }
 
-    /**
-     * Gets URL address of a media file.
-     */
     public String getUrl() {
         return url;
     }
 
-    /**
-     * Sets URL address of a media file.
-     * This method is deprecated
-     */
     @Deprecated
     public void setUrl(String url) {
         this.url = url;
@@ -257,11 +220,6 @@ public class MediaInfo {
         return subtitleInfo;
     }
 
-    /**
-     * Stores ImageInfo objects.
-     *
-     * This method is deprecated
-     */
     @Deprecated
     public void addImages(ImageInfo... images) {
         if (images == null) {
