@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
 
@@ -33,7 +37,7 @@ public interface VolumeControl extends CapabilityMethods {
     public final static String Mute_Get = "VolumeControl.Mute.Get";
     public final static String Mute_Set = "VolumeControl.Mute.Set";
     public final static String Mute_Subscribe = "VolumeControl.Mute.Subscribe";
-
+    
     public final static String[] Capabilities = {
         Volume_Get,
         Volume_Set,
@@ -43,6 +47,10 @@ public interface VolumeControl extends CapabilityMethods {
         Mute_Set,
         Mute_Subscribe
     };
+    
+    public static List<String> getCapabilities() {
+        return Collections.unmodifiableList(Arrays.asList(Capabilities));
+    }
 
     public VolumeControl getVolumeControl();
     public CapabilityPriorityLevel getVolumeControlCapabilityLevel();

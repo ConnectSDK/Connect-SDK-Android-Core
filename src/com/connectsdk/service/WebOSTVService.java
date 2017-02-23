@@ -20,7 +20,7 @@
 
 package com.connectsdk.service;
 
-import java.io.ByteArrayOutputStream;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -97,9 +97,6 @@ public class WebOSTVService extends DeviceService
             CONTROL_INPUT_MEDIA_PLAYBACK
         }
 
-        public static final WebOSTVServicePermission[] OPEN = { Open.LAUNCH, Open.LAUNCH_WEB, Open.APP_TO_APP,
-                Open.CONTROL_AUDIO, Open.CONTROL_INPUT_MEDIA_PLAYBACK };
-
         public enum Protected implements WebOSTVServicePermission {
             CONTROL_POWER,
             READ_INSTALLED_APPS,
@@ -112,12 +109,7 @@ public class WebOSTVService extends DeviceService
             READ_TV_CHANNEL_LIST,
             WRITE_NOTIFICATION_TOAST
         }
-
-        public static final WebOSTVServicePermission[] PROTECTED = { Protected.CONTROL_POWER,
-                Protected.READ_INSTALLED_APPS, Protected.CONTROL_DISPLAY, Protected.CONTROL_INPUT_JOYSTICK,
-                Protected.CONTROL_INPUT_MEDIA_RECORDING, Protected.CONTROL_INPUT_TV, Protected.READ_INPUT_DEVICE_LIST,
-                Protected.READ_NETWORK_STATE, Protected.READ_TV_CHANNEL_LIST, Protected.WRITE_NOTIFICATION_TOAST };
-
+       
         public enum PersonalActivity implements WebOSTVServicePermission {
             CONTROL_INPUT_TEXT,
             CONTROL_MOUSE_AND_KEYBOARD,
@@ -125,9 +117,6 @@ public class WebOSTVService extends DeviceService
             READ_RUNNING_APPS
         }
 
-        public static final WebOSTVServicePermission[] PERSONAL_ACTIVITY = { PersonalActivity.CONTROL_INPUT_TEXT,
-                PersonalActivity.CONTROL_MOUSE_AND_KEYBOARD, PersonalActivity.READ_CURRENT_CHANNEL,
-                PersonalActivity.READ_RUNNING_APPS };
     }
 
     public final static String[] kWebOSTVServiceOpenPermissions = { "LAUNCH", "LAUNCH_WEBAPP", "APP_TO_APP",
@@ -3081,7 +3070,7 @@ public class WebOSTVService extends DeviceService
     private int parseMinorNumber(String channelNumber) {
         if (channelNumber != null) {
             String tokens[] = channelNumber.split("-");
-            return Integer.valueOf(tokens[tokens.length - 1]);
+            return Integer.parseInt(tokens[tokens.length - 1]);
         } else {
             return 0;
         }
@@ -3090,7 +3079,7 @@ public class WebOSTVService extends DeviceService
     private int parseMajorNumber(String channelNumber) {
         if (channelNumber != null) {
             String tokens[] = channelNumber.split("-");
-            return Integer.valueOf(tokens[0]);
+            return Integer.parseInt(tokens[0]);
         } else {
             return 0;
         }

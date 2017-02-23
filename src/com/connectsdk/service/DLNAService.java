@@ -50,6 +50,7 @@ import com.connectsdk.service.upnp.DLNAMediaInfoParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,6 +81,7 @@ import java.util.TimerTask;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -744,10 +746,14 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             }
 
             doc.appendChild(didlRoot);
-            return xmlToString(doc, false);
-        } catch (Exception e) {
-            return null;
-        }
+            
+                return xmlToString(doc, false);
+            } catch (TransformerException | ParserConfigurationException | DOMException | MalformedURLException | UnsupportedEncodingException | URISyntaxException e) {
+                e.printStackTrace();
+                return null;
+            }
+        
+       
     }
 
     String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException, UnsupportedEncodingException {

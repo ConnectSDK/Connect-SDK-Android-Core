@@ -30,7 +30,6 @@ import com.connectsdk.service.config.ServiceDescription;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -51,10 +50,11 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
     private Timer scanTimer;
 
-    List<DiscoveryFilter> serviceFilters;
+    private List<DiscoveryFilter> serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 
-    ConcurrentHashMap<String, ServiceDescription> foundServices;
-    CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
+    private ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>(8, 0.75f, 2);
+    private CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
+    
 
     boolean isRunning = false;
 
@@ -74,10 +74,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
             ServiceDescription foundService = foundServices.get(ipAddress);
 
-            boolean isNew = foundService == null;
             boolean listUpdateFlag = false;
 
-            if (isNew) {
+            if (foundService == null) { // is New
                 foundService = new ServiceDescription();
                 foundService.setUUID(ipAddress);
                 foundService.setServiceFilter(ev.getInfo().getType());
@@ -87,8 +86,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
                 foundService.setFriendlyName(friendlyName);
 
                 listUpdateFlag = true;
-            }
-            else {
+            } else {
                 if (!foundService.getFriendlyName().equals(friendlyName)) {
                     foundService.setFriendlyName(friendlyName);
                     listUpdateFlag = true;
@@ -135,14 +133,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     };
 
     public ZeroconfDiscoveryProvider(Context context) {
-        foundServices = new ConcurrentHashMap<String, ServiceDescription>(8, 0.75f, 2);
-
-        serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
-        serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
-
-        
         srcAddress = context.getIpAddress();
-        
     }
 
     @Override
@@ -278,10 +269,6 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         serviceFilters.remove(filter);
     }
 
-    @Override
-    public void setFilters(List<DiscoveryFilter> filters) {
-        serviceFilters = filters;
-    }
 
     @Override
     public boolean isEmpty() {

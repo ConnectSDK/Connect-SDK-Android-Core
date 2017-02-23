@@ -78,8 +78,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     private HashMap<Integer, ServiceCommand<? extends Object>> requests = new HashMap<Integer,ServiceCommand<? extends Object>>();
     
     boolean mConnectSucceeded = false;
-    Boolean mConnected;
-
+    
     public WebOSTVServiceSocketClient(WebOSTVService service, URI uri) {
         super(uri);
 
@@ -339,7 +338,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             if (mService.getServiceConfig().getServiceUUID() != null) {
                 if (!mService.getServiceConfig().getServiceUUID().equals(jsonObj.optString("deviceUUID"))) {
                     ((WebOSTVServiceConfig) mService.getServiceConfig()).setClientKey(null);
-                    ((WebOSTVServiceConfig) mService.getServiceConfig()).setServerCertificate((String) null);
+                    ((WebOSTVServiceConfig) mService.getServiceConfig()).setServerCertificate((X509Certificate) null);
                     mService.getServiceConfig().setServiceUUID(null);
                     mService.getServiceDescription().setIpAddress(null);
                     mService.getServiceDescription().setUUID(null);

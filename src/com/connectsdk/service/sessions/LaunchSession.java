@@ -226,16 +226,5 @@ public class LaunchSession implements JSONSerializable, JSONDeserializable {
 
     // @endcond
 
-    /**
-     * Compares two LaunchSession objects.
-     *
-     * @param launchSession LaunchSession object to compare.
-     *
-     * @return true if both LaunchSession id and sessionId values are equal
-     */
-    @Override
-    public boolean equals(Object launchSession) {
-        // TODO Auto-generated method stub
-        return super.equals(launchSession);
-    }
+    
 }

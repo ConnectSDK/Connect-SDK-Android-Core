@@ -105,20 +105,36 @@ public class ExternalInputInfo implements JSONSerializable {
     }
     // @endcond
 
-    /**
-     * Compares two ExternalInputInfo objects.
-     *
-     * @param o ExternalInputInfo object to compare.
-     *
-     * @return true if both ExternalInputInfo id &amp; name values are equal
-     */
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof ExternalInputInfo) {
-            ExternalInputInfo eii = (ExternalInputInfo) o;
-            return this.id.equals(eii.id) &&
-                    this.name.equals(eii.name);
-        }
-        return false;
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExternalInputInfo other = (ExternalInputInfo) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
+    }
+
+    
 }

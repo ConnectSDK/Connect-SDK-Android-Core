@@ -23,7 +23,6 @@ package com.connectsdk.discovery.provider;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -53,35 +52,28 @@ import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
 import com.connectsdk.service.config.ServiceDescription;
 
 public class SSDPDiscoveryProvider implements DiscoveryProvider {
-    Context context;
+    private Context context;
 
-    boolean needToStartSearch = false;
+    private CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
 
-    private CopyOnWriteArrayList<DiscoveryProviderListener> serviceListeners;
+    private ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
+    private ConcurrentHashMap<String, ServiceDescription> discoveredServices = new ConcurrentHashMap<String, ServiceDescription>();
 
-    ConcurrentHashMap<String, ServiceDescription> foundServices = new ConcurrentHashMap<String, ServiceDescription>();
-    ConcurrentHashMap<String, ServiceDescription> discoveredServices = new ConcurrentHashMap<String, ServiceDescription>();
-
-    List<DiscoveryFilter> serviceFilters;
+    private List<DiscoveryFilter> serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
 
     private SSDPClient ssdpClient;
 
     private Timer scanTimer;
 
-    private Pattern uuidReg;
+    private Pattern uuidReg = Pattern.compile("(?<=uuid:)(.+?)(?=(::)|$)");
 
     private Thread responseThread;
     private Thread notifyThread;
     private ScheduledExecutorService executorService;
-    boolean isRunning = false;
+    private boolean isRunning = false;
 
     public SSDPDiscoveryProvider(Context context) {
         this.context = context;
-
-        uuidReg = Pattern.compile("(?<=uuid:)(.+?)(?=(::)|$)");
-
-        serviceListeners = new CopyOnWriteArrayList<DiscoveryProviderListener>();
-        serviceFilters = new CopyOnWriteArrayList<DiscoveryFilter>();
     }
 
     private void openSocket() {
@@ -96,7 +88,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             }
 
             ssdpClient = createSocket(source);
-        }  catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -114,8 +106,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         isRunning = true;
 
         openSocket();
-        if (serviceFilters != null && !serviceFilters.isEmpty()) {
-            //three tasks for each service filter
+        if (!serviceFilters.isEmpty()) {
+            // three tasks for each service filter
             int poolSize = serviceFilters.size() * 3;
             executorService = Executors.newScheduledThreadPool(poolSize);
         }
@@ -210,7 +202,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             Log.w(Util.T, "There are no filters added");
         } else {
             if (executorService.isTerminated() || executorService.isShutdown()) {
-                if (serviceFilters != null && !serviceFilters.isEmpty()) {
+                if (!serviceFilters.isEmpty()) {
                     int poolSize = serviceFilters.size() * 3;
                     executorService = Executors.newScheduledThreadPool(poolSize);
                 }
@@ -248,11 +240,6 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     @Override
     public void removeDeviceFilter(DiscoveryFilter filter) {
         serviceFilters.remove(filter);
-    }
-
-    @Override
-    public void setFilters(List<DiscoveryFilter> filters) {
-        serviceFilters = filters;
     }
 
     @Override
@@ -406,30 +393,28 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
                 if (device != null) {
                     device.UUID = uuid;
-                    boolean hasServices = containsServicesWithFilter(device, serviceFilter);
 
-                    if (hasServices) {
-                        final ServiceDescription service = discoveredServices.get(uuid);
+                    final ServiceDescription service = discoveredServices.get(uuid);
 
-                        if (service != null) {
-                            service.setServiceFilter(serviceFilter);
-                            service.setFriendlyName(device.friendlyName);
-                            service.setModelName(device.modelName);
-                            service.setModelNumber(device.modelNumber);
-                            service.setModelDescription(device.modelDescription);
-                            service.setManufacturer(device.manufacturer);
-                            service.setApplicationURL(device.applicationURL);
-                            service.setServiceList(device.serviceList);
-                            service.setResponseHeaders(device.headers);
-                            service.setLocationXML(device.locationXML);
-                            service.setServiceURI(device.serviceURI);
-                            service.setPort(device.port);
+                    if (service != null) {
+                        service.setServiceFilter(serviceFilter);
+                        service.setFriendlyName(device.friendlyName);
+                        service.setModelName(device.modelName);
+                        service.setModelNumber(device.modelNumber);
+                        service.setModelDescription(device.modelDescription);
+                        service.setManufacturer(device.manufacturer);
+                        service.setApplicationURL(device.applicationURL);
+                        service.setServiceList(device.serviceList);
+                        service.setResponseHeaders(device.headers);
+                        service.setLocationXML(device.locationXML);
+                        service.setServiceURI(device.serviceURI);
+                        service.setPort(device.port);
 
-                            foundServices.put(uuid, service);
+                        foundServices.put(uuid, service);
 
-                            notifyListenersOfNewService(service);
-                        }
+                        notifyListenersOfNewService(service);
                     }
+
                 }
 
                 discoveredServices.remove(uuid);
@@ -509,17 +494,6 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         }
 
         return false;
-    }
-
-    public boolean containsServicesWithFilter(SSDPDevice device, String filter) {
-        // List<String> servicesRequired = new ArrayList<String>();
-        //
-        // for (JSONObject serviceFilter : serviceFilters) {
-        // }
-
-        // TODO Implement this method. Not sure why needs to happen since there are now required services.
-
-        return true;
     }
 
     @Override

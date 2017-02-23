@@ -96,7 +96,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     Map<String, DeviceService> services;
 
-    public boolean featuresReady = false;
+    //public boolean featuresReady = false;
 
     public ConnectableDevice() {
         services = new ConcurrentHashMap<String, DeviceService>();

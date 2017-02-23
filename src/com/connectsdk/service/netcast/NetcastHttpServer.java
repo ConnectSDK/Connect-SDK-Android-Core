@@ -92,7 +92,7 @@ public class NetcastHttpServer {
 
             Socket connectionSocket = null;
             BufferedReader inFromClient = null;
-            DataOutputStream outToClient = null;
+           
 
             try {
                 connectionSocket = welcomeSocket.accept();
@@ -137,11 +137,7 @@ public class NetcastHttpServer {
             String date = dateFormat.format(calendar.getTime());
             //String androidOSVersion = android.os.Build.VERSION.RELEASE;
 
-            PrintWriter out = null;
-
-            try {
-                outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-                out = new PrintWriter(outToClient);
+            try(PrintWriter out = new PrintWriter(new DataOutputStream(connectionSocket.getOutputStream()))) {
                 out.println("HTTP/1.1 200 OK");
                 //out.println("Server: Android/" + androidOSVersion + " UDAP/2.0 ConnectSDK/1.2.1");
                 out.println("Cache-Control: no-store, no-cache, must-revalidate");
@@ -152,16 +148,7 @@ public class NetcastHttpServer {
                 out.flush();
             } catch (IOException ex) {
                 ex.printStackTrace();
-            } finally {
-                try {
-                    inFromClient.close();
-                    out.close();
-                    outToClient.close();
-                    connectionSocket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            } 
 
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             InputStream stream = null;

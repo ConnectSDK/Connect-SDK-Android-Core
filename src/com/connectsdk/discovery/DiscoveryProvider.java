@@ -87,13 +87,6 @@ public interface DiscoveryProvider {
     public void removeDeviceFilter(DiscoveryFilter filter);
 
     /**
-     * Set filters for a list of particular DeviceServices
-     *
-     * @param filters filters to be used for discovering a list of particular DeviceServices
-     */
-    public void setFilters(List<DiscoveryFilter> filters);
-
-    /**
      * @return true if the DiscoveryProvider has any services it is supposed to be searching for. If YES, then the DiscoveryProvider will be stopped and de-referenced by the DiscoveryManager.
      */
     public boolean isEmpty();

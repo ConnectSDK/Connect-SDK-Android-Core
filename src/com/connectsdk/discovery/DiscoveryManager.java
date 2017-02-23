@@ -105,14 +105,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
     // @cond INTERNAL
 
-    public static String CONNECT_SDK_VERSION = "1.6.0";
+    public static final String CONNECT_SDK_VERSION = "1.6.0";
 
     private static DiscoveryManager instance;
 
     Context context;
     ConnectableDeviceStore connectableDeviceStore;
-
-    int rescanInterval = 10;
 
     private ConcurrentHashMap<String, ConnectableDevice> allDevices;
     private ConcurrentHashMap<String, ConnectableDevice> compatibleDevices;
@@ -123,13 +121,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     private CopyOnWriteArrayList<DiscoveryManagerListener> discoveryListeners;
     List<CapabilityFilter> capabilityFilters;
 
-    //MulticastLock multicastLock;
-    //BroadcastReceiver receiver;
-    boolean isBroadcastReceiverRegistered = false;
-
-    Timer rescanTimer;
-
-    PairingLevel pairingLevel;
+    
+    private PairingLevel pairingLevel;
 
     private boolean mSearching = false;
 
@@ -386,12 +379,12 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         final HashMap<String, String> devicesList = new HashMap<String, String>();
         devicesList.put("com.connectsdk.service.WebOSTVService",
                 "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
-        // devicesList.put("com.connectsdk.service.NetcastTVService",
+        //devicesList.put("com.connectsdk.service.NetcastTVService",
         // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
-        // devicesList.put("com.connectsdk.service.DLNAService",
-        // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
-        // devicesList.put("com.connectsdk.service.DIALService",
-        // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
+        devicesList.put("com.connectsdk.service.DLNAService",
+         "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
+        devicesList.put("com.connectsdk.service.DIALService",
+         "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
         // devicesList.put("com.connectsdk.service.RokuService",
         // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
         // devicesList.put("com.connectsdk.service.CastService",

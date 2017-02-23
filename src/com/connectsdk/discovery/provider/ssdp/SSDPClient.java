@@ -29,6 +29,7 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 
 public class SSDPClient {
     /* New line definition */
@@ -62,7 +63,6 @@ public class SSDPClient {
     SocketAddress multicastGroup;
     NetworkInterface networkInterface;
     InetAddress localInAddress;
-
     int timeout = 0;
     static int MX = 5;
 
@@ -87,8 +87,8 @@ public class SSDPClient {
      * @param data the data 
      * @throws IOException in case of network problems */
     public void send(String data) throws IOException {
-        DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), multicastGroup);
-
+        byte[] buffer = data.getBytes(Charset.forName("US-ASCII"));
+        DatagramPacket dp = new DatagramPacket(buffer, buffer.length, multicastGroup);
         datagramSocket.send(dp);
     }
 

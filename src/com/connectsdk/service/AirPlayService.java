@@ -42,6 +42,7 @@ import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 

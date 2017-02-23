@@ -21,10 +21,17 @@
 package com.connectsdk.device;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.InputStreamReader;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.io.FileOutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +41,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.connectsdk.core.Context;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.config.ServiceConfig;
@@ -85,18 +93,12 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     /** Current version of the ConnectableDeviceStore, may be necessary for migrations */
     public int version;
 
-    /**
-     * Max length of time for a ConnectableDevice to remain in the ConnectableDeviceStore without being discovered. Default is 3 days, and modifications to this value will trigger a scan for old devices.
-     */
-    public long maxStoreDuration = TimeUnit.DAYS.toSeconds(3);
 
     // @cond INTERNAL
     private String fileFullPath;
 
     private Map<String, JSONObject> storedDevices = new ConcurrentHashMap<String, JSONObject>();
     private Map<String, ConnectableDevice> activeDevices = new ConcurrentHashMap<String, ConnectableDevice>();
-
-    private boolean waitToWrite = false;
 
     public DefaultConnectableDeviceStore(Context context) { 
         fileFullPath = context.getDataDir() + "/" + FILENAME;
@@ -273,28 +275,20 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     private void load() {
         String line;
 
-        BufferedReader in = null;
-
         File file = new File(fileFullPath);
 
         if (!file.exists()) {
             version = CURRENT_VERSION;
-
             created = Util.getTime();
             updated = Util.getTime();
         } else {
-            boolean encounteredException = false;
-
-            try {
-                in = new BufferedReader(new FileReader(file));
-
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))){
+                
                 StringBuilder sb = new StringBuilder();
 
                 while ((line = in.readLine()) != null) {
                     sb.append(line);
                 }
-
-                in.close();
 
                 JSONObject data = new JSONObject(sb.toString());
                 JSONArray deviceArray = data.optJSONArray(KEY_DEVICES);
@@ -308,31 +302,21 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
                 version = data.optInt(KEY_VERSION, CURRENT_VERSION);
                 created = data.optLong(KEY_CREATED, 0);
                 updated = data.optLong(KEY_UPDATED, 0);
-            } catch (IOException e) {
+            } catch (IOException|JSONException e) {
                 e.printStackTrace();
-
-                // it is likely that the device store has been corrupted
-                encounteredException = true;
-            } catch (JSONException e) {
-                e.printStackTrace();
-
-                // it is likely that the device store has been corrupted
-                encounteredException = true;
-            }
-
-            if (encounteredException && storedDevices == null) {
-                file.delete();
-
-                version = CURRENT_VERSION;
-
-                created = Util.getTime();
-                updated = Util.getTime();
-            }
+            }             
         }
     }
 
-    private void store() {
+    private synchronized void store() {
         updated = Util.getTime();
+
+        File output = new File(fileFullPath);
+
+        if (!output.exists() && !output.getParentFile().mkdirs()) {
+            Log.e(Util.T, "Failed to create folders structure to device store "+output.getParentFile().toString());
+            return;
+        } 
 
         JSONObject deviceStore = new JSONObject();
         try {
@@ -341,42 +325,16 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             deviceStore.put(KEY_UPDATED, updated);
             JSONArray deviceArray = new JSONArray(storedDevices.values());
             deviceStore.put(KEY_DEVICES, deviceArray);
-        } catch (JSONException e) {
+            
+                        
+            try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output),"UTF-8"))) {    
+                out.write(deviceStore.toString());
+            } 
+        } catch (JSONException|IOException e) {
             e.printStackTrace();
-        }
-
-        if (!waitToWrite)
-            writeStoreToDisk(deviceStore);
+        }        
     }
 
-    private synchronized void writeStoreToDisk(final JSONObject deviceStore) {
-        final long lastUpdate = updated;
-        waitToWrite = true;
 
-        Util.runInBackground(new Runnable() {
-
-            @Override
-            public void run() {
-                FileWriter out;
-                try {
-                    File output = new File(fileFullPath);
-
-                    if (!output.exists())
-                        output.getParentFile().mkdirs();
-
-                    out = new FileWriter(output);
-                    out.write(deviceStore.toString());
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    waitToWrite = false;
-                }
-
-                if (lastUpdate < updated)
-                    writeStoreToDisk(deviceStore);
-            }
-        });
-    }
     // @endcond
 }

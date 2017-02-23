@@ -48,7 +48,10 @@ public class ChannelInfo implements JSONSerializable {
         return rawData;
     }
 
-    /** @param rawData the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
+    /**
+     * @param rawData the raw data from the first screen device about the channel. In most cases, this is an
+     *            NSDictionary.
+     */
     public void setRawData(JSONObject rawData) {
         this.rawData = rawData;
     }
@@ -103,38 +106,6 @@ public class ChannelInfo implements JSONSerializable {
         this.majorNumber = majorNumber;
     }
 
-    /**
-     * Compares two ChannelInfo objects.
-     *
-     * @param o ChannelInfo object to compare.
-     *
-     * @return true if both ChannelInfo number &amp; name values are equal
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof ChannelInfo) {
-            ChannelInfo other = (ChannelInfo) o;
-
-            if (this.channelId != null) {
-                if (this.channelId.equals(other.channelId))
-                    return true;
-            } else if (this.channelName != null && this.channelNumber != null) {
-                return this.channelName.equals(other.channelName)
-                        && this.channelNumber.equals(other.channelNumber)
-                        && this.majorNumber == other.majorNumber
-                        && this.minorNumber == other.minorNumber;
-            }
-
-            Log.d(Util.T, "Could not compare channel values, no data to compare against");
-            Log.d(Util.T, "This channel info: \n" + this.rawData.toString());
-            Log.d(Util.T, "Other channel info: \n" + other.rawData.toString());
-
-            return false;
-        }
-
-        return super.equals(o);
-    }
-
     // @cond INTERNAL
     @Override
     public JSONObject toJSONObject() throws JSONException {
@@ -150,4 +121,51 @@ public class ChannelInfo implements JSONSerializable {
         return obj;
     }
     // @endcond
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        if (channelId != null) {
+            result = prime * result + channelId.hashCode();
+        } else {
+            result = prime * result + ((channelName == null) ? 0 : channelName.hashCode());
+            result = prime * result + ((channelNumber == null) ? 0 : channelNumber.hashCode());
+            result = prime * result + majorNumber;
+            result = prime * result + minorNumber;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ChannelInfo other = (ChannelInfo) obj;
+
+        if (channelId != null) {
+            if (channelId.equals(other.channelId))
+                return true;
+        }
+
+        if (channelName == null) {
+            if (other.channelName != null)
+                return false;
+        } else if (!channelName.equals(other.channelName))
+            return false;
+        if (channelNumber == null) {
+            if (other.channelNumber != null)
+                return false;
+        } else if (!channelNumber.equals(other.channelNumber))
+            return false;
+        if (majorNumber != other.majorNumber)
+            return false;
+        if (minorNumber != other.minorNumber)
+            return false;
+        return true;
+    }
 }
