@@ -31,6 +31,7 @@ import java.io.OutputStreamWriter;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.io.FileOutputStream;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -282,7 +283,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             created = Util.getTime();
             updated = Util.getTime();
         } else {
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))){
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))){
                 
                 StringBuilder sb = new StringBuilder();
 
@@ -327,7 +328,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             deviceStore.put(KEY_DEVICES, deviceArray);
             
                         
-            try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output),"UTF-8"))) {    
+            try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), StandardCharsets.UTF_8))) {    
                 out.write(deviceStore.toString());
             } 
         } catch (JSONException|IOException e) {

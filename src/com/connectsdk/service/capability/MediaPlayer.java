@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
@@ -57,7 +61,8 @@ public interface MediaPlayer extends CapabilityMethods {
     public final static String MediaInfo_Get = "MediaPlayer.MediaInfo.Get";
     public final static String MediaInfo_Subscribe = "MediaPlayer.MediaInfo.Subscribe";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Display_Image,
         Play_Video,
         Play_Audio,
@@ -68,7 +73,7 @@ public interface MediaPlayer extends CapabilityMethods {
         MetaData_MimeType,
         MediaInfo_Get,
         MediaInfo_Subscribe
-    };
+    ));
 
     public MediaPlayer getMediaPlayer();
 

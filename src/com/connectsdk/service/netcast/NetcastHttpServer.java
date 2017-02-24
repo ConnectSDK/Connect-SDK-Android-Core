@@ -26,10 +26,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -91,8 +93,7 @@ public class NetcastHttpServer {
             }
 
             Socket connectionSocket = null;
-            BufferedReader inFromClient = null;
-           
+            
 
             try {
                 connectionSocket = welcomeSocket.accept();
@@ -107,9 +108,7 @@ public class NetcastHttpServer {
             int c;
             StringBuilder sb = new StringBuilder();
 
-            try {
-                inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-
+            try (BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream(), StandardCharsets.UTF_8));){
                 while ((str = inFromClient.readLine()) != null) {
                     if (str.equals("")) {
                         break;
@@ -137,7 +136,7 @@ public class NetcastHttpServer {
             String date = dateFormat.format(calendar.getTime());
             //String androidOSVersion = android.os.Build.VERSION.RELEASE;
 
-            try(PrintWriter out = new PrintWriter(new DataOutputStream(connectionSocket.getOutputStream()))) {
+            try(PrintWriter out = new PrintWriter(new OutputStreamWriter(connectionSocket.getOutputStream(),StandardCharsets.US_ASCII))) {
                 out.println("HTTP/1.1 200 OK");
                 //out.println("Server: Android/" + androidOSVersion + " UDAP/2.0 ConnectSDK/1.2.1");
                 out.println("Cache-Control: no-store, no-cache, must-revalidate");
@@ -153,11 +152,7 @@ public class NetcastHttpServer {
             SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
             InputStream stream = null;
 
-            try {
-                stream = new ByteArrayInputStream(body.getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
-            }
+            stream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 
             NetcastPOSTRequestParser handler = new NetcastPOSTRequestParser();
 

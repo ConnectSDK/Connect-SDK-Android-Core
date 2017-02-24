@@ -45,8 +45,6 @@ public class WebOSTVKeyboardInput {
     static String ENTER = "ENTER";
     static String DELETE = "DELETE";
 
-    boolean canReplaceText = false;
-
     public WebOSTVKeyboardInput(WebOSTVService service) {
         this.service = service;
         waiting = false;

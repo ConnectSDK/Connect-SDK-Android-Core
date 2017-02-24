@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import com.connectsdk.service.capability.listeners.ResponseListener;
 
 public interface KeyControl extends CapabilityMethods {
@@ -72,7 +76,8 @@ public interface KeyControl extends CapabilityMethods {
         }
     }
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Up,
         Down,
         Left,
@@ -80,8 +85,7 @@ public interface KeyControl extends CapabilityMethods {
         OK,
         Back,
         Home,
-        KeyCode,
-    };
+        KeyCode));
 
     public KeyControl getKeyControl();
     public CapabilityPriorityLevel getKeyControlCapabilityLevel();

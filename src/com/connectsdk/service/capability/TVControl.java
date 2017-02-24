@@ -20,6 +20,9 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.ChannelInfo;
@@ -45,7 +48,8 @@ public interface TVControl extends CapabilityMethods {
     public final static String Set_3D = "TVControl.3D.Set";
     public final static String Subscribe_3D = "TVControl.3D.Subscribe";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Channel_Get,
         Channel_Set,
         Channel_Up,
@@ -59,7 +63,7 @@ public interface TVControl extends CapabilityMethods {
         Get_3D,
         Set_3D,
         Subscribe_3D
-    };
+    ));
 
     public TVControl getTVControl();
     public CapabilityPriorityLevel getTVControlCapabilityLevel();

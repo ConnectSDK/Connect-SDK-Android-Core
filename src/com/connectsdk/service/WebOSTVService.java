@@ -2903,18 +2903,18 @@ public class WebOSTVService extends DeviceService
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        Collections.addAll(capabilities, VolumeControl.Capabilities);
-        Collections.addAll(capabilities, MediaPlayer.Capabilities);
+        capabilities.addAll(VolumeControl.Capabilities);
+        capabilities.addAll(MediaPlayer.Capabilities);
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            Collections.addAll(capabilities, TextInputControl.Capabilities);
-            Collections.addAll(capabilities, MouseControl.Capabilities);
-            Collections.addAll(capabilities, KeyControl.Capabilities);
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
-            Collections.addAll(capabilities, Launcher.Capabilities);
-            Collections.addAll(capabilities, TVControl.Capabilities);
-            Collections.addAll(capabilities, ExternalInputControl.Capabilities);
-            Collections.addAll(capabilities, ToastControl.Capabilities);
+            capabilities.addAll(TextInputControl.Capabilities);
+            capabilities.addAll(MouseControl.Capabilities);
+            capabilities.addAll(KeyControl.Capabilities);
+            capabilities.addAll(MediaPlayer.Capabilities);
+            capabilities.addAll(Launcher.Capabilities);
+            capabilities.addAll(TVControl.Capabilities);         
+            capabilities.addAll(ExternalInputControl.Capabilities);
+            capabilities.addAll(ToastControl.Capabilities);
             capabilities.add(PowerControl.Off);
         } else {
             capabilities.add(Application);

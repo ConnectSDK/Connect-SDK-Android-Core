@@ -208,7 +208,7 @@ public class DIALService extends DeviceService implements Launcher {
         String params = null;
         AppInfo appInfo = new AppInfo(APP_YOUTUBE);
         appInfo.setName(appInfo.getId());
-        JSONObject jsonParams = null;
+        //JSONObject jsonParams = null;
         if (contentId != null && contentId.length() > 0) {
             if (startTime < 0.0) {
                 if (listener != null) {

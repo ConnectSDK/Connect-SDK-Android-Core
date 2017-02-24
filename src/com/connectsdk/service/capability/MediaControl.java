@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
 
@@ -57,7 +61,8 @@ public interface MediaControl extends CapabilityMethods {
     public static final int PLAYER_STATE_BUFFERING = 4;
 
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Play,
         Pause,
         Stop,
@@ -69,8 +74,8 @@ public interface MediaControl extends CapabilityMethods {
         Duration,
         PlayState,
         PlayState_Subscribe,
-        Position,
-    };
+        Position
+    ));
 
     /**
      * Enumerates possible playback status

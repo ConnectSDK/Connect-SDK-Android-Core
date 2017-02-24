@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import com.connectsdk.core.TextInputStatusInfo;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceSubscription;
@@ -32,12 +36,13 @@ public interface TextInputControl extends CapabilityMethods {
     public final static String Send_Delete = "TextInputControl.Delete";
     public final static String Subscribe = "TextInputControl.Subscribe";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Send,
         Send_Enter,
         Send_Delete,
         Subscribe
-    };
+    ));
 
     public TextInputControl getTextInputControl();
     public CapabilityPriorityLevel getTextInputControlCapabilityLevel();

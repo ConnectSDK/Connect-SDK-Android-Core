@@ -59,6 +59,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -264,7 +265,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                         .newInstance();
                 InputStream stream;
                 try {
-                    stream = new ByteArrayInputStream(msg.getBytes("UTF-8"));
+                    stream = new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     RokuApplicationListParser parser = new RokuApplicationListParser();
@@ -273,15 +274,9 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                     List<AppInfo> appList = parser.getApplicationList();
 
                     Util.postSuccess(listener, appList);
-                } catch (UnsupportedEncodingException e) {
+                } catch (ParserConfigurationException | SAXException | IOException e) {
                     e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override

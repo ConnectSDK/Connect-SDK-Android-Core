@@ -20,8 +20,6 @@
 
 package com.connectsdk.discovery;
 
-import java.util.List;
-
 
 /**
  * ###Overview

@@ -17,10 +17,12 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -86,70 +88,47 @@ public class DLNAHttpServer {
             if (welcomeSocket == null || welcomeSocket.isClosed()) {
                 break;
             }
-
-            Socket connectionSocket = null;
-            BufferedReader inFromClient = null;
-            DataOutputStream outToClient = null;
-
-            try {
-                connectionSocket = welcomeSocket.accept();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                // this socket may have been closed, so we'll stop
-                break;
-            }
-
-            int c = 0;
-
             String body = null;
+            try (Socket connectionSocket = welcomeSocket.accept()) {
+                
 
-            try {
-                inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                int c = 0;
 
-                StringBuilder sb = new StringBuilder();
+                try (BufferedReader inFromClient = new BufferedReader(
+                        new InputStreamReader(connectionSocket.getInputStream(), StandardCharsets.UTF_8)) ){
+                    
 
-                while ((c = inFromClient.read()) != -1) {
-                    sb.append((char)c);
+                    StringBuilder sb = new StringBuilder();
 
-                    if (sb.toString().endsWith("\r\n\r\n"))
-                        break;
-                }
-                sb = new StringBuilder();
+                    while ((c = inFromClient.read()) != -1) {
+                        sb.append((char) c);
 
-                while ((c = inFromClient.read()) != -1) {
-                    sb.append((char)c);
-                    body = sb.toString();
+                        if (sb.toString().endsWith("\r\n\r\n"))
+                            break;
+                    }
+                    sb = new StringBuilder();
 
-                    if (body.endsWith("</e:propertyset>"))
-                        break;
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
+                    while ((c = inFromClient.read()) != -1) {
+                        sb.append((char) c);
+                        body = sb.toString();
 
-            PrintWriter out = null;
-
-            try {
-                outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-                out = new PrintWriter(outToClient);
-                out.println("HTTP/1.1 200 OK");
-                out.println("Connection: Close");
-                out.println("Content-Length: 0");
-                out.println();
-                out.flush();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } finally {
-                try {
-                    inFromClient.close();
-                    out.close();
-                    outToClient.close();
-                    connectionSocket.close();
+                        if (body.endsWith("</e:propertyset>"))
+                            break;
+                    }
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                } catch (NullPointerException ex) {
-                    ex.printStackTrace();
                 }
+
+                try (PrintWriter out = new PrintWriter(
+                        new OutputStreamWriter(connectionSocket.getOutputStream(), StandardCharsets.UTF_8))) {
+                    out.println("HTTP/1.1 200 OK");
+                    out.println("Connection: Close");
+                    out.println("Content-Length: 0");
+                    out.println();
+                    out.flush();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
             if (body == null)
@@ -157,11 +136,7 @@ public class DLNAHttpServer {
 
             InputStream stream = null;
 
-            try {
-                stream = new ByteArrayInputStream(body.getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
-            }
+            stream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 
             JSONArray propertySet;
             DLNANotifyParser parser = new DLNANotifyParser();
@@ -177,13 +152,9 @@ public class DLNAHttpServer {
                         handleLastChange(lastChange);
                     }
                 }
-            } catch (XmlPullParserException e) {
+            } catch (XmlPullParserException | IOException | JSONException e) {
                 e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            } 
         }
     }
 
@@ -207,7 +178,7 @@ public class DLNAHttpServer {
             String transportState = entry.getString("TransportState");
             PlayStateStatus status = PlayStateStatus.convertTransportStateToPlayStateStatus(transportState);
 
-            for (URLServiceSubscription<?> sub: subscriptions) {
+            for (URLServiceSubscription<?> sub : subscriptions) {
                 if (sub.getTarget().equalsIgnoreCase("playState")) {
                     for (int j = 0; j < sub.getListeners().size(); j++) {
                         @SuppressWarnings("unchecked")
@@ -218,7 +189,8 @@ public class DLNAHttpServer {
             }
         }
 
-        if ((entry.has("Volume")&&!entry.has("channel"))||(entry.has("Volume")&&entry.getString("channel").equals("Master"))) {
+        if ((entry.has("Volume") && !entry.has("channel"))
+                || (entry.has("Volume") && entry.getString("channel").equals("Master"))) {
             int intVolume = entry.getInt("Volume");
             float volume = (float) intVolume / 100;
 
@@ -233,13 +205,14 @@ public class DLNAHttpServer {
             }
         }
 
-        if ((entry.has("Mute")&&!entry.has("channel"))||(entry.has("Mute")&&entry.getString("channel").equals("Master"))) {
+        if ((entry.has("Mute") && !entry.has("channel"))
+                || (entry.has("Mute") && entry.getString("channel").equals("Master"))) {
             String muteStatus = entry.getString("Mute");
             boolean mute;
 
             try {
                 mute = (Integer.parseInt(muteStatus) == 1);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 mute = Boolean.parseBoolean(muteStatus);
             }
 

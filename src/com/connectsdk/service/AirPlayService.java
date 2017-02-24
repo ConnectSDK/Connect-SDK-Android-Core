@@ -54,6 +54,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     public static final String ID = "AirPlay";
     private static final long KEEP_ALIVE_PERIOD = 15000;
 
-    private final static String CHARSET = "UTF-8";
+    //private final static String CHARSET = "UTF-8";
 
     private String mSessionId;
 
@@ -610,7 +611,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     String digestAuthentication(String md5) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(md5.getBytes());
+            byte[] digest = md.digest(md5.getBytes(StandardCharsets.UTF_8));
             StringBuffer sb = new StringBuffer();
             for (byte b : digest) {
                 sb.append(String.format("%02x", b & 0xFF));

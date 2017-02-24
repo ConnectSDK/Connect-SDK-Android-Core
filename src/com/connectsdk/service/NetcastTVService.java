@@ -73,6 +73,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -996,7 +997,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 try {
                     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-                    InputStream stream = new ByteArrayInputStream(strObj.getBytes("UTF-8"));
+                    InputStream stream = new ByteArrayInputStream(strObj.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     NetcastChannelParser parser = new NetcastChannelParser();
@@ -1018,13 +1019,9 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                     }
 
                     Util.postSuccess(listener, channelList);
-                } catch (ParserConfigurationException e) {
+                } catch (ParserConfigurationException | SAXException | IOException e) {
                     e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override
@@ -1112,7 +1109,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 try {
                     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-                    InputStream stream = new ByteArrayInputStream(strObj.getBytes("UTF-8"));
+                    InputStream stream = new ByteArrayInputStream(strObj.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     NetcastChannelParser parser = new NetcastChannelParser();
@@ -1127,15 +1124,9 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                         Util.postSuccess(listener, channel);
                     }
-                } catch (ParserConfigurationException e) {
+                } catch (ParserConfigurationException | SAXException | JSONException | IOException e) {
                     e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override
@@ -2059,60 +2050,48 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     private JSONObject parseVolumeXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastVolumeParser handler = new NetcastVolumeParser();
             saxParser.parse(stream, handler);
 
             return handler.getVolumeStatus();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return null;
     }
 
     private int parseAppNumberXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastAppNumberParser handler = new NetcastAppNumberParser();
             saxParser.parse(stream, handler);
 
             return handler.getApplicationNumber();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return 0;
     }
 
     private JSONArray parseApplicationsXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastApplicationsParser handler = new NetcastApplicationsParser();
             saxParser.parse(stream, handler);
 
             return handler.getApplications();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return null;
     }
 

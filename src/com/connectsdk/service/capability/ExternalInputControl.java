@@ -20,6 +20,9 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.ExternalInputInfo;
@@ -35,12 +38,13 @@ public interface ExternalInputControl extends CapabilityMethods {
     public final static String List = "ExternalInputControl.List";
     public final static String Set = "ExternalInputControl.Set";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Picker_Launch,
         Picker_Close,
         List,
         Set
-    };
+    ));
 
     public ExternalInputControl getExternalInput();
     public CapabilityPriorityLevel getExternalInputControlPriorityLevel();

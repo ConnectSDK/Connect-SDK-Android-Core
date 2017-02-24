@@ -366,10 +366,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         String sdkVersion = DiscoveryManager.CONNECT_SDK_VERSION;
 
         // Device Model
-        String deviceModel = null; //Build.MODEL;
+        //String deviceModel = null; //Build.MODEL;
 
         // OS Version
-        String OSVersion = null; //String.valueOf(android.os.Build.VERSION.SDK_INT);
+        //String OSVersion = null; //String.valueOf(android.os.Build.VERSION.SDK_INT);
 
         // resolution
         // WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -395,8 +395,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         JSONObject payload = new JSONObject();
         try {
             payload.put("sdkVersion", sdkVersion);
-            payload.put("deviceModel", deviceModel);
-            payload.put("OSVersion", OSVersion);
+            //ayload.put("deviceModel", deviceModel);
+            //payload.put("OSVersion", OSVersion);
             payload.put("resolution", screenResolution);
             payload.put("appId", packageName);
             payload.put("appName", applicationName);
@@ -822,7 +822,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         return true;
     }
 
-    class TrustManager implements X509TrustManager {
+    private static class TrustManager implements X509TrustManager {
         X509Certificate expectedCert;
         X509Certificate lastCheckedCert;
 

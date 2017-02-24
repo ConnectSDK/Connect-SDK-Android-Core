@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import com.connectsdk.service.capability.listeners.ResponseListener;
 
 public interface PowerControl extends CapabilityMethods {
@@ -28,10 +32,11 @@ public interface PowerControl extends CapabilityMethods {
     public final static String Off = "PowerControl.Off";
     public final static String On = "PowerControl.On";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Off,
         On
-    };
+    ));
 
     public PowerControl getPowerControl();
     public CapabilityPriorityLevel getPowerControlCapabilityLevel();

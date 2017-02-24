@@ -20,6 +20,9 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.AppInfo;
@@ -49,7 +52,8 @@ public interface Launcher extends CapabilityMethods {
     public final static String RunningApp = "Launcher.RunningApp";
     public final static String RunningApp_Subscribe = "Launcher.RunningApp.Subscribe";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Application,
         Application_Params,
         Application_Close,
@@ -68,7 +72,7 @@ public interface Launcher extends CapabilityMethods {
         AppState_Subscribe,
         RunningApp,
         RunningApp_Subscribe
-    };
+    ));
 
     public Launcher getLauncher();
     public CapabilityPriorityLevel getLauncherCapabilityLevel();

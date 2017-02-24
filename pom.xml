@@ -70,8 +70,7 @@
 				<version>3.0.4</version>
 				<configuration>
                 <effort>Max</effort>
-                <threshold>High</threshold>
-                
+                <!--threshold>Low</threshold-->
             </configuration>
 			</plugin>
 		</plugins>
