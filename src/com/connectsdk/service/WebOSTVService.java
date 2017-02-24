@@ -2953,8 +2953,8 @@ public class WebOSTVService extends DeviceService
                     capabilities.add(MediaPlayer.Subtitle_SRT);
                 }
             } else {
-                Collections.addAll(capabilities, WebAppLauncher.Capabilities);
-                Collections.addAll(capabilities, MediaControl.Capabilities);
+                capabilities.addAll(WebAppLauncher.Capabilities);
+                capabilities.addAll(MediaControl.Capabilities);
 
                 capabilities.add(MediaPlayer.Subtitle_WebVTT);
 

@@ -2327,10 +2327,10 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         List<String> capabilities = new ArrayList<String>();
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            Collections.addAll(capabilities, TextInputControl.Capabilities);
-            Collections.addAll(capabilities, MouseControl.Capabilities);
-            Collections.addAll(capabilities, KeyControl.Capabilities);
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
+            capabilities.addAll(TextInputControl.Capabilities);
+            capabilities.addAll(MouseControl.Capabilities);
+            capabilities.addAll(KeyControl.Capabilities);
+            capabilities.addAll(MediaPlayer.Capabilities);
 
             capabilities.add(PowerControl.Off);
 
@@ -2373,7 +2373,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                 capabilities.add(AppStore_Params); 
             }
         } else {
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
+            capabilities.addAll(MediaPlayer.Capabilities);
             capabilities.add(Play); 
             capabilities.add(Pause); 
             capabilities.add(Stop); 
