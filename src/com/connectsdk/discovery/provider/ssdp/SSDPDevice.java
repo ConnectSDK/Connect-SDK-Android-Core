@@ -21,10 +21,12 @@
 package com.connectsdk.discovery.provider.ssdp;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +117,7 @@ public class SSDPDevice {
             locationXML = s.hasNext() ? s.next() : "";
 
             SAXParser saxParser = factory.newSAXParser();
-            saxParser.parse(locationXML, parser);
+            saxParser.parse(new ByteArrayInputStream(locationXML.getBytes(StandardCharsets.UTF_8)), parser);
         } 
 
         headers = urlConnection.getHeaderFields();
