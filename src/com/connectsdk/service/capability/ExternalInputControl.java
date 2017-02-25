@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.ExternalInputInfo;
-import com.connectsdk.service.capability.Launcher.AppLaunchListener;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.sessions.LaunchSession;
 
@@ -49,7 +48,7 @@ public interface ExternalInputControl extends CapabilityMethods {
     public ExternalInputControl getExternalInput();
     public CapabilityPriorityLevel getExternalInputControlPriorityLevel();
 
-    public void launchInputPicker(AppLaunchListener listener);
+    public void launchInputPicker(ResponseListener<LaunchSession> listener);
     public void closeInputPicker(LaunchSession launchSessionm, ResponseListener<Object> listener);
 
     public void getExternalInputList(ExternalInputListListener listener);

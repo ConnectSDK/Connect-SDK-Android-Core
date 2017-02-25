@@ -381,10 +381,10 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                 "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
         //devicesList.put("com.connectsdk.service.NetcastTVService",
         // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
-        devicesList.put("com.connectsdk.service.DLNAService",
-         "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
-        devicesList.put("com.connectsdk.service.DIALService",
-         "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
+        //devicesList.put("com.connectsdk.service.DLNAService",
+        // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
+        //devicesList.put("com.connectsdk.service.DIALService",
+        // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
         // devicesList.put("com.connectsdk.service.RokuService",
         // "com.connectsdk.discovery.provider.SSDPDiscoveryProvider");
         // devicesList.put("com.connectsdk.service.CastService",

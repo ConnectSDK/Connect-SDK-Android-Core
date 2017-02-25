@@ -408,7 +408,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchApp(String appId, AppLaunchListener listener) {
+    public void launchApp(String appId, ResponseListener<LaunchSession> listener) {
         AppInfo appInfo = new AppInfo();
         appInfo.setId(appId);
 
@@ -416,12 +416,12 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
-    public void launchAppWithInfo(final AppInfo appInfo, Object params, final Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(final AppInfo appInfo, Object params, final ResponseListener<LaunchSession> listener) {
         String uri = "ssap://system.launcher/launch";
         JSONObject payload = new JSONObject();
 
@@ -478,7 +478,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchBrowser(String url, final Launcher.AppLaunchListener listener) {
+    public void launchBrowser(String url, final ResponseListener<LaunchSession> listener) {
         String uri = "ssap://system.launcher/open";
         JSONObject payload = new JSONObject();
 
@@ -516,12 +516,12 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchYouTube(String contentId, Launcher.AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
-    public void launchYouTube(final String contentId, float startTime, final AppLaunchListener listener) {
+    public void launchYouTube(final String contentId, float startTime, final ResponseListener<LaunchSession> listener) {
         JSONObject params = new JSONObject();
 
         if (contentId != null && contentId.length() > 0) {
@@ -549,7 +549,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchHulu(String contentId, Launcher.AppLaunchListener listener) {
+    public void launchHulu(String contentId, ResponseListener<LaunchSession> listener) {
         JSONObject params = new JSONObject();
 
         try {
@@ -569,7 +569,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchNetflix(String contentId, Launcher.AppLaunchListener listener) {
+    public void launchNetflix(String contentId, ResponseListener<LaunchSession> listener) {
         JSONObject params = new JSONObject();
         String netflixContentId = "m=http%3A%2F%2Fapi.netflix.com%2Fcatalog%2Ftitles%2Fmovies%2F" + contentId
                 + "&source_type=4";
@@ -591,7 +591,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchAppStore(String appId, AppLaunchListener listener) {
+    public void launchAppStore(String appId, ResponseListener<LaunchSession> listener) {
         AppInfo appInfo = new AppInfo("com.webos.app.discovery");
         appInfo.setName("LG Store");
 
@@ -1801,7 +1801,7 @@ public class WebOSTVService extends DeviceService
     }
 
     @Override
-    public void launchInputPicker(final AppLaunchListener listener) {
+    public void launchInputPicker(final ResponseListener<LaunchSession> listener) {
         final AppInfo appInfo = new AppInfo() {
             {
                 setId("com.webos.app.inputpicker");
@@ -1809,7 +1809,7 @@ public class WebOSTVService extends DeviceService
             }
         };
 
-        launchAppWithInfo(appInfo, null, new AppLaunchListener() {
+        launchAppWithInfo(appInfo, null, new ResponseListener<LaunchSession>() {
             @Override
             public void onSuccess(LaunchSession object) {
                 listener.onSuccess(object);

@@ -145,7 +145,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchApp(String appId, AppLaunchListener listener) {
+    public void launchApp(String appId, ResponseListener<LaunchSession> listener) {
         if (appId == null) {
             Util.postError(listener, new ServiceCommandError(0,
                     "Must supply a valid app id", null));
@@ -159,14 +159,13 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo,
-            Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
     public void launchAppWithInfo(final AppInfo appInfo, Object params,
-            final Launcher.AppLaunchListener listener) {
+            final ResponseListener<LaunchSession> listener) {
         if (appInfo == null || appInfo.getId() == null) {
             Util.postError(listener, new ServiceCommandError(-1,
                     "Cannot launch app without valid AppInfo object",
@@ -324,19 +323,17 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchBrowser(String url, Launcher.AppLaunchListener listener) {
+    public void launchBrowser(String url, ResponseListener<LaunchSession> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
     @Override
-    public void launchYouTube(String contentId,
-            Launcher.AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
-    public void launchYouTube(String contentId, float startTime,
-            AppLaunchListener listener) {
+    public void launchYouTube(String contentId, float startTime, ResponseListener<LaunchSession> listener) {
         if (getDIALService() != null) {
             getDIALService().getLauncher().launchYouTube(contentId, startTime,
                     listener);
@@ -349,8 +346,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchNetflix(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+    public void launchNetflix(final String contentId, final ResponseListener<LaunchSession> listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -381,7 +377,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchHulu(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+            final ResponseListener<LaunchSession> listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -408,7 +404,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchAppStore(final String appId, AppLaunchListener listener) {
+    public void launchAppStore(final String appId, ResponseListener<LaunchSession> listener) {
         AppInfo appInfo = new AppInfo("11");
         appInfo.setName("Channel Store");
 

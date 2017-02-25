@@ -489,7 +489,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchApp(final String appId, final AppLaunchListener listener) {
+    public void launchApp(final String appId, final ResponseListener<LaunchSession> listener) {
         getAppInfoForId(appId, new AppInfoListener() {
 
             @Override
@@ -525,7 +525,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         });
     }
 
-    private void launchApplication(final String appName, final String auid, final String contentId, final Launcher.AppLaunchListener listener) {
+    private void launchApplication(final String appName, final String auid, final String contentId, final ResponseListener<LaunchSession> listener) {
         JSONObject jsonObj = new JSONObject();
 
         try {
@@ -572,12 +572,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, Object params, Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, Object params, ResponseListener<LaunchSession> listener) {
         String appName = HttpMessage.encode(appInfo.getName());
         String appId = appInfo.getId();
         String contentId = null;
@@ -597,7 +597,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchBrowser(String url, final Launcher.AppLaunchListener listener) {
+    public void launchBrowser(String url, final ResponseListener<LaunchSession> listener) {
         if (!(url == null || url.length() == 0)) 
             Log.w(Util.T, "Netcast TV does not support deeplink for Browser");
 
@@ -619,12 +619,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchYouTube(String contentId, Launcher.AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float)0.0, listener);
     }
 
     @Override
-    public void launchYouTube(final String contentId, float startTime, final AppLaunchListener listener) {
+    public void launchYouTube(final String contentId, float startTime, final ResponseListener<LaunchSession> listener) {
         if (getDIALService() != null) {
             getDIALService().getLauncher().launchYouTube(contentId, startTime, listener);
             return;
@@ -650,7 +650,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchHulu(final String contentId, final Launcher.AppLaunchListener listener) {
+    public void launchHulu(final String contentId, final ResponseListener<LaunchSession> listener) {
         final String appName = "Hulu";
 
         getApplication(appName, new AppInfoListener() {
@@ -668,7 +668,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchNetflix(final String contentId, final Launcher.AppLaunchListener listener) {
+    public void launchNetflix(final String contentId, final ResponseListener<LaunchSession> listener) {
         if (!serviceDescription.getModelNumber().equals("4.0")) {
             launchApp("Netflix", listener);
             return;
@@ -734,7 +734,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchAppStore(final String appId, final AppLaunchListener listener) {
+    public void launchAppStore(final String appId, final ResponseListener<LaunchSession> listener) {
         if (!serviceDescription.getModelNumber().equals("4.0")) {
             launchApp("LG Smart World", listener);  // TODO: this will not work in Korea, use Korean name instead
             return;
@@ -1392,7 +1392,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchInputPicker(final AppLaunchListener listener) {
+    public void launchInputPicker(final ResponseListener<LaunchSession> listener) {
         final String appName = "Input List";
         final String encodedStr = HttpMessage.encode(appName);
 
@@ -1400,7 +1400,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onSuccess(final AppInfo appInfo) {
-                Launcher.AppLaunchListener launchListener = new Launcher.AppLaunchListener() {
+                ResponseListener<LaunchSession> launchListener = new ResponseListener<LaunchSession>() {
 
                     @Override
                     public void onSuccess(LaunchSession session) {
