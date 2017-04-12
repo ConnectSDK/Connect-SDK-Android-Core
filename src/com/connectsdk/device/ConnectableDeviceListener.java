@@ -61,13 +61,13 @@ public interface ConnectableDeviceListener {
     public void onPairingRequired(ConnectableDevice device, DeviceService service, PairingType pairingType);
 
     /**
-     * When a ConnectableDevice finds & loses DeviceServices, that ConnectableDevice will experience a change in its collective capabilities list. When such a change occurs, this message will be sent with arrays of capabilities that were added & removed.
+     * When a ConnectableDevice finds &amp; loses DeviceServices, that ConnectableDevice will experience a change in its collective capabilities list. When such a change occurs, this message will be sent with arrays of capabilities that were added &amp; removed.
      *
      * This message will allow you to decide when to stop/start interacting with a ConnectableDevice, based off of its supported capabilities.
      *
      * @param device ConnectableDevice that has experienced a change in capabilities
-     * @param added List<String> of capabilities that are new to the ConnectableDevice
-     * @param removed List<String> of capabilities that the ConnectableDevice has lost
+     * @param added  capabilities that are new to the ConnectableDevice
+     * @param removed capabilities that the ConnectableDevice has lost
      */
     public void onCapabilityUpdated(ConnectableDevice device, List<String> added, List<String> removed);
 

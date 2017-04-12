@@ -20,7 +20,7 @@
 
 package com.connectsdk.discovery.provider.ssdp;
 
-import java.util.List;
+
 
 //import com.connectsdk.core.upnp.parser.Parser;
 
@@ -44,8 +44,8 @@ public class Service {
     /* Relative. Relative URL for eventing. */
     public String eventSubURL;
 
-    public List<Action> actionList;
-    public List<StateVariable> serviceStateTable;
+   
+    //public List<StateVariable> serviceStateTable;
 
     /*
      * We don't get SCPD, control and eventSub descriptions at service creation.

@@ -40,52 +40,52 @@ public class ExternalInputInfo implements JSONSerializable {
     public ExternalInputInfo() {
     }
 
-    /** Gets the ID of the external input on the first screen device. */
+    /** @return the ID of the external input on the first screen device. */
     public String getId() {
         return id;
     }
 
-    /** Sets the ID of the external input on the first screen device. */
+    /** @param inputId the ID of the external input on the first screen device. */
     public void setId(String inputId) {
         this.id = inputId;
     }
 
-    /** Gets the user-friendly name of the external input (ex. AV, HDMI1, etc). */
+    /** @return the user-friendly name of the external input (ex. AV, HDMI1, etc). */
     public String getName() {
         return name;
     }
 
-    /** Sets the user-friendly name of the external input (ex. AV, HDMI1, etc). */
+    /** @param inputName the user-friendly name of the external input (ex. AV, HDMI1, etc). */
     public void setName(String inputName) {
         this.name = inputName;
     }
 
-    /** Sets the raw data from the first screen device about the external input. */
+    /** @param rawData the raw data from the first screen device about the external input. */
     public void setRawData(JSONObject rawData) {
         this.rawData = rawData;
     }
 
-    /** Gets the raw data from the first screen device about the external input. */
+    /** @return the raw data from the first screen device about the external input. */
     public JSONObject getRawData() {
         return rawData;
     }
 
-    /** Whether the DeviceService is currently connected to this external input. */
+    /** @return true if the DeviceService is currently connected to this external input. */
     public boolean isConnected() {
         return connected;
     }
 
-    /** Sets whether the DeviceService is currently connected to this external input. */
+    /** @param connected whether the DeviceService is currently connected to this external input. */
     public void setConnected(boolean connected) {
         this.connected = connected;
     }
 
-    /** Gets the URL to an icon representing this external input. */
+    /** @return the URL to an icon representing this external input. */
     public String getIconURL() {
         return iconURL;
     }
 
-    /** Sets the URL to an icon representing this external input. */
+    /** @param iconURL the URL to an icon representing this external input. */
     public void setIconURL(String iconURL) {
         this.iconURL = iconURL;
     }
@@ -105,20 +105,36 @@ public class ExternalInputInfo implements JSONSerializable {
     }
     // @endcond
 
-    /**
-     * Compares two ExternalInputInfo objects.
-     *
-     * @param externalInputInfo ExternalInputInfo object to compare.
-     *
-     * @return YES if both ExternalInputInfo id & name values are equal
-     */
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof ExternalInputInfo) {
-            ExternalInputInfo eii = (ExternalInputInfo) o;
-            return this.id.equals(eii.id) &&
-                    this.name.equals(eii.name);
-        }
-        return false;
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ExternalInputInfo other = (ExternalInputInfo) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
+    }
+
+    
 }

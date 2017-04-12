@@ -31,60 +31,76 @@ public class ProgramInfo {
     private Object rawData;
     // @endcond 
 
-    /** Gets the ID of the program on the first screen device. Format is different depending on the platform. */
+    /** Returns the ID of the program on the first screen device. Format is different depending on the platform. 
+     * @return the ID */
     public String getId() {
         return id;
     }
 
-    /** Sets the ID of the program on the first screen device. Format is different depending on the platform. */
+    /** Sets the ID of the program on the first screen device. Format is different depending on the platform.
+     * @param id the ID */
     public void setId(String id) {
         this.id = id;
     }
 
-    /** Gets the user-friendly name of the program (ex. Sesame Street, Cosmos, Game of Thrones, etc). */
+    /** @return the user-friendly name of the program (ex. Sesame Street, Cosmos, Game of Thrones, etc). */
     public String getName() {
         return name;
     }
 
-    /** Sets the user-friendly name of the program (ex. Sesame Street, Cosmos, Game of Thrones, etc). */
+    /** Sets the user-friendly name of the program (ex. Sesame Street, Cosmos, Game of Thrones, etc).
+     * @param name the name */
     public void setName(String name) {
         this.name = name;
     }
 
-    /** Gets the reference to the ChannelInfo object that this program is associated with */
     public ChannelInfo getChannelInfo() {
         return channelInfo;
     }
 
-    /** Sets the reference to the ChannelInfo object that this program is associated with */
     public void setChannelInfo(ChannelInfo channelInfo) {
         this.channelInfo = channelInfo;
     }
 
-    /** Gets the raw data from the first screen device about the program. In most cases, this is an NSDictionary. */
+    /** @return the raw data from the first screen device about the program. In most cases, this is an NSDictionary. */
     public Object getRawData() {
         return rawData;
     }
 
-    /** Sets the raw data from the first screen device about the program. In most cases, this is an NSDictionary. */
     public void setRawData(Object rawData) {
         this.rawData = rawData;
     }
 
-    /**
-     * Compares two ProgramInfo objects.
-     *
-     * @param programInfo ProgramInfo object to compare.
-     *
-     * @return true if both ProgramInfo id & name values are equal
-     */
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof ProgramInfo) {
-            ProgramInfo pi = (ProgramInfo) o;
-            return pi.id.equals(pi.id) &&
-                    pi.name.equals(pi.name);
-        }
-        return super.equals(o);
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ProgramInfo other = (ProgramInfo) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
+    }
+
+    
 }

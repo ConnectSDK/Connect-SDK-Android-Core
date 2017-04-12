@@ -20,7 +20,11 @@
 
 package com.connectsdk.service.capability;
 
-import android.graphics.PointF;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
+import com.connectsdk.core.PointF;
 
 
 public interface MouseControl extends CapabilityMethods {
@@ -32,13 +36,14 @@ public interface MouseControl extends CapabilityMethods {
     public final static String Move = "MouseControl.Move";
     public final static String Scroll = "MouseControl.Scroll";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Connect,
         Disconnect,
         Click,
         Move,
         Scroll
-    };
+    ));
 
     public MouseControl getMouseControl();
     public CapabilityPriorityLevel getMouseControlCapabilityLevel();

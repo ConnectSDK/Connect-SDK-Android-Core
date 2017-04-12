@@ -27,7 +27,7 @@ import org.java_websocket.WebSocket.READYSTATE;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import android.util.Log;
+import com.connectsdk.core.Log;
 
 public class WebOSTVMouseSocketConnection {
     public interface WebOSTVMouseSocketListener {

@@ -20,6 +20,9 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.AppInfo;
@@ -49,7 +52,8 @@ public interface Launcher extends CapabilityMethods {
     public final static String RunningApp = "Launcher.RunningApp";
     public final static String RunningApp_Subscribe = "Launcher.RunningApp.Subscribe";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Application,
         Application_Params,
         Application_Close,
@@ -68,14 +72,14 @@ public interface Launcher extends CapabilityMethods {
         AppState_Subscribe,
         RunningApp,
         RunningApp_Subscribe
-    };
+    ));
 
     public Launcher getLauncher();
     public CapabilityPriorityLevel getLauncherCapabilityLevel();
 
-    public void launchAppWithInfo(AppInfo appInfo, AppLaunchListener listener);
-    public void launchAppWithInfo(AppInfo appInfo, Object params, AppLaunchListener listener);
-    public void launchApp(String appId, AppLaunchListener listener);
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener);
+    public void launchAppWithInfo(AppInfo appInfo, Object params, ResponseListener<LaunchSession> listener);
+    public void launchApp(String appId, ResponseListener<LaunchSession> listener);
 
     public void closeApp(LaunchSession launchSession, ResponseListener<Object> listener);
 
@@ -87,20 +91,14 @@ public interface Launcher extends CapabilityMethods {
     public void getAppState(LaunchSession launchSession, AppStateListener listener);
     public ServiceSubscription<AppStateListener> subscribeAppState(LaunchSession launchSession, AppStateListener listener);
 
-    public void launchBrowser(String url, AppLaunchListener listener);
-    public void launchYouTube(String contentId, AppLaunchListener listener);
-    public void launchYouTube(String contentId, float startTime, AppLaunchListener listener);
-    public void launchNetflix(String contentId, AppLaunchListener listener);
-    public void launchHulu(String contentId, AppLaunchListener listener);
-    public void launchAppStore(String appId, AppLaunchListener listener);
+    public void launchBrowser(String url, ResponseListener<LaunchSession>  listener);
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession>  listener);
+    public void launchYouTube(String contentId, float startTime, ResponseListener<LaunchSession>  listener);
+    public void launchNetflix(String contentId, ResponseListener<LaunchSession>  listener);
+    public void launchHulu(String contentId, ResponseListener<LaunchSession> listener);
+    public void launchAppStore(String appId, ResponseListener<LaunchSession> listener);
 
-    /**
-     * Success listener that is called upon successfully launching an app.
-     *
-     * Passes a LaunchSession Object containing important information about the app's launch session
-     */
-    public static interface AppLaunchListener extends ResponseListener<LaunchSession> { }
-
+    
     /**
      * Success listener that is called upon requesting info about the current running app.
      *

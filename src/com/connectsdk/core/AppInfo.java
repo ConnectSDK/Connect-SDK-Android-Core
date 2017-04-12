@@ -57,6 +57,7 @@ public class AppInfo implements JSONSerializable {
      * Gets the ID of the app on the first screen device. Format is different
      * depending on the platform. (ex. youtube.leanback.v4, 0000001134, netflix,
      * etc).
+     * @return ID of the app on the first screen device
      */
     public String getId() {
         return id;
@@ -66,6 +67,7 @@ public class AppInfo implements JSONSerializable {
      * Sets the ID of the app on the first screen device. Format is different
      * depending on the platform. (ex. youtube.leanback.v4, 0000001134, netflix,
      * etc).
+     * @param id ID of the app on the first screen device
      */
     public void setId(String id) {
         this.id = id;
@@ -74,6 +76,7 @@ public class AppInfo implements JSONSerializable {
     /**
      * Gets the user-friendly name of the app (ex. YouTube, Browser, Netflix,
      * etc).
+     * @return user-friendly name of the app
      */
     public String getName() {
         return name;
@@ -82,17 +85,18 @@ public class AppInfo implements JSONSerializable {
     /**
      * Sets the user-friendly name of the app (ex. YouTube, Browser, Netflix,
      * etc).
+     * @param name user-friendly name of the app
      */
     public void setName(String name) {
         this.name = name.trim();
     }
 
-    /** Gets the raw data from the first screen device about the app. */
+    /** @return the raw data from the first screen device about the app. */
     public JSONObject getRawData() {
         return raw;
     }
 
-    /** Sets the raw data from the first screen device about the app. */
+    /** @param data  the raw data from the first screen device about the app. */
     public void setRawData(JSONObject data) {
         raw = data;
     }
@@ -110,20 +114,29 @@ public class AppInfo implements JSONSerializable {
 
     // @endcond
 
-    /**
-     * Compares two AppInfo objects.
-     * 
-     * @param o
-     *            Other AppInfo object to compare.
-     * 
-     * @return true if both AppInfo id values are equal
-     */
     @Override
-    public boolean equals(Object o) {
-        if (o instanceof AppInfo) {
-            AppInfo ai = (AppInfo) o;
-            return this.id.equals(ai.id);
-        }
-        return super.equals(o);
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        return result;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        AppInfo other = (AppInfo) obj;
+        if (id == null) {
+            if (other.id != null)
+                return false;
+        } else if (!id.equals(other.id))
+            return false;
+        return true;
+    }    
+  
 }

@@ -20,8 +20,6 @@
 
 package com.connectsdk.discovery;
 
-import java.util.List;
-
 
 /**
  * ###Overview
@@ -64,10 +62,12 @@ public interface DiscoveryProvider {
      */
     public void reset();
 
-    /** Adds a DiscoveryProviderListener, which should be the DiscoveryManager */
+    /** Adds a DiscoveryProviderListener, which should be the DiscoveryManager
+     * @param listener the listener  */
     public void addListener(DiscoveryProviderListener listener);
 
-    /** Removes a DiscoveryProviderListener. */
+    /** Removes a DiscoveryProviderListener.
+     * @param listener the listener  */
     public void removeListener(DiscoveryProviderListener listener);
 
     /**
@@ -85,14 +85,7 @@ public interface DiscoveryProvider {
     public void removeDeviceFilter(DiscoveryFilter filter);
 
     /**
-     * Set filters for a list of particular DeviceServices
-     *
-     * @param filters filters to be used for discovering a list of particular DeviceServices
-     */
-    public void setFilters(List<DiscoveryFilter> filters);
-
-    /**
-     * Whether or not the DiscoveryProvider has any services it is supposed to be searching for. If YES, then the DiscoveryProvider will be stopped and de-referenced by the DiscoveryManager.
+     * @return true if the DiscoveryProvider has any services it is supposed to be searching for. If YES, then the DiscoveryProvider will be stopped and de-referenced by the DiscoveryManager.
      */
     public boolean isEmpty();
 }

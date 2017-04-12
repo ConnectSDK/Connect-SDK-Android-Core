@@ -20,13 +20,13 @@
 
 package com.connectsdk.service.airplay;
 
-import android.util.Xml;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +49,7 @@ public class PListParser {
 
     public JSONObject parse(String text) throws XmlPullParserException, IOException,
             JSONException {
-        XmlPullParser parser = Xml.newPullParser();
+        XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
         Reader stream = new StringReader(text);
         parser.setInput(stream);
@@ -60,7 +60,7 @@ public class PListParser {
     public JSONObject parse(InputStream in) throws XmlPullParserException, IOException,
             JSONException {
         try {
-            XmlPullParser parser = Xml.newPullParser();
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
@@ -174,7 +174,7 @@ public class PListParser {
 
     private int readInteger(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, TAG_INTEGER);
-        int value = Integer.valueOf(readText(parser));
+        int value = Integer.parseInt(readText(parser));
         parser.require(XmlPullParser.END_TAG, ns, TAG_INTEGER);
         return value;
     }

@@ -20,12 +20,9 @@
 
 package com.connectsdk.service;
 
-import android.content.Context;
-import android.text.Html;
-import android.util.Log;
-import android.util.Xml;
-
+import com.connectsdk.core.Context;
 import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.Util;
@@ -53,10 +50,12 @@ import com.connectsdk.service.upnp.DLNAMediaInfoParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -82,6 +81,7 @@ import java.util.TimerTask;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -746,10 +746,14 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             }
 
             doc.appendChild(didlRoot);
-            return xmlToString(doc, false);
-        } catch (Exception e) {
-            return null;
-        }
+            
+                return xmlToString(doc, false);
+            } catch (TransformerException | ParserConfigurationException | DOMException | MalformedURLException | UnsupportedEncodingException | URISyntaxException e) {
+                e.printStackTrace();
+                return null;
+            }
+        
+       
     }
 
     String encodeURL(String mediaURL) throws MalformedURLException, URISyntaxException, UnsupportedEncodingException {
@@ -901,19 +905,22 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         return null;
     }
 
-    private boolean isXmlEncoded(final String xml) {
+   /* private boolean isXmlEncoded(final String xml) {
         if (xml == null || xml.length() < 4) {
             return false;
         }
         return xml.trim().substring(0, 4).equals("&lt;");
-    }
+    }*/
 
     String parseData(String response, String key) {
-        if (isXmlEncoded(response)) {
-            response = Html.fromHtml(response).toString();
-        }
-        XmlPullParser parser = Xml.newPullParser();
+        
+        // commented out to remove dependency to Html and Spanned - review if this is acutally required
+        //if (isXmlEncoded(response)) {
+        //    response = Html.fromHtml(response).toString();
+        //}
         try {
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+            
             parser.setInput(new StringReader(response));
             int event;
             boolean isFound = false;
@@ -1123,12 +1130,9 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
             @Override
             public void run() {
                 String myIpAddress = null;
-                try {
-                    myIpAddress = Util.getIpAddress(context).getHostAddress();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-
+                
+                myIpAddress = context.getIpAddress().getHostAddress();
+                
                 List<Service> serviceList = serviceDescription.getServiceList();
 
                 if (serviceList != null) {

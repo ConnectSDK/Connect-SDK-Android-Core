@@ -39,14 +39,13 @@ import com.connectsdk.service.command.ServiceCommandError;
  * ####Result
  * The capability method will immediately invoke the ErrorListener and pass off an ServiceCommandError object with a status code of ConnectStatusCodeArgumentError.
  *
- * @param error ServiceCommandError object describing the nature of the problem. Error descriptions are not localized and mostly intended for developer use. It is not recommended to display most error descriptions in UI elements.
  */
 public interface ErrorListener {
 
     /**
      * Method to return the error that was generated. Will pass an error object with a helpful status code and error message.
      * 
-     * @param error ServiceCommandError describing the error
+     * @param error ServiceCommandError object describing the nature of the problem. Error descriptions are not localized and mostly intended for developer use. It is not recommended to display most error descriptions in UI elements.
      */
     public void onError(ServiceCommandError error);
 }

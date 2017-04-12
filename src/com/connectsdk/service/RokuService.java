@@ -20,11 +20,10 @@
 
 package com.connectsdk.service;
 
-import android.text.TextUtils;
-import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
@@ -60,6 +59,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -145,7 +145,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchApp(String appId, AppLaunchListener listener) {
+    public void launchApp(String appId, ResponseListener<LaunchSession> listener) {
         if (appId == null) {
             Util.postError(listener, new ServiceCommandError(0,
                     "Must supply a valid app id", null));
@@ -159,14 +159,13 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo,
-            Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
     public void launchAppWithInfo(final AppInfo appInfo, Object params,
-            final Launcher.AppLaunchListener listener) {
+            final ResponseListener<LaunchSession> listener) {
         if (appInfo == null || appInfo.getId() == null) {
             Util.postError(listener, new ServiceCommandError(-1,
                     "Cannot launch app without valid AppInfo object",
@@ -265,7 +264,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                         .newInstance();
                 InputStream stream;
                 try {
-                    stream = new ByteArrayInputStream(msg.getBytes("UTF-8"));
+                    stream = new ByteArrayInputStream(msg.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     RokuApplicationListParser parser = new RokuApplicationListParser();
@@ -274,15 +273,9 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                     List<AppInfo> appList = parser.getApplicationList();
 
                     Util.postSuccess(listener, appList);
-                } catch (UnsupportedEncodingException e) {
+                } catch (ParserConfigurationException | SAXException | IOException e) {
                     e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override
@@ -330,19 +323,17 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchBrowser(String url, Launcher.AppLaunchListener listener) {
+    public void launchBrowser(String url, ResponseListener<LaunchSession> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
     @Override
-    public void launchYouTube(String contentId,
-            Launcher.AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
-    public void launchYouTube(String contentId, float startTime,
-            AppLaunchListener listener) {
+    public void launchYouTube(String contentId, float startTime, ResponseListener<LaunchSession> listener) {
         if (getDIALService() != null) {
             getDIALService().getLauncher().launchYouTube(contentId, startTime,
                     listener);
@@ -355,8 +346,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchNetflix(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+    public void launchNetflix(final String contentId, final ResponseListener<LaunchSession> listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -387,7 +377,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchHulu(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+            final ResponseListener<LaunchSession> listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -414,7 +404,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
-    public void launchAppStore(final String appId, AppLaunchListener listener) {
+    public void launchAppStore(final String appId, ResponseListener<LaunchSession> listener) {
         AppInfo appInfo = new AppInfo("11");
         appInfo.setName("Channel Store");
 
@@ -677,16 +667,16 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
             param = String.format(
                     "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
                     HttpMessage.encode(url),
-                    TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
+                    (title != null && !title.isEmpty()) ? "(null)" : HttpMessage.encode(title),
                             HttpMessage.encode(mediaFormat));
         } else { // if (mimeType.contains("audio")) {
             param = String
                     .format("15985?t=a&u=%s&k=(null)&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
                             HttpMessage.encode(url),
-                            TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
-                            TextUtils.isEmpty(description) ? "(null)" : HttpMessage.encode(description),
+                            (title != null && !title.isEmpty()) ? "(null)" : HttpMessage.encode(title),
+                            (description != null && !description.isEmpty()) ? "(null)" : HttpMessage.encode(description),
                             HttpMessage.encode(mediaFormat),
-                            TextUtils.isEmpty(iconSrc) ? "(null)" : HttpMessage.encode(iconSrc));
+                            (iconSrc != null && !iconSrc.isEmpty()) ? "(null)" : HttpMessage.encode(iconSrc));
         }
 
         String uri = requestURL(action, param);

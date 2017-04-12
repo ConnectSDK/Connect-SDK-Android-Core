@@ -27,10 +27,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Base64;
 
 public class WebOSTVServiceConfig extends ServiceConfig {
 
@@ -99,7 +100,8 @@ public class WebOSTVServiceConfig extends ServiceConfig {
         try {
             if (cert == null) 
                 return null;
-            return Base64.encodeToString(cert.getEncoded(), Base64.DEFAULT);
+          //return java.util.Base64.getEncoder().encodeToString(cert.getEncoded()); // only available in java 1.8
+            return DatatypeConverter.printBase64Binary(cert.getEncoded());
         } catch (CertificateEncodingException e) {
             e.printStackTrace();
             return null;

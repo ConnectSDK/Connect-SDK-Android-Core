@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import org.json.JSONObject;
 
 import com.connectsdk.core.AppInfo;
@@ -33,12 +37,13 @@ public interface ToastControl extends CapabilityMethods {
     public final static String Show_Clickable_Toast_App_Params = "ToastControl.Show.Clickable.App.Params";
     public final static String Show_Clickable_Toast_URL = "ToastControl.Show.Clickable.URL";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Show_Toast,
         Show_Clickable_Toast_App,
         Show_Clickable_Toast_App_Params,
         Show_Clickable_Toast_URL
-    };
+    ));
 
     public ToastControl getToastControl();
     public CapabilityPriorityLevel getToastControlCapabilityLevel();

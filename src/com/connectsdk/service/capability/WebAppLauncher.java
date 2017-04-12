@@ -20,6 +20,10 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 import org.json.JSONObject;
 
 import com.connectsdk.service.capability.listeners.ResponseListener;
@@ -44,7 +48,8 @@ public interface WebAppLauncher extends CapabilityMethods {
     public final static String Close = "WebAppLauncher.Close";
     public final static String Pin = "WebAppLauncher.Pin";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Launch,
         Launch_Params,
         Message_Send,
@@ -56,7 +61,7 @@ public interface WebAppLauncher extends CapabilityMethods {
         Join,
         Close,
         Pin
-    };
+    ));
 
     public WebAppLauncher getWebAppLauncher();
     public CapabilityPriorityLevel getWebAppLauncherCapabilityLevel();

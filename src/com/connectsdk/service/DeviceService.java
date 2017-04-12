@@ -30,8 +30,6 @@ import java.util.regex.Matcher;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.SparseArray;
-
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
@@ -62,7 +60,7 @@ import com.connectsdk.service.sessions.LaunchSession;
  *
  * Immediately after discovery of a DeviceService, DiscoveryManager will set the DeviceService's Listener to the ConnectableDevice that owns the DeviceService. You should not change the Listener unless you intend to manage the lifecycle of that service. The DeviceService will proxy all of its Listener method calls through the ConnectableDevice's ConnectableDeviceListener.
  *
- * ####Connection & Pairing
+ * ####Connection &amp; Pairing
  * Your ConnectableDevice object will let you know if you need to connect or pair to any services.
  *
  * ####Capabilities
@@ -128,7 +126,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     // @cond INTERNAL
     protected DeviceServiceListener listener;
 
-    public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
+    //public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
 
     public DeviceService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         this.serviceDescription = serviceDescription;
@@ -281,7 +279,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
 
     }
 
-    /** Whether the DeviceService is currently connected */
+    /** @return true, if the DeviceService is currently connected */
     public boolean isConnected() {
         return true;
     }
@@ -385,6 +383,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
      * Example: `Launcher.App.Any`
      *
      * @param capability Capability to test against
+     * @return true, if capability exists
      */
     public boolean hasCapability(String capability) {
         Matcher m = CapabilityMethods.ANY_PATTERN.matcher(capability);
@@ -409,6 +408,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilities Set of capabilities to test against
+     * @return true, if at least one capability exists
      */
     public boolean hasAnyCapability(String... capabilities) {
         for (String capability : capabilities) {
@@ -425,6 +425,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilities List of capabilities to test against
+     * @return true, if all capabilities exist
      */
     public boolean hasCapabilities(List<String> capabilities) {
         String[] arr = new String[capabilities.size()];
@@ -438,6 +439,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilities Set of capabilities to test against
+     * @return true, if all capabilities exist
      */
     public boolean hasCapabilities(String... capabilities) {
         boolean hasCaps = true;
@@ -486,17 +488,18 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         return jsonObj;
     }
 
-    /** Name of the DeviceService (webOS, Chromecast, etc) */
+    /** @return name of the DeviceService (webOS, Chromecast, etc) */
     public String getServiceName() {
         return serviceDescription.getServiceID();
     }
 
     // @cond INTERNAL
-    /**
+    /*
      * Create a LaunchSession from a serialized JSON object.
      * May return null if the session was not the one that created the session.
      * 
      * Intended for internal use.
+     * 
      */
     public LaunchSession decodeLaunchSession(String type, JSONObject sessionObj) throws JSONException {
         return null;

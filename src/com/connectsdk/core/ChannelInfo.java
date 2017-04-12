@@ -23,8 +23,6 @@ package com.connectsdk.core;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 /**
  * Normalized reference object for information about a TVs channels. This object is required to set the channel on a TV.
  */
@@ -45,96 +43,67 @@ public class ChannelInfo implements JSONSerializable {
     public ChannelInfo() {
     }
 
-    /** Gets the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
+    /** @return the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
     public JSONObject getRawData() {
         return rawData;
     }
 
-    /** Sets the raw data from the first screen device about the channel. In most cases, this is an NSDictionary. */
+    /**
+     * @param rawData the raw data from the first screen device about the channel. In most cases, this is an
+     *            NSDictionary.
+     */
     public void setRawData(JSONObject rawData) {
         this.rawData = rawData;
     }
 
-    /** Gets the user-friendly name of the channel */
+    /** @return the user-friendly name of the channel */
     public String getName() {
         return channelName;
     }
 
-    /** Sets the user-friendly name of the channel */
+    /** @param channelName the user-friendly name of the channel */
     public void setName(String channelName) {
         this.channelName = channelName;
     }
 
-    /** Gets the TV's unique ID for the channel */
+    /** @return the TV's unique ID for the channel */
     public String getId() {
         return channelId;
     }
 
-    /** Sets the TV's unique ID for the channel */
+    /** @param channelId the TV's unique ID for the channel */
     public void setId(String channelId) {
         this.channelId = channelId;
     }
 
-    /** Gets the TV channel's number (likely to be a combination of the major & minor numbers) */
+    /** @return the TV channel's number (likely to be a combination of the major &amp; minor numbers) */
     public String getNumber() {
         return channelNumber;
     }
 
-    /** Sets the TV channel's number (likely to be a combination of the major & minor numbers) */
+    /** @param channelNumber the TV channel's number (likely to be a combination of the major &amp; minor numbers) */
     public void setNumber(String channelNumber) {
         this.channelNumber = channelNumber;
     }
 
-    /** Gets the TV channel's minor number */
+    /** @return the TV channel's minor number */
     public int getMinorNumber() {
         return minorNumber;
     }
 
-    /** Sets the TV channel's minor number */
+    /** @param minorNumber the TV channel's minor number */
     public void setMinorNumber(int minorNumber) {
         this.minorNumber = minorNumber;
     }
 
-    /** Gets the TV channel's major number */
+    /** @return the TV channel's major number */
     public int getMajorNumber() {
         return majorNumber;
     }
 
-    /** Sets the TV channel's major number */
+    /** @param majorNumber the TV channel's major number */
     public void setMajorNumber(int majorNumber) {
         this.majorNumber = majorNumber;
-    }
-
-    /**
-     * Compares two ChannelInfo objects.
-     *
-     * @param channelInfo ChannelInfo object to compare.
-     *
-     * @return YES if both ChannelInfo number & name values are equal
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (o instanceof ChannelInfo) {
-            ChannelInfo other = (ChannelInfo) o;
-
-            if (this.channelId != null) {
-                if (this.channelId.equals(other.channelId))
-                    return true;
-            } else if (this.channelName != null && this.channelNumber != null) {
-                return this.channelName.equals(other.channelName)
-                        && this.channelNumber.equals(other.channelNumber)
-                        && this.majorNumber == other.majorNumber
-                        && this.minorNumber == other.minorNumber;
-            }
-
-            Log.d(Util.T, "Could not compare channel values, no data to compare against");
-            Log.d(Util.T, "This channel info: \n" + this.rawData.toString());
-            Log.d(Util.T, "Other channel info: \n" + other.rawData.toString());
-
-            return false;
-        }
-
-        return super.equals(o);
     }
 
     // @cond INTERNAL
@@ -152,4 +121,51 @@ public class ChannelInfo implements JSONSerializable {
         return obj;
     }
     // @endcond
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        if (channelId != null) {
+            result = prime * result + channelId.hashCode();
+        } else {
+            result = prime * result + ((channelName == null) ? 0 : channelName.hashCode());
+            result = prime * result + ((channelNumber == null) ? 0 : channelNumber.hashCode());
+            result = prime * result + majorNumber;
+            result = prime * result + minorNumber;
+        }
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ChannelInfo other = (ChannelInfo) obj;
+
+        if (channelId != null) {
+            if (channelId.equals(other.channelId))
+                return true;
+        }
+
+        if (channelName == null) {
+            if (other.channelName != null)
+                return false;
+        } else if (!channelName.equals(other.channelName))
+            return false;
+        if (channelNumber == null) {
+            if (other.channelNumber != null)
+                return false;
+        } else if (!channelNumber.equals(other.channelNumber))
+            return false;
+        if (majorNumber != other.majorNumber)
+            return false;
+        if (minorNumber != other.minorNumber)
+            return false;
+        return true;
+    }
 }

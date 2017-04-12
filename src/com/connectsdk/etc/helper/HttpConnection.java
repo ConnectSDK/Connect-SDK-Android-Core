@@ -29,6 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -111,7 +112,7 @@ public abstract class HttpConnection {
                 }
                 try {
                     BufferedReader reader =
-                            new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                            new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
                     String line;
                     StringBuilder sb = new StringBuilder();
                     while (null != (line = reader.readLine())) {
@@ -131,7 +132,7 @@ public abstract class HttpConnection {
 
         @Override
         public void setPayload(String payload) {
-            this.payload = payload.getBytes();
+            this.payload = payload.getBytes(StandardCharsets.UTF_8);
             connection.setDoOutput(true);
         }
 
@@ -186,9 +187,9 @@ public abstract class HttpConnection {
             int port = uri.getPort() > 0 ? uri.getPort() : 80;
             Socket socket = new Socket(uri.getHost(), port);
             PrintWriter writer =
-                    new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+                    new PrintWriter(new OutputStreamWriter(socket.getOutputStream(),StandardCharsets.UTF_8), true);
             BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    new BufferedReader(new InputStreamReader(socket.getInputStream(),StandardCharsets.UTF_8));
 
             // send request
             writer.print(method.name());

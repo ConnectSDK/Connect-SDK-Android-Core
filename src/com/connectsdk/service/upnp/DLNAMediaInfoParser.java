@@ -1,12 +1,11 @@
 package com.connectsdk.service.upnp;
 
-import android.util.Xml;
-
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -36,9 +35,10 @@ public class DLNAMediaInfoParser {
 
         if (str.contains(LT)) return "";
 
-        XmlPullParser parser = Xml.newPullParser();
 
         try {
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+            
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(new StringReader(str));
 

@@ -1,10 +1,10 @@
 /*
  * SSDPClient
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 6 Jan 2015
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,7 @@ import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.charset.Charset;
 
 public class SSDPClient {
     /* New line definition */
@@ -62,7 +63,6 @@ public class SSDPClient {
     SocketAddress multicastGroup;
     NetworkInterface networkInterface;
     InetAddress localInAddress;
-
     int timeout = 0;
     static int MX = 5;
 
@@ -83,15 +83,19 @@ public class SSDPClient {
         datagramSocket.bind(new InetSocketAddress(localInAddress, 0));
     }
 
-    /** Used to send SSDP packet */
+    /** Used to send SSDP packet.
+     * @param data the data 
+     * @throws IOException in case of network problems */
     public void send(String data) throws IOException {
-        DatagramPacket dp = new DatagramPacket(data.getBytes(), data.length(), multicastGroup);
-
+        byte[] buffer = data.getBytes(Charset.forName("US-ASCII"));
+        DatagramPacket dp = new DatagramPacket(buffer, buffer.length, multicastGroup);
         datagramSocket.send(dp);
     }
 
 
-    /** Used to receive SSDP Response packet */
+    /** Used to receive SSDP Response packet.
+     * @return response 
+     * @throws IOException in case of network problems */
     public DatagramPacket responseReceive() throws IOException {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
@@ -101,7 +105,9 @@ public class SSDPClient {
         return dp;
     }
 
-    /** Used to receive SSDP Multicast packet */
+    /** Used to receive SSDP Multicast packet.
+     * @return multicast packet 
+     * @throws IOException in case of network problems */
     public DatagramPacket multicastReceive() throws IOException {
         byte[] buf = new byte[1024];
         DatagramPacket dp = new DatagramPacket(buf, buf.length);
@@ -120,7 +126,7 @@ public class SSDPClient {
         return datagramSocket != null && multicastSocket != null && datagramSocket.isConnected() && multicastSocket.isConnected();
     }
 
-    /** Close the socket */
+    /** Close the socket. */
     public void close() {
         if (multicastSocket != null) {
             try {
@@ -132,8 +138,7 @@ public class SSDPClient {
         }
 
         if (datagramSocket != null) {
-            datagramSocket.disconnect();
-            datagramSocket.close();
+                        datagramSocket.close();
         }
     }
 

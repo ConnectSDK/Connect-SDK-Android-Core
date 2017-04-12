@@ -63,7 +63,7 @@ public interface ConnectableDeviceStore {
     public void updateDevice(ConnectableDevice device);
 
     /**
-     * A JSONObject of all ConnectableDevices in the ConnectableDeviceStore. To gt a strongly-typed ConnectableDevice object, use the `getDevice(String);` method.
+     * @return a JSONObject of all ConnectableDevices in the ConnectableDeviceStore. To get a strongly-typed ConnectableDevice object, use the `getDevice(String);` method.
      */
     public JSONObject getStoredDevices();
 

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class SSDPDevice {
     /* Optional. */
     public List<Service> serviceList = new ArrayList<Service>();
 
-    public String ST;
+//    public String ST;
     public String applicationURL;
 
     public String serviceURI;
@@ -99,7 +100,6 @@ public class SSDPDevice {
 
     public void parse(URL url) throws IOException, ParserConfigurationException, SAXException {
         SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser;
 
         SSDPDeviceDescriptionParser parser = new SSDPDeviceDescriptionParser(this);
 
@@ -111,18 +111,14 @@ public class SSDPDevice {
         }
 
         InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-        Scanner s = null;
-        try {
-            s = new Scanner(in).useDelimiter("\\A");
+        
+        try (Scanner s  = new Scanner(in, "UTF-8")) {
+            s.useDelimiter("\\A");
             locationXML = s.hasNext() ? s.next() : "";
 
-            saxParser = factory.newSAXParser();
-            saxParser.parse(new ByteArrayInputStream(locationXML.getBytes()), parser);
-        } finally {
-            in.close();
-            if (s != null)
-                s.close();
-        }
+            SAXParser saxParser = factory.newSAXParser();
+            saxParser.parse(new ByteArrayInputStream(locationXML.getBytes(StandardCharsets.UTF_8)), parser);
+        } 
 
         headers = urlConnection.getHeaderFields();
     }

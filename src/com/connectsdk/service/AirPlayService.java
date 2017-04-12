@@ -20,11 +20,8 @@
 
 package com.connectsdk.service;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Log;
-
 import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
@@ -45,9 +42,11 @@ import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.protocol.HTTP;
 import org.json.JSONObject;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +54,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -66,12 +66,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
+
 public class AirPlayService extends DeviceService implements MediaPlayer, MediaControl {
     public static final String X_APPLE_SESSION_ID = "X-Apple-Session-ID";
     public static final String ID = "AirPlay";
     private static final long KEEP_ALIVE_PERIOD = 15000;
 
-    private final static String CHARSET = "UTF-8";
+    //private final static String CHARSET = "UTF-8";
 
     private String mSessionId;
 
@@ -214,7 +216,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     /**
      * AirPlay has the same response for Buffering and Finished states that's why this method
      * always returns Finished state for video which is not ready to play.
-     * @param listener
+     * @param listener the play state listener
      */
     @Override
     public void getPlayState(final PlayStateListener listener) {
@@ -381,33 +383,10 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
 
                 try {
                     URL imagePath = new URL(url);
-                    HttpURLConnection connection = (HttpURLConnection) imagePath.openConnection();
-                    connection.setInstanceFollowRedirects(true);
-                    connection.setDoInput(true);
-                    connection.connect();
-
-                    int responseCode = connection.getResponseCode();
-                    boolean redirect = (responseCode == HttpURLConnection.HTTP_MOVED_TEMP
-                            || responseCode == HttpURLConnection.HTTP_MOVED_PERM
-                            || responseCode == HttpURLConnection.HTTP_SEE_OTHER);
-
-                    if(redirect) {
-                        String newPath = connection.getHeaderField("Location");
-                        URL newImagePath = new URL(newPath);
-                        connection = (HttpURLConnection) newImagePath.openConnection();
-                        connection.setInstanceFollowRedirects(true);
-                        connection.setDoInput(true);
-                        connection.connect();
-                    }
-
-                    InputStream input = connection.getInputStream();
-                    Bitmap myBitmap = BitmapFactory.decodeStream(input);
-
+                    BufferedImage image = ImageIO.read(imagePath);
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    myBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    ImageIO.write(image, "jpg", stream);
                     payload = stream.toByteArray();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
@@ -632,7 +611,7 @@ public class AirPlayService extends DeviceService implements MediaPlayer, MediaC
     String digestAuthentication(String md5) {
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(md5.getBytes());
+            byte[] digest = md.digest(md5.getBytes(StandardCharsets.UTF_8));
             StringBuffer sb = new StringBuffer();
             for (byte b : digest) {
                 sb.append(String.format("%02x", b & 0xFF));

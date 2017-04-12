@@ -20,9 +20,8 @@
 
 package com.connectsdk.service;
 
-import android.util.Log;
-
 import com.connectsdk.core.AppInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
@@ -54,6 +53,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     public static final String ID = "DIAL";
     private static final String APP_NETFLIX = "Netflix";
+    private static final String APP_YOUTUBE = "YouTube";
 
     private static List<String> registeredApps = new ArrayList<String>();
 
@@ -115,11 +115,11 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchApp(String appId, AppLaunchListener listener) {
+    public void launchApp(String appId, ResponseListener<LaunchSession> listener) {
         launchApp(appId, null, listener);
     }
 
-    private void launchApp(String appId, JSONObject params, AppLaunchListener listener) {
+    private void launchApp(String appId, JSONObject params, ResponseListener<LaunchSession> listener) {
         if (appId == null || appId.length() == 0) {
             Util.postError(listener, new ServiceCommandError(0, "Must pass a valid appId", null));
             return;
@@ -133,12 +133,12 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
-    public void launchAppWithInfo(final AppInfo appInfo, Object params, final AppLaunchListener listener) {
+    public void launchAppWithInfo(final AppInfo appInfo, Object params, final ResponseListener<LaunchSession> listener) {
         ServiceCommand<ResponseListener<Object>> command =
                 new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
                         requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
@@ -163,7 +163,7 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchBrowser(String url, AppLaunchListener listener) {
+    public void launchBrowser(String url, ResponseListener<LaunchSession> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
@@ -199,16 +199,16 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchYouTube(String contentId, AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
-    public void launchYouTube(String contentId, float startTime, AppLaunchListener listener) {
+    public void launchYouTube(String contentId, float startTime, ResponseListener<LaunchSession> listener) {
         String params = null;
-        AppInfo appInfo = new AppInfo("YouTube");
+        AppInfo appInfo = new AppInfo(APP_YOUTUBE);
         appInfo.setName(appInfo.getId());
-
+        //JSONObject jsonParams = null;
         if (contentId != null && contentId.length() > 0) {
             if (startTime < 0.0) {
                 if (listener != null) {
@@ -219,6 +219,16 @@ public class DIALService extends DeviceService implements Launcher {
             }
 
             String pairingCode = java.util.UUID.randomUUID().toString();
+            /*
+            jsonParams = new JSONObject();
+            try {
+                //jsonParams.put("pairingCode", pairingCode);
+                jsonParams.put("v", contentId);
+                jsonParams.put("t", startTime);
+            } catch (JSONException e) {
+                Log.e(Util.T, "Launch YouTube error", e);
+            }
+            */
             params = String.format(Locale.US, "pairingCode=%s&v=%s&t=%.1f", pairingCode, contentId, startTime);
         }
 
@@ -226,12 +236,12 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchHulu(String contentId, AppLaunchListener listener) {
+    public void launchHulu(String contentId, ResponseListener<LaunchSession> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
     @Override
-    public void launchNetflix(final String contentId, AppLaunchListener listener) {
+    public void launchNetflix(final String contentId, ResponseListener<LaunchSession> listener) {
         JSONObject params = null;
 
         if (contentId != null && contentId.length() > 0) {
@@ -251,7 +261,7 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchAppStore(String appId, AppLaunchListener listener) {
+    public void launchAppStore(String appId, ResponseListener<LaunchSession> listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 

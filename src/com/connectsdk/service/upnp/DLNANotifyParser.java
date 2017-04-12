@@ -4,21 +4,21 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-
-import android.util.Xml;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 public class DLNANotifyParser {
     private static final String ns = null;
 
     public JSONArray parse(InputStream in) throws XmlPullParserException, IOException, JSONException {
         try {
-            XmlPullParser parser = Xml.newPullParser();
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(in, null);
             parser.nextTag();
@@ -62,12 +62,8 @@ public class DLNANotifyParser {
                 JSONObject event;
                 InputStream stream = null;
 
-                try {
-                    stream = new ByteArrayInputStream(eventStr.getBytes("UTF-8"));
-                } catch (UnsupportedEncodingException ex) {
-                    ex.printStackTrace();
-                }
-
+                
+                stream = new ByteArrayInputStream(eventStr.getBytes(StandardCharsets.UTF_8));
                 DLNAEventParser eventParser = new DLNAEventParser();
 
                 event = eventParser.parse(stream);

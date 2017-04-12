@@ -31,8 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
+import com.connectsdk.core.Log;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
@@ -97,7 +96,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     Map<String, DeviceService> services;
 
-    public boolean featuresReady = false;
+    //public boolean featuresReady = false;
 
     public ConnectableDevice() {
         services = new ConcurrentHashMap<String, DeviceService>();
@@ -152,8 +151,8 @@ public class ConnectableDevice implements DeviceServiceListener {
     // @endcond
 
     /**
-     * set desirable pairing type for all services
-     * @param pairingType
+     * Set desirable pairing type for all services.
+     * @param pairingType the pairing type
      */
     public void setPairingType(PairingType pairingType) {
         Collection<DeviceService> services = getServices();
@@ -232,7 +231,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         return list;
     }
 
-    /** Array of all currently discovered DeviceServices this ConnectableDevice has associated with it. */
+    /** @return Collection of all currently discovered DeviceServices this ConnectableDevice has associated with it. */
     public Collection<DeviceService> getServices() {
         return services.values();
     }
@@ -263,9 +262,10 @@ public class ConnectableDevice implements DeviceServiceListener {
     }
 
     /**
-     * Returns a DeviceService from the ConnectableDevice instance. serviceUUID is used as the identifier because only one instance of each DeviceService type may be attached to a single ConnectableDevice instance.
+     * Get DeviceService from the ConnectableDevice instance. serviceUUID is used as the identifier because only one instance of each DeviceService type may be attached to a single ConnectableDevice instance.
      * 
      * @param serviceUUID UUID of the DeviceService to be returned
+     * @return DeviceService from the ConnectableDevice instance
      */
     public DeviceService getServiceWithUUID(String serviceUUID) {
         for (DeviceService service : getServices()) {
@@ -370,7 +370,7 @@ public class ConnectableDevice implements DeviceServiceListener {
     // @endcond
 
     /**
-     * Whether the device has any DeviceServices that require an active connection (websocket, HTTP registration, etc)
+     * @return true, if the device has any DeviceServices that require an active connection (websocket, HTTP registration, etc)
      */
     public boolean isConnectable() {
         for (DeviceService service: services.values()) {
@@ -399,7 +399,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         }
     }
 
-    /** A combined list of all capabilities that are supported among the detected DeviceServices. */
+    /** @return A combined list of all capabilities that are supported among the detected DeviceServices. */
     public synchronized List<String> getCapabilities() {
         List<String> caps = new ArrayList<String>();
 
@@ -422,6 +422,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * Example: `Launcher.App.Any`
      *
      * @param capability Capability to test against
+     * @return true if the capbaility exists
      */
     public boolean hasCapability(String capability) {
         boolean hasCap = false;
@@ -442,6 +443,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilities Array of capabilities to test against
+     * @return true  if at least one capability exists
      */
     public boolean hasAnyCapability(String... capabilities) {
         for (DeviceService service : services.values()) {
@@ -458,6 +460,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilities Array of capabilities to test against
+     * @return true  if the device has all those capabilities
      */
     public synchronized boolean hasCapabilities(List<String> capabilities) {
         String[] arr = new String[capabilities.size()];
@@ -471,6 +474,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * See hasCapability: for a description of the wildcard feature provided by this method.
      *
      * @param capabilites Array of capabilities to test against
+     * @return true  if the device has all those capabilities
      */
     public synchronized boolean hasCapabilities(String... capabilites) {
         boolean hasCaps = true;
@@ -485,140 +489,12 @@ public class ConnectableDevice implements DeviceServiceListener {
         return hasCaps;
     }
 
-    /**
-     * Accessor for highest priority Launcher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public Launcher getLauncher() {
-        return getCapability(Launcher.class);
-    }
-
-    /**
-     * Accessor for highest priority MediaPlayer object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public MediaPlayer getMediaPlayer() {
-        return getCapability(MediaPlayer.class);
-    }
-
-    /**
-     * Accessor for highest priority MediaControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public MediaControl getMediaControl() {
-        return getCapability(MediaControl.class);
-    }
-
-    /**
-     * Accessor for highest priority PlaylistControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public PlaylistControl getPlaylistControl() {
-        return getCapability(PlaylistControl.class);
-    }
-
-    /**
-     * Accessor for highest priority VolumeControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public VolumeControl getVolumeControl() {
-        return getCapability(VolumeControl.class);
-    }
-
-    /**
-     * Accessor for highest priority WebAppLauncher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public WebAppLauncher getWebAppLauncher() {
-        return getCapability(WebAppLauncher.class);
-    }
-
-    /**
-     * Accessor for highest priority TVControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public TVControl getTVControl() {
-        return getCapability(TVControl.class);
-    }
-
-    /**
-     * Accessor for highest priority ToastControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public ToastControl getToastControl() {
-        return getCapability(ToastControl.class);
-    }
-
-    /**
-     * Accessor for highest priority TextInputControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public TextInputControl getTextInputControl() {
-        return getCapability(TextInputControl.class);
-    }
-
-    /**
-     * Accessor for highest priority MouseControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public MouseControl getMouseControl() {
-        return getCapability(MouseControl.class);
-    }
-
-    /**
-     * Accessor for highest priority ExternalInputControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public ExternalInputControl getExternalInputControl() {
-        return getCapability(ExternalInputControl.class);
-    }
-
-    /**
-     * Accessor for highest priority PowerLauncher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public PowerControl getPowerControl() {
-        return getCapability(PowerControl.class);
-    }
-
-    /**
-     * Accessor for highest priority KeyControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
-     */
-    @Deprecated
-    public KeyControl getKeyControl() {
-        return getCapability(KeyControl.class);
-    }
 
     /**
      * Get a capability with the highest priority from a device. If device doesn't have such
      * capability then returns null.
      * @param controllerClass type of capability
+     * @param <T> a capability methods class
      * @return capability implementation
      */
     public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
@@ -659,7 +535,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.ipAddress = ipAddress;
     }
 
-    /** Gets the Current IP address of the ConnectableDevice. */
+    /** @return the Current IP address of the ConnectableDevice. */
     public String getIpAddress() {
         return ipAddress;
     }
@@ -673,7 +549,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.friendlyName = friendlyName;
     }
 
-    /** Gets an estimate of the ConnectableDevice's current friendly name. */
+    /** @return an estimate of the ConnectableDevice's current friendly name. */
     public String getFriendlyName() {
         return friendlyName;
     }
@@ -681,13 +557,13 @@ public class ConnectableDevice implements DeviceServiceListener {
     /**
      * Sets the last IP address this ConnectableDevice was discovered at.
      *
-     * @param lastKnownIPAddress Last known IP address of the device & it's services
+     * @param lastKnownIPAddress Last known IP address of the device &amp; it's services
      */
     public void setLastKnownIPAddress(String lastKnownIPAddress) {
         this.lastKnownIPAddress = lastKnownIPAddress;
     }
 
-    /** Gets the last IP address this ConnectableDevice was discovered at. */
+    /** @return  the last IP address this ConnectableDevice was discovered at. */
     public String getLastKnownIPAddress() {
         return lastKnownIPAddress;
     }
@@ -695,13 +571,13 @@ public class ConnectableDevice implements DeviceServiceListener {
     /**
      * Sets the name of the last wireless network this ConnectableDevice was discovered on.
      * 
-     * @param lastSeenOnWifi Last Wi-Fi network this device & it's services were discovered on
+     * @param lastSeenOnWifi Last Wi-Fi network this device &amp; it's services were discovered on
      */
     public void setLastSeenOnWifi(String lastSeenOnWifi) {
         this.lastSeenOnWifi = lastSeenOnWifi;
     }
 
-    /** Gets the name of the last wireless network this ConnectableDevice was discovered on. */
+    /** @return  the name of the last wireless network this ConnectableDevice was discovered on. */
     public String getLastSeenOnWifi() {
         return lastSeenOnWifi;
     }
@@ -715,7 +591,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.lastConnected = lastConnected;
     }
 
-    /** Gets the last time (in milli seconds from 1970) that this ConnectableDevice was connected to. */
+    /** @return  the last time (in milli seconds from 1970) that this ConnectableDevice was connected to. */
     public long getLastConnected() {
         return lastConnected;
     }
@@ -729,7 +605,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.lastDetection = lastDetection;
     }
 
-    /** Gets the last time (in milli seconds from 1970) that this ConnectableDevice was detected. */
+    /** @return  the last time (in milli seconds from 1970) that this ConnectableDevice was detected. */
     public long getLastDetection() {
         return lastDetection;
     }
@@ -743,7 +619,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.modelName = modelName;
     }
 
-    /** Gets an estimate of the ConnectableDevice's current model name. */
+    /** @return  an estimate of the ConnectableDevice's current model name. */
     public String getModelName() {
         return modelName;
     }
@@ -757,7 +633,7 @@ public class ConnectableDevice implements DeviceServiceListener {
         this.modelNumber = modelNumber;
     }
 
-    /** Gets an estimate of the ConnectableDevice's current model number. */
+    /** @return  an estimate of the ConnectableDevice's current model number. */
     public String getModelNumber() {
         return modelNumber;
     }
@@ -771,7 +647,7 @@ public class ConnectableDevice implements DeviceServiceListener {
     }
 
     /** 
-     * Universally unique id of this particular ConnectableDevice object, persists between sessions in ConnectableDeviceStore for connected devices
+     * @return universally unique id of this particular ConnectableDevice object, persists between sessions in ConnectableDeviceStore for connected devices
      */
     public String getId() {
         if (this.id == null)

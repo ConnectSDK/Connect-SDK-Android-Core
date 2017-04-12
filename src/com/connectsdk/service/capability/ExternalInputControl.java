@@ -20,10 +20,12 @@
 
 package com.connectsdk.service.capability;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.connectsdk.core.ExternalInputInfo;
-import com.connectsdk.service.capability.Launcher.AppLaunchListener;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.sessions.LaunchSession;
 
@@ -35,17 +37,18 @@ public interface ExternalInputControl extends CapabilityMethods {
     public final static String List = "ExternalInputControl.List";
     public final static String Set = "ExternalInputControl.Set";
 
-    public final static String[] Capabilities = {
+    public final static Collection<String> Capabilities = 
+            Collections.unmodifiableCollection(Arrays.asList(
         Picker_Launch,
         Picker_Close,
         List,
         Set
-    };
+    ));
 
     public ExternalInputControl getExternalInput();
     public CapabilityPriorityLevel getExternalInputControlPriorityLevel();
 
-    public void launchInputPicker(AppLaunchListener listener);
+    public void launchInputPicker(ResponseListener<LaunchSession> listener);
     public void closeInputPicker(LaunchSession launchSessionm, ResponseListener<Object> listener);
 
     public void getExternalInputList(ExternalInputListListener listener);

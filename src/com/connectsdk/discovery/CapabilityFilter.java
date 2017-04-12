@@ -44,34 +44,32 @@ import java.util.List;
  *
  * ###Examples
  * Filter for all devices that support video playback AND any media controls AND volume up/down.
- *
-@code
-    List<String> capabilities = new ArrayList<String>();
-        capabilities.add(MediaPlayer.Display_Video);
-        capabilities.add(MediaControl.Any);
-        capabilities.add(VolumeControl.Volume_Up_Down);
-
-    CapabilityFilter filter = 
-            new CapabilityFilter(capabilities);
-
-    DiscoveryManager.getInstance().setCapabilityFilters(filter);
-@endcode
+ * <code>
+ *     List&lt;String&gt; capabilities = new ArrayList&lt;String&gt;();
+ *         capabilities.add(MediaPlayer.Display_Video);
+ *         capabilities.add(MediaControl.Any);
+ *         capabilities.add(VolumeControl.Volume_Up_Down);
+ * 
+ *     CapabilityFilter filter = 
+ *             new CapabilityFilter(capabilities);
+ * 
+ *     DiscoveryManager.getInstance().setCapabilityFilters(filter);
+ * </code>
  *
  * Filter for all devices that support (video playback AND any media controls AND volume up/down) OR (image display).
+ * <code>
+ *   CapabilityFilter videoFilter = 
+ *           new CapabilityFilter(
+ *                   MediaPlayer.Display_Video, 
+ *                   MediaControl.Any, 
+ *                   VolumeControl.Volume_Up_Down);
  *
-@code
-    CapabilityFilter videoFilter = 
-            new CapabilityFilter(
-                    MediaPlayer.Display_Video, 
-                    MediaControl.Any, 
-                    VolumeControl.Volume_Up_Down);
-
-    CapabilityFilter imageFilter = 
-            new CapabilityFilter(
-                    MediaPlayer.Display_Image);
-
-    DiscoveryManager.getInstance().setCapabilityFilters(videoFilter, imageFilter);
-@endcode
+ *   CapabilityFilter imageFilter = 
+ *           new CapabilityFilter(
+ *                   MediaPlayer.Display_Image);
+ *
+ *   DiscoveryManager.getInstance().setCapabilityFilters(videoFilter, imageFilter);
+ * </code>
  */
 public class CapabilityFilter {
 

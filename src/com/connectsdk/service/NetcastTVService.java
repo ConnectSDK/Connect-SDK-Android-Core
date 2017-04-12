@@ -20,14 +20,13 @@
 
 package com.connectsdk.service;
 
-import android.graphics.PointF;
-import android.util.Log;
-
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.ExternalInputInfo;
 import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.Log;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.PointF;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
@@ -74,6 +73,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -489,7 +489,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchApp(final String appId, final AppLaunchListener listener) {
+    public void launchApp(final String appId, final ResponseListener<LaunchSession> listener) {
         getAppInfoForId(appId, new AppInfoListener() {
 
             @Override
@@ -525,7 +525,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         });
     }
 
-    private void launchApplication(final String appName, final String auid, final String contentId, final Launcher.AppLaunchListener listener) {
+    private void launchApplication(final String appName, final String auid, final String contentId, final ResponseListener<LaunchSession> listener) {
         JSONObject jsonObj = new JSONObject();
 
         try {
@@ -572,12 +572,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, ResponseListener<LaunchSession> listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
-    public void launchAppWithInfo(AppInfo appInfo, Object params, Launcher.AppLaunchListener listener) {
+    public void launchAppWithInfo(AppInfo appInfo, Object params, ResponseListener<LaunchSession> listener) {
         String appName = HttpMessage.encode(appInfo.getName());
         String appId = appInfo.getId();
         String contentId = null;
@@ -597,7 +597,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchBrowser(String url, final Launcher.AppLaunchListener listener) {
+    public void launchBrowser(String url, final ResponseListener<LaunchSession> listener) {
         if (!(url == null || url.length() == 0)) 
             Log.w(Util.T, "Netcast TV does not support deeplink for Browser");
 
@@ -619,12 +619,12 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchYouTube(String contentId, Launcher.AppLaunchListener listener) {
+    public void launchYouTube(String contentId, ResponseListener<LaunchSession> listener) {
         launchYouTube(contentId, (float)0.0, listener);
     }
 
     @Override
-    public void launchYouTube(final String contentId, float startTime, final AppLaunchListener listener) {
+    public void launchYouTube(final String contentId, float startTime, final ResponseListener<LaunchSession> listener) {
         if (getDIALService() != null) {
             getDIALService().getLauncher().launchYouTube(contentId, startTime, listener);
             return;
@@ -650,7 +650,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchHulu(final String contentId, final Launcher.AppLaunchListener listener) {
+    public void launchHulu(final String contentId, final ResponseListener<LaunchSession> listener) {
         final String appName = "Hulu";
 
         getApplication(appName, new AppInfoListener() {
@@ -668,7 +668,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchNetflix(final String contentId, final Launcher.AppLaunchListener listener) {
+    public void launchNetflix(final String contentId, final ResponseListener<LaunchSession> listener) {
         if (!serviceDescription.getModelNumber().equals("4.0")) {
             launchApp("Netflix", listener);
             return;
@@ -734,7 +734,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchAppStore(final String appId, final AppLaunchListener listener) {
+    public void launchAppStore(final String appId, final ResponseListener<LaunchSession> listener) {
         if (!serviceDescription.getModelNumber().equals("4.0")) {
             launchApp("LG Smart World", listener);  // TODO: this will not work in Korea, use Korean name instead
             return;
@@ -997,7 +997,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 try {
                     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-                    InputStream stream = new ByteArrayInputStream(strObj.getBytes("UTF-8"));
+                    InputStream stream = new ByteArrayInputStream(strObj.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     NetcastChannelParser parser = new NetcastChannelParser();
@@ -1019,13 +1019,9 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                     }
 
                     Util.postSuccess(listener, channelList);
-                } catch (ParserConfigurationException e) {
+                } catch (ParserConfigurationException | SAXException | IOException e) {
                     e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override
@@ -1073,8 +1069,8 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                         String sourceIndex = (String) rawData.get("sourceIndex");
                         int physicalNum = (Integer) rawData.get("physicalNumber");
 
-                        if (Integer.valueOf(major) == majorNumber
-                                && Integer.valueOf(minor) == minorNumber) {
+                        if (Integer.parseInt(major) == majorNumber
+                                && Integer.parseInt(minor) == minorNumber) {
                             params.put("name", "HandleChannelChange");
                             params.put("major", major);
                             params.put("minor", minor);
@@ -1113,7 +1109,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                 try {
                     SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
-                    InputStream stream = new ByteArrayInputStream(strObj.getBytes("UTF-8"));
+                    InputStream stream = new ByteArrayInputStream(strObj.getBytes(StandardCharsets.UTF_8));
                     SAXParser saxParser = saxParserFactory.newSAXParser();
 
                     NetcastChannelParser parser = new NetcastChannelParser();
@@ -1128,15 +1124,9 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
                         Util.postSuccess(listener, channel);
                     }
-                } catch (ParserConfigurationException e) {
+                } catch (ParserConfigurationException | SAXException | JSONException | IOException e) {
                     e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
 
             @Override
@@ -1402,7 +1392,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     }
 
     @Override
-    public void launchInputPicker(final AppLaunchListener listener) {
+    public void launchInputPicker(final ResponseListener<LaunchSession> listener) {
         final String appName = "Input List";
         final String encodedStr = HttpMessage.encode(appName);
 
@@ -1410,7 +1400,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
 
             @Override
             public void onSuccess(final AppInfo appInfo) {
-                Launcher.AppLaunchListener launchListener = new Launcher.AppLaunchListener() {
+                ResponseListener<LaunchSession> launchListener = new ResponseListener<LaunchSession>() {
 
                     @Override
                     public void onSuccess(LaunchSession session) {
@@ -2060,60 +2050,48 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
     private JSONObject parseVolumeXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastVolumeParser handler = new NetcastVolumeParser();
             saxParser.parse(stream, handler);
 
             return handler.getVolumeStatus();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return null;
     }
 
     private int parseAppNumberXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastAppNumberParser handler = new NetcastAppNumberParser();
             saxParser.parse(stream, handler);
 
             return handler.getApplicationNumber();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return 0;
     }
 
     private JSONArray parseApplicationsXmlToJSON(String data) {
         SAXParserFactory saxParserFactory = SAXParserFactory.newInstance();
         try {
-            InputStream stream = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             SAXParser saxParser = saxParserFactory.newSAXParser();
             NetcastApplicationsParser handler = new NetcastApplicationsParser();
             saxParser.parse(stream, handler);
 
             return handler.getApplications();
-        } catch (ParserConfigurationException e) {
+        } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } 
         return null;
     }
 
@@ -2349,10 +2327,10 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
         List<String> capabilities = new ArrayList<String>();
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            Collections.addAll(capabilities, TextInputControl.Capabilities);
-            Collections.addAll(capabilities, MouseControl.Capabilities);
-            Collections.addAll(capabilities, KeyControl.Capabilities);
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
+            capabilities.addAll(TextInputControl.Capabilities);
+            capabilities.addAll(MouseControl.Capabilities);
+            capabilities.addAll(KeyControl.Capabilities);
+            capabilities.addAll(MediaPlayer.Capabilities);
 
             capabilities.add(PowerControl.Off);
 
@@ -2395,7 +2373,7 @@ public class NetcastTVService extends DeviceService implements Launcher, MediaCo
                 capabilities.add(AppStore_Params); 
             }
         } else {
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
+            capabilities.addAll(MediaPlayer.Capabilities);
             capabilities.add(Play); 
             capabilities.add(Pause); 
             capabilities.add(Stop); 

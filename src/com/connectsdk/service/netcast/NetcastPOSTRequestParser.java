@@ -27,32 +27,32 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class NetcastPOSTRequestParser extends DefaultHandler {
-    public JSONObject object;
-    public JSONObject subObject;
+    private JSONObject object;
+    private JSONObject subObject;
 
-    boolean textEditMode = false;
-    boolean keyboardVisibleMode = false;
+    private boolean textEditMode = false;
+    private boolean keyboardVisibleMode = false;
 
-    public String value;
+    private String value;
 
-    public final String CHANNEL_TYPE = "chtype";
-    public final String MAJOR = "major";
-    public final String MINOR = "minor";
-    public final String DISPLAY_MAJOR = "displayMajor";
-    public final String DISPLAY_MINOR = "displayMinor";
-    public final String SOURCE_INDEX = "sourceIndex";
-    public final String PHYSICAL_NUM = "physicalNum";
-    public final String CHANNEL_NAME = "chname";
-    public final String PROGRAM_NAME = "progName";
-    public final String AUDIO_CHANNEL = "audioCh";
-    public final String INPUT_SOURCE_NAME = "inputSourceName";
-    public final String INPUT_SOURCE_TYPE = "inputSourceType";
-    public final String LABEL_NAME = "labelName";
-    public final String INPUT_SOURCE_INDEX = "inputSourceIdx";
+    private static final String CHANNEL_TYPE = "chtype";
+    private static final String MAJOR = "major";
+    private static final String MINOR = "minor";
+    private static final String DISPLAY_MAJOR = "displayMajor";
+    private static final String DISPLAY_MINOR = "displayMinor";
+    private static final String SOURCE_INDEX = "sourceIndex";
+    private static final String PHYSICAL_NUM = "physicalNum";
+    private static final String CHANNEL_NAME = "chname";
+    private static final String PROGRAM_NAME = "progName";
+    private static final String AUDIO_CHANNEL = "audioCh";
+    private static final String INPUT_SOURCE_NAME = "inputSourceName";
+    private static final String INPUT_SOURCE_TYPE = "inputSourceType";
+    private static final String LABEL_NAME = "labelName";
+    private static final String INPUT_SOURCE_INDEX = "inputSourceIdx";
 
-    public final String VALUE = "value";
-    public final String MODE = "mode";
-    public final String STATE = "state";
+    private static final String VALUE = "value";
+    private static final String MODE = "mode";
+    private static final String STATE = "state";
 
     public NetcastPOSTRequestParser() {
         object = new JSONObject();
