@@ -26,6 +26,7 @@ local.properties
 *.launch
 .cproject
 .buildpath
+.idea/
 *.DS_Store
 bin/jarlist.cache
 test/test-reports/

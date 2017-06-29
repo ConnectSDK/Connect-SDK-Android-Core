@@ -37,6 +37,7 @@ public class WebOSTVMouseSocketConnection {
     WebSocketClient ws;
     String socketPath;
     WebOSTVMouseSocketListener listener;
+    WebOSTVTrustManager customTrustManager;
 
     public enum ButtonType {
         HOME,
@@ -50,14 +51,8 @@ public class WebOSTVMouseSocketConnection {
     public WebOSTVMouseSocketConnection(String socketPath, WebOSTVMouseSocketListener listener) {
         Log.d("PtrAndKeyboardFragment", "got socketPath: " + socketPath);
 
-        this.listener = listener;
-
-        if (socketPath.startsWith("wss:")) {
-            this.socketPath = socketPath.replace("wss:", "ws:").replace(":3001/", ":3000/"); // downgrade to plaintext
-            Log.d("PtrAndKeyboardFragment", "downgraded socketPath: " + this.socketPath);
-        }
-        else 
-            this.socketPath = socketPath;
+        this.listener = listener; 
+        this.socketPath = socketPath;
 
         try {
             URI uri = new URI(this.socketPath);
@@ -95,6 +90,18 @@ public class WebOSTVMouseSocketConnection {
             public void onClose(int arg0, String arg1, boolean arg2) {
             }
         };
+
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            customTrustManager = new WebOSTVTrustManager();
+            sslContext.init(null, new WebOSTVTrustManager[] {customTrustManager}, null);
+            WebSocketClient.WebSocketClientFactory fac = new DefaultSSLWebSocketClientFactory(sslContext);
+            ws.setWebSocketFactory(fac);
+        } catch (KeyException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
 
         ws.connect();
     }
