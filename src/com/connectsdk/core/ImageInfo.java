@@ -52,7 +52,7 @@ public class ImageInfo {
 
 
     public enum ImageType {
-        Thumb, Video_Poster, Album_Art, Unknown
+        Thumb, Video_Poster, Album_Art, Unknown;
     }
 
     private String url;
@@ -133,23 +133,4 @@ public class ImageInfo {
         this.height = height;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ImageInfo imageInfo = (ImageInfo) o;
-
-        return (getUrl() != null ? getUrl().equals(imageInfo.getUrl()) : imageInfo.getUrl() == null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return getUrl() != null ? getUrl().hashCode() : 0;
-    }
 }

@@ -1,17 +1,16 @@
 package com.connectsdk.service.upnp;
 
-import android.util.Xml;
-
-import com.connectsdk.core.ImageInfo;
-import com.connectsdk.core.MediaInfo;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.URL;
-import java.util.ArrayList;
+import com.connectsdk.core.ImageInfo;
+import com.connectsdk.core.MediaInfo;
+
+import android.util.Xml;
 
 public class DLNAMediaInfoParser {
 
@@ -74,26 +73,10 @@ public class DLNAMediaInfoParser {
 
         ArrayList<ImageInfo> list = new ArrayList<ImageInfo>();
         list.add(new ImageInfo(iconUrl));
-        return new MediaInfo(url, mimeType, title, description, list);
-    }
+        MediaInfo info = new MediaInfo(url, mimeType, title, description, list);
 
-    public static MediaInfo getMediaInfo(String str, String baseUrl) {
-        String url = DLNAMediaInfoParser.getURL(str);
-        String title = DLNAMediaInfoParser.getTitle(str);
-        String mimeType = DLNAMediaInfoParser.getMimeType(str);
-        String description =  DLNAMediaInfoParser.getArtist(str) + "\n" +
-                DLNAMediaInfoParser.getAlbum(str);
-        String iconUrl = DLNAMediaInfoParser.getThumbnail(str);
+        return info;
 
-        try {
-            new URL(iconUrl).openConnection().connect();
-        } catch (Exception e) {
-            iconUrl = baseUrl + iconUrl;
-        }
-
-        ArrayList<ImageInfo> list = new ArrayList<ImageInfo>();
-        list.add(new ImageInfo(iconUrl));
-        return new MediaInfo(url, mimeType, title, description, list);
     }
 
     public static String getTitle(String str) {

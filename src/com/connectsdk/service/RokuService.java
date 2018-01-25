@@ -1,10 +1,10 @@
 /*
  * RokuService
  * Connect SDK
- *
+ * 
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 26 Feb 2014
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,44 @@
 
 package com.connectsdk.service;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xml.sax.SAXException;
+
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -31,9 +69,7 @@ import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
-import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
-import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
@@ -49,24 +85,6 @@ import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.roku.RokuApplicationListParser;
 import com.connectsdk.service.sessions.LaunchSession;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xml.sax.SAXException;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 public class RokuService extends DeviceService implements Launcher, MediaPlayer, MediaControl, KeyControl, TextInputControl {
 
@@ -87,9 +105,17 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
             registeredApps.add(appId);
     }
 
+    HttpClient httpClient;
+
     public RokuService(ServiceDescription serviceDescription,
             ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
+
+        httpClient = new DefaultHttpClient();
+        ClientConnectionManager mgr = httpClient.getConnectionManager();
+        HttpParams params = httpClient.getParams();
+        httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(
+                params, mgr.getSchemeRegistry()), params);
     }
 
     @Override
@@ -106,27 +132,6 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         return new DiscoveryFilter(ID, "roku:ecp");
     }
 
-
-    @Override
-    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
-        if (clazz.equals(MediaPlayer.class)) {
-            return getMediaPlayerCapabilityLevel();
-        }
-        else if (clazz.equals(MediaControl.class)) {
-            return getMediaControlCapabilityLevel();
-        }
-        else if (clazz.equals(Launcher.class)) {
-            return getLauncherCapabilityLevel();
-        }
-        else if (clazz.equals(TextInputControl.class)) {
-            return getTextInputControlCapabilityLevel();
-        }
-        else if (clazz.equals(KeyControl.class)) {
-            return getKeyControlCapabilityLevel();
-        }
-        return CapabilityPriorityLevel.NOT_SUPPORTED;
-    }
-
     @Override
     public Launcher getLauncher() {
         return this;
@@ -138,9 +143,41 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     class RokuLaunchSession extends LaunchSession {
+        String appName;
+        RokuService service;
+
+        RokuLaunchSession(RokuService service) {
+            this.service = service;
+        }
+
+        RokuLaunchSession(RokuService service, String appId, String appName) {
+            this.service = service;
+            this.appId = appId;
+            this.appName = appName;
+        }
+
+        RokuLaunchSession(RokuService service, JSONObject obj)
+                throws JSONException {
+            this.service = service;
+            fromJSONObject(obj);
+        }
 
         public void close(ResponseListener<Object> responseListener) {
             home(responseListener);
+        }
+
+        @Override
+        public JSONObject toJSONObject() throws JSONException {
+            JSONObject obj = super.toJSONObject();
+            obj.put("type", "roku");
+            obj.put("appName", appName);
+            return obj;
+        }
+
+        @Override
+        public void fromJSONObject(JSONObject obj) throws JSONException {
+            super.fromJSONObject(obj);
+            appName = obj.optString("appName");
         }
     }
 
@@ -228,12 +265,8 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
             @Override
             public void onSuccess(Object response) {
-                LaunchSession launchSession = new RokuLaunchSession();
-                launchSession.setService(RokuService.this);
-                launchSession.setAppId(appInfo.getId());
-                launchSession.setAppName(appInfo.getName());
-                launchSession.setSessionType(LaunchSession.LaunchSessionType.App);
-                Util.postSuccess(listener, launchSession);
+                Util.postSuccess(listener, new RokuLaunchSession(
+                        RokuService.this, appInfo.getId(), appInfo.getName()));
             }
 
             @Override
@@ -651,10 +684,9 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
             @Override
             public void onSuccess(Object response) {
-                LaunchSession launchSession = new RokuLaunchSession();
-                launchSession.setService(RokuService.this);
-                launchSession.setSessionType(LaunchSession.LaunchSessionType.Media);
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession, RokuService.this));
+                Util.postSuccess(listener, new MediaLaunchObject(
+                        new RokuLaunchSession(RokuService.this),
+                        RokuService.this));
             }
 
             @Override
@@ -662,6 +694,9 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                 Util.postError(listener, error);
             }
         };
+
+        String host = String.format("%s:%s", serviceDescription.getIpAddress(),
+                serviceDescription.getPort());
 
         String action = "input";
         String mediaFormat = mimeType;
@@ -672,21 +707,30 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
         String param;
         if (mimeType.contains("image")) {
-            param = String.format("15985?t=p&u=%s&tr=crossfade", HttpMessage.encode(url));
+            param = String.format("15985?t=p&u=%s&h=%s&tr=crossfade",
+                    HttpMessage.encode(url), HttpMessage.encode(host));
         } else if (mimeType.contains("video")) {
+            // TODO: check for previous Roku versions
+            // update since Roku 6.1: it supports only m3u8 playlist instead of video link
+            mediaFormat = "hls";
+            try {
+                url = playListURLFromURL(url, mediaFormat);
+            } catch (IOException e) {
+                Util.postError(listener, null);
+            }
             param = String.format(
-                    "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
-                    HttpMessage.encode(url),
-                    TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
+                    "15985?t=v&u=%s&k=(null)&h=%s&videoName=%s&videoFormat=%s",
+                    HttpMessage.encode(url), HttpMessage.encode(host),
+                    TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title), 
                             HttpMessage.encode(mediaFormat));
         } else { // if (mimeType.contains("audio")) {
             param = String
-                    .format("15985?t=a&u=%s&k=(null)&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
-                            HttpMessage.encode(url),
+                    .format("15985?t=a&u=%s&k=(null)&h=%s&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
+                            HttpMessage.encode(url), HttpMessage.encode(host),
                             TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
-                            TextUtils.isEmpty(description) ? "(null)" : HttpMessage.encode(description),
-                            HttpMessage.encode(mediaFormat),
-                            TextUtils.isEmpty(iconSrc) ? "(null)" : HttpMessage.encode(iconSrc));
+                                    TextUtils.isEmpty(description) ? "(null)" : HttpMessage.encode(description),
+                                            HttpMessage.encode(mediaFormat),
+                                            TextUtils.isEmpty(iconSrc) ? "(null)" : HttpMessage.encode(iconSrc));
         }
 
         String uri = requestURL(action, param);
@@ -694,6 +738,45 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(
                 this, uri, null, responseListener);
         request.send();
+    }
+
+    private String playListURLFromURL(final String url, final String mimeType) throws IOException {
+        // start a web server and return a link to it
+        final String playlist = String.format("#EXTM3U \n #EXT-X-TARGETDURATION:10 \n #EXTINF:10,\n %s \n #EXT-X-ENDLIST \n", url);
+        final ServerSocket server = new ServerSocket(0);
+        Util.runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Socket socket = server.accept();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                    String line;
+                    StringBuilder sb = new StringBuilder();
+                    while (null != (line = reader.readLine()) && !line.isEmpty()) {
+                        sb.append(line);
+                    }
+
+                    if (sb.length() > 0 && sb.toString().contains("GET / HTTP/1.1")) {
+                        writer.println("HTTP/1.1 200 OK");
+                        writer.println("Date: " + new Date().toString());
+                        writer.println("Server: ConnectSDK");
+                        writer.println("Content-Length: " + playlist.getBytes().length);
+                        writer.println("Content-Type: " + mimeType);
+                        writer.println("");
+                        writer.println(playlist);
+                        writer.println("");
+                        writer.println("");
+                    }
+
+                    socket.close();
+                    server.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        return "http:/" + Util.getIpAddress(DiscoveryManager.getInstance().getContext()) + ":" + server.getLocalPort() + "/";
     }
 
     @Override
@@ -706,25 +789,10 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     @Override
     public void displayImage(MediaInfo mediaInfo,
             MediaPlayer.LaunchListener listener) {
-        String mediaUrl = null;
-        String mimeType = null;
-        String title = null;
-        String desc = null;
-        String iconSrc = null;
+        ImageInfo imageInfo = mediaInfo.getImages().get(0);
+        String iconSrc = imageInfo.getUrl();
 
-        if (mediaInfo != null) {
-            mediaUrl = mediaInfo.getUrl();
-            mimeType = mediaInfo.getMimeType();
-            title = mediaInfo.getTitle();
-            desc = mediaInfo.getDescription();
-
-            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
-                ImageInfo imageInfo = mediaInfo.getImages().get(0);
-                iconSrc = imageInfo.getUrl();
-            }
-        }
-
-        displayImage(mediaUrl, mimeType, title, desc, iconSrc, listener);
+        displayImage(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, listener);
     }
 
     @Override
@@ -737,25 +805,10 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
             MediaPlayer.LaunchListener listener) {
-        String mediaUrl = null;
-        String mimeType = null;
-        String title = null;
-        String desc = null;
-        String iconSrc = null;
+        ImageInfo imageInfo = mediaInfo.getImages().get(0);
+        String iconSrc = imageInfo.getUrl();
 
-        if (mediaInfo != null) {
-            mediaUrl = mediaInfo.getUrl();
-            mimeType = mediaInfo.getMimeType();
-            title = mediaInfo.getTitle();
-            desc = mediaInfo.getDescription();
-
-            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
-                ImageInfo imageInfo = mediaInfo.getImages().get(0);
-                iconSrc = imageInfo.getUrl();
-            }
-        }
-
-        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
+        playMedia(mediaInfo.getUrl(), mediaInfo.getMimeType(), mediaInfo.getTitle(), mediaInfo.getDescription(), iconSrc, shouldLoop, listener);
     }
 
     @Override
@@ -814,7 +867,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
         String uri = requestURL(action, param);
 
-        Log.d(Util.T, "RokuService::send() | uri = " + uri);
+        Log.d("Connect SDK", "RokuService::send() | uri = " + uri);
 
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(
                 this, uri, null, listener);
@@ -886,7 +939,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void sendCommand(final ServiceCommand<?> mCommand) {
-        Util.runInBackground(new Runnable() {
+        Thread thread = new Thread(new Runnable() {
 
             @SuppressWarnings("unchecked")
             @Override
@@ -894,30 +947,66 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                 ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
                 Object payload = command.getPayload();
 
-                try {
-                    Log.d("", "RESP " + command.getTarget());
-                    HttpConnection connection = HttpConnection.newInstance(URI.create(command.getTarget()));
-                    if (command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                        connection.setMethod(HttpConnection.Method.POST);
-                        if (payload != null) {
-                            connection.setPayload(payload.toString());
+                HttpRequestBase request = command.getRequest();
+                HttpResponse response = null;
+                int code = -1;
+
+                if (command.getHttpMethod().equalsIgnoreCase(
+                        ServiceCommand.TYPE_POST)) {
+                    HttpPost post = (HttpPost) request;
+                    AbstractHttpEntity entity = null;
+
+                    if (payload != null) {
+                        try {
+                            if (payload instanceof JSONObject) {
+                                entity = new StringEntity((String) payload);
+                            }
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                            // Error is handled below if entity is null;
                         }
+
+                        if (entity == null) {
+                            Util.postError(
+                                    command.getResponseListener(),
+                                    new ServiceCommandError(
+                                            0,
+                                            "Unknown Error while preparing to send message",
+                                            null));
+
+                            return;
+                        }
+
+                        post.setEntity(entity);
                     }
-                    connection.execute();
-                    int code = connection.getResponseCode();
-                    Log.d("", "RESP " + code);
-                    if (code == 200 || code == 201) {
-                        Util.postSuccess(command.getResponseListener(), connection.getResponseString());
-                    } else {
-                        Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
                 }
 
+                try {
+                    if (httpClient != null) {
+                        response = httpClient.execute(request);
+
+                        code = response.getStatusLine().getStatusCode();
+
+                        if (code == 200 || code == 201) {
+                            HttpEntity entity = response.getEntity();
+                            String message = EntityUtils.toString(entity,
+                                    "UTF-8");
+
+                            Util.postSuccess(command.getResponseListener(),
+                                    message);
+                        } else {
+                            Util.postError(command.getResponseListener(),
+                                    ServiceCommandError.getError(code));
+                        }
+                    }
+                } catch (ClientProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
+        thread.start();
     }
 
     private String requestURL(String action, String parameter) {
@@ -965,14 +1054,9 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        capabilities.add(Up);
-        capabilities.add(Down);
-        capabilities.add(Left);
-        capabilities.add(Right);
-        capabilities.add(OK);
-        capabilities.add(Back);
-        capabilities.add(Home);
-        capabilities.add(Send_Key);
+        for (String capability : KeyControl.Capabilities) {
+            capabilities.add(capability);
+        }
 
         capabilities.add(Application);
 
@@ -1085,5 +1169,10 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
         }
 
         return dialService;
+    }
+
+    @Override
+    public ServiceSubscription<AppInfoListener> subscribeRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener) {
+        return null;
     }
 }

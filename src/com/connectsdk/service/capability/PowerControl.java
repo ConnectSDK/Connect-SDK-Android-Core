@@ -27,10 +27,12 @@ public interface PowerControl extends CapabilityMethods {
 
     public final static String Off = "PowerControl.Off";
     public final static String On = "PowerControl.On";
+    public final static String turnOnScreen = "PowerControl.turnOnScreen";
 
     public final static String[] Capabilities = {
         Off,
-        On
+        On,
+        turnOnScreen
     };
 
     public PowerControl getPowerControl();
@@ -38,4 +40,5 @@ public interface PowerControl extends CapabilityMethods {
 
     public void powerOff(ResponseListener<Object> listener);
     public void powerOn(ResponseListener<Object> listener);
+    public void turnOnScreen(ResponseListener<Object> listener);
 }

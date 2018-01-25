@@ -20,14 +20,14 @@
 
 package com.connectsdk.device;
 
-import com.connectsdk.service.DeviceService;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.text.InputType;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.connectsdk.service.DeviceService;
 
 
 public class PairingDialog {
@@ -50,15 +50,13 @@ public class PairingDialog {
     public AlertDialog getPairingDialog(int resId) {
         return getPairingDialog(activity.getString(resId));
     }
-
     public AlertDialog getPairingDialog(String message) {
         TextView title = (TextView) activity.getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
         title.setText(message);
 
         final EditText input = new EditText(activity);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
-
-        return new AlertDialog.Builder(activity)
+        final AlertDialog pickerDialog = new AlertDialog.Builder(activity)
         .setCustomTitle(title)
         .setView(input)
         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -75,5 +73,7 @@ public class PairingDialog {
             }
         })
         .create();
+
+        return pickerDialog;
     }
 }

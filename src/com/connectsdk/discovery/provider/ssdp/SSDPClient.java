@@ -43,7 +43,7 @@ public class SSDPClient {
     public static final String OK = "HTTP/1.1 200 OK";
 
     /* Definitions of search targets */
-//    public static final String DEVICE_MEDIA_SERVER_1 = "urn:schemas-upnp-org:device:MediaServer:1"; 
+    public static final String DEVICE_MEDIA_SERVER_1 = "urn:schemas-upnp-org:device:MediaServer:1";
 
 //    public static final String SERVICE_CONTENT_DIRECTORY_1 = "urn:schemas-upnp-org:service:ContentDirectory:1";
 //    public static final String SERVICE_CONNECTION_MANAGER_1 = "urn:schemas-upnp-org:service:ConnectionManager:1";
@@ -132,7 +132,8 @@ public class SSDPClient {
         }
 
         if (datagramSocket != null) {
-            datagramSocket.disconnect();
+            //datagramSocket.disconnect();
+            //Due to android 7.0 ANR issue, jump disconnect function temporarily before get correct response from connect-sdk team.
             datagramSocket.close();
         }
     }
@@ -148,8 +149,8 @@ public class SSDPClient {
         sb.append(MSEARCH + NEWLINE);
         sb.append("HOST: " + MULTICAST_ADDRESS + ":" + PORT + NEWLINE);
         sb.append("MAN: \"ssdp:discover\"" + NEWLINE);
-        sb.append("ST: ").append(ST).append(NEWLINE);
-        sb.append("MX: ").append(MX).append(NEWLINE);
+        sb.append("ST: " + ST + NEWLINE);
+        sb.append("MX: " +  MX + NEWLINE);
         if (ST.contains("udap")) {
             sb.append("USER-AGENT: UDAP/2.0" + NEWLINE);
         }

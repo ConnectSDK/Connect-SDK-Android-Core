@@ -1,10 +1,35 @@
+package com.connectsdk.device;
+
+import android.content.Context;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Environment;
+import android.util.Log;
+
+import com.connectsdk.core.Util;
+import com.connectsdk.service.DeviceService;
+import com.connectsdk.service.config.ServiceConfig;
+import com.connectsdk.service.config.ServiceDescription;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
 /*
  * DefaultConnectableDeviceStore
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 19 Jan 2014
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,34 +43,7 @@
  * limitations under the License.
  */
 
-package com.connectsdk.device;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Environment;
-
-import com.connectsdk.core.Util;
-import com.connectsdk.service.DeviceService;
-import com.connectsdk.service.config.ServiceConfig;
-import com.connectsdk.service.config.ServiceDescription;
-
-/**
- * Default implementation of ConnectableDeviceStore. It stores data in a file in application
- * data directory.
- */
 public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     // @cond INTERNAL
 
@@ -101,7 +99,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
     private boolean waitToWrite = false;
 
-    public DefaultConnectableDeviceStore(Context context) { 
+    public DefaultConnectableDeviceStore(Context context) {
         String dirPath;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
@@ -145,17 +143,18 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
         if (device == null)
             return;
 
-        activeDevices.remove(device.getId());
-        storedDevices.remove(device.getId());
-
-        store();
+        //2015.11.03 cic hj - 아래 부분 주석처리 되어있었는데 지웠음.
+//        activeDevices.remove(device.getId());
+//        storedDevices.remove(device.getId());
+//
+//        store();
     }
 
     @Override
     public void updateDevice(ConnectableDevice device) {
         if (device == null || device.getServices().size() == 0)
             return;
-
+        Log.i("hj", "updateDevice : " + device.toString());
         JSONObject storedDevice = getStoredDevice(device.getId());
 
         if (storedDevice == null)
@@ -171,13 +170,26 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
             if (services == null)
                 services = new JSONObject();
-
+//            //2015.03.12 CIC hj 서비스가 없을때는 저장안함.
+//            if(device.getServices().size()==0)
+//                return;
             for (DeviceService service : device.getServices()) {
                 JSONObject serviceInfo = service.toJSONObject();
 
                 if (serviceInfo != null)
                     services.put(service.getServiceDescription().getUUID(), serviceInfo);
             }
+            //2015.03.12 CIC hj 서비스가 없을때는 저장안함.
+//            Log.e("hj", "Stored Service : " + services.toString());
+//            if(services.toString().isEmpty())
+//            {
+//                int a = 10 / 0;
+//            }
+//
+//            if(device.getServices().size()==0){
+//                Log.e("hj", "Stored Service is empty!!!!!!!!!!!!!!!!!1");
+//                return;
+//            }
 
             storedDevice.put(ConnectableDevice.KEY_SERVICES, services);
 
@@ -218,7 +230,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
             return null;
 
         ConnectableDevice foundDevice = getActiveDevice(uuid);
-
+        //2015.03.19 CIC hj unSaved device!!!!
         if (foundDevice == null) {
             JSONObject foundDeviceInfo = getStoredDevice(uuid);
 
@@ -261,7 +273,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     @Override
     public ServiceConfig getServiceConfig(ServiceDescription serviceDescription) {
         if (serviceDescription == null) {
-            return null;            
+            return null;
         }
         String uuid = serviceDescription.getUUID();
         if (uuid == null || uuid.length() == 0) {
@@ -348,6 +360,7 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     }
 
     private void store() {
+//        Log.e("hj", "store!!!!!!!!!! : " + storedDevices.values());
         updated = Util.getTime();
 
         JSONObject deviceStore = new JSONObject();
@@ -396,3 +409,4 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
     }
     // @endcond
 }
+

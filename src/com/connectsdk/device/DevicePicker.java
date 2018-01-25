@@ -38,7 +38,7 @@ import android.widget.TextView;
 public class DevicePicker {
     Activity activity;
     ConnectableDevice device;
-
+    DevicePickerListView view;
     /**
      * Creates a new DevicePicker
      * 
@@ -46,10 +46,12 @@ public class DevicePicker {
      */
     public DevicePicker(Activity activity) {
         this.activity = activity;
+        view = new DevicePickerListView(activity);
     }
 
     public ListView getListView() {
-        return new DevicePickerListView(activity);
+//        return new DevicePickerListView(activity);
+        return view;
     }
 
     /**
@@ -78,21 +80,21 @@ public class DevicePicker {
      * @param listener The listener for the ListView to get the item that was clicked on
      */
     public AlertDialog getPickerDialog(String message, final OnItemClickListener listener) {
-        final DevicePickerListView view = new DevicePickerListView(activity);
+//        final DevicePickerListView view = new DevicePickerListView(activity);
 
         TextView title = (TextView) activity.getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
         title.setText(message);
 
         final AlertDialog pickerDialog = new AlertDialog.Builder(activity)
-        .setCustomTitle(title)
-        .setCancelable(true)
-        .setView(view)
-        .create();
+                .setCustomTitle(title)
+                .setCancelable(true)
+                .setView(view)
+                .create();
 
         view.setOnItemClickListener(new OnItemClickListener () {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                    long arg3) {
+                                    long arg3) {
                 listener.onItemClick(arg0, arg1, arg2, arg3);
                 pickerDialog.dismiss();
             }
@@ -100,4 +102,5 @@ public class DevicePicker {
 
         return pickerDialog;
     }
+
 }

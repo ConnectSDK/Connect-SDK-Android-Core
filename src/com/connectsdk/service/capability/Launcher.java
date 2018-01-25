@@ -84,6 +84,9 @@ public interface Launcher extends CapabilityMethods {
     public void getRunningApp(AppInfoListener listener);
     public ServiceSubscription<AppInfoListener> subscribeRunningApp(AppInfoListener listener);
 
+//    public void getRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener);
+    public ServiceSubscription<AppInfoListener> subscribeRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener);
+
     public void getAppState(LaunchSession launchSession, AppStateListener listener);
     public ServiceSubscription<AppStateListener> subscribeAppState(LaunchSession launchSession, AppStateListener listener);
 

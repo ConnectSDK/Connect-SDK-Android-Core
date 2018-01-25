@@ -20,17 +20,16 @@
 
 package com.connectsdk.service.sessions;
 
+import org.json.JSONObject;
+
 import com.connectsdk.core.MediaInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
-import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.command.ServiceSubscription;
-
-import org.json.JSONObject;
 
 /**
  * ###Overview When a web app is launched on a first screen device, there are
@@ -49,7 +48,7 @@ import org.json.JSONObject;
  * The Connect SDK JavaScript Bridge has been produced to provide normalized
  * support for these capabilities across protocols (Chromecast, webOS, etc).
  */
-public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl {
+public class WebAppSession implements MediaControl, MediaPlayer {
 
     /** Status of the web app */
     public enum WebAppStatus {
@@ -103,7 +102,6 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
      */
     protected void setService(DeviceService service) {
     }
-
 
     /**
      * Subscribes to changes in the web app's status.
@@ -421,6 +419,7 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
             MediaPlayer.LaunchListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
+
     }
 
     @Override
@@ -431,26 +430,6 @@ public class WebAppSession implements MediaControl, MediaPlayer, PlaylistControl
     @Override
     public CapabilityPriorityLevel getMediaPlayerCapabilityLevel() {
         return CapabilityPriorityLevel.VERY_LOW;
-    }
-
-    @Override
-    public PlaylistControl getPlaylistControl() {
-        return null;
-    }
-
-    @Override
-    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
-        return CapabilityPriorityLevel.VERY_LOW;
-    }
-
-    @Override
-    public void jumpToTrack(long index, ResponseListener<Object> listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-    }
-
-    @Override
-    public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
     }
 
     // @endcond

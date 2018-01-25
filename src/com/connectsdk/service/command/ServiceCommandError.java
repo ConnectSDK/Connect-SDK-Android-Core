@@ -20,27 +20,18 @@
 
 package com.connectsdk.service.command;
 
-/**
- * This class implements base service error which is based on HTTP response codes
- */
-public class ServiceCommandError extends Error {
 
+public class ServiceCommandError extends Error {
+    /**
+     * 
+     */
     private static final long serialVersionUID = 4232138682873631468L;
 
-    protected int code;
+    int code;
+    Object payload;
 
-    protected Object payload;
-
-    public ServiceCommandError() {
-    }
-
-    public ServiceCommandError(String detailMessage) {
-        super(detailMessage);
-    }
-
-    public ServiceCommandError(int code, String detailMessage) {
-        super(detailMessage);
-        this.code = code;
+    public static ServiceCommandError notSupported() {
+        return new ServiceCommandError(503, "not supported", null);
     }
 
     public ServiceCommandError(int code, String desc, Object payload) {
@@ -49,19 +40,14 @@ public class ServiceCommandError extends Error {
         this.payload = payload;
     }
 
-    /**
-     * Create an error which indicates that feature is not supported by a service
-     * @return NotSupportedServiceCommandError
-     */
-    public static ServiceCommandError notSupported() {
-        return new NotSupportedServiceCommandError();
+    public int getCode() {
+        return code;
     }
 
-    /**
-     * Create an error from HTTP response code
-     * @param code HTTP response code
-     * @return ServiceCommandError
-     */
+    public Object getPayload() {
+        return payload;
+    }
+
     public static ServiceCommandError getError(int code) {
         String desc = null;
         if (code == 400) {
@@ -70,7 +56,7 @@ public class ServiceCommandError extends Error {
         else if (code == 401) {
             desc = "Unauthorized";
         }
-        else if (code == 500) {
+        else if (code == 500) { 
             desc = "Internal Server Error";
         }
         else if (code == 503) {
@@ -81,13 +67,5 @@ public class ServiceCommandError extends Error {
         }
 
         return new ServiceCommandError(code, desc, null);
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public Object getPayload() {
-        return payload;
     }
 }

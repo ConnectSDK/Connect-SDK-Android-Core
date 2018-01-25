@@ -33,7 +33,7 @@ public interface KeyControl extends CapabilityMethods {
     public final static String Back = "KeyControl.Back";
     public final static String Home = "KeyControl.Home";
     public final static String Send_Key = "KeyControl.SendKey";
-    public final static String KeyCode = "KeyControl.KeyCode";
+    public final static String Keycode = "KeyControl.Keycode";
 
     public enum KeyCode {
         NUM_0 (0),
@@ -52,25 +52,14 @@ public interface KeyControl extends CapabilityMethods {
 
         private final int code; 
 
-        private static final KeyCode[] codes = {
-            NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9, DASH, ENTER
-        };
-
-        KeyCode(int code) {
+        private KeyCode(int code) {
             this.code = code;
         }
 
         public int getCode() {
             return code;
         }
-
-        public static KeyCode createFromInteger(int keyCode) {
-            if (keyCode >= 0 && keyCode < codes.length) {
-                return codes[keyCode];
-            }
-            return null;
-        }
-    }
+    };
 
     public final static String[] Capabilities = {
         Up,
@@ -80,7 +69,7 @@ public interface KeyControl extends CapabilityMethods {
         OK,
         Back,
         Home,
-        KeyCode,
+        Keycode,
     };
 
     public KeyControl getKeyControl();

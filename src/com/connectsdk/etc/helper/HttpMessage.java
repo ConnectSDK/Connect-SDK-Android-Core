@@ -37,16 +37,15 @@ public class HttpMessage {
     public final static String USER_AGENT = "User-Agent";
     public final static String SOAP_ACTION = "\"urn:schemas-upnp-org:service:AVTransport:1#%s\"";
     public final static String SOAP_HEADER = "Soapaction";
-    public final static String NEW_LINE = "\r\n";
 
     public static HttpPost getHttpPost(String uri) {
         HttpPost post = null;
         try {
             post = new HttpPost(uri);
-            post.setHeader("Content-Type", CONTENT_TYPE_TEXT_XML);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
+        post.setHeader("Content-Type", CONTENT_TYPE_TEXT_XML);
 
         return post;
     }

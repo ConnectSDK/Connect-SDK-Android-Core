@@ -1,10 +1,10 @@
 /*
  * WebOSTVMouseSocketConnection
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 19 Jan 2014
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,9 +29,17 @@ import org.java_websocket.handshake.ServerHandshake;
 
 import android.util.Log;
 
+import java.io.IOException;
+
+import java.security.KeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLContext;
+
 public class WebOSTVMouseSocketConnection {
     public interface WebOSTVMouseSocketListener {
-        void onConnected();
+            void onConnected();
+            void onDisconnected();
     }
 
     WebSocketClient ws;
@@ -51,7 +59,7 @@ public class WebOSTVMouseSocketConnection {
     public WebOSTVMouseSocketConnection(String socketPath, WebOSTVMouseSocketListener listener) {
         Log.d("PtrAndKeyboardFragment", "got socketPath: " + socketPath);
 
-        this.listener = listener; 
+        this.listener = listener;
         this.socketPath = socketPath;
 
         try {
@@ -80,14 +88,20 @@ public class WebOSTVMouseSocketConnection {
 
             @Override
             public void onMessage(String arg0) {
+                Log.d("message", "ws message = " + arg0);
             }
 
             @Override
             public void onError(Exception arg0) {
+                Log.d("error", "ws error = " + arg0);
             }
 
             @Override
             public void onClose(int arg0, String arg1, boolean arg2) {
+                Log.d("close", "ws closed");
+                if(listener != null) {
+                    listener.onDisconnected();
+                }
             }
         };
 
@@ -95,11 +109,15 @@ public class WebOSTVMouseSocketConnection {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             customTrustManager = new WebOSTVTrustManager();
             sslContext.init(null, new WebOSTVTrustManager[] {customTrustManager}, null);
-            WebSocketClient.WebSocketClientFactory fac = new DefaultSSLWebSocketClientFactory(sslContext);
-            ws.setWebSocketFactory(fac);
+            ws.setSocket(sslContext.getSocketFactory().createSocket());
+            ws.setConnectionLostTimeout(0);
         } catch (KeyException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
             e.printStackTrace();
         }
 
@@ -113,23 +131,28 @@ public class WebOSTVMouseSocketConnection {
         }
     }
 
-    public boolean isConnected() {
-        if (ws == null) 
+    private boolean isConnected() {
+        if (ws == null)
             System.out.println("ws is null");
         else if (ws.getReadyState() != READYSTATE.OPEN) {
-            System.out.println("ws state is not ready");
+            System.out.println("ws state is not ready : " + ws.getReadyState().toString());
         }
         return (ws != null) && (ws.getReadyState() == READYSTATE.OPEN);
     }
 
     public void click() {
         if (isConnected()) {
-            ws.send("type:click\n" + "\n");
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("type:click\n");
+            sb.append("\n");
+
+            ws.send(sb.toString());
         }
     }
 
     public void button(ButtonType type) {
-        String keyName; 
+        String keyName;
         switch (type) {
         case HOME:
             keyName = "HOME";
@@ -160,25 +183,59 @@ public class WebOSTVMouseSocketConnection {
 
     public void button(String keyName) {
         if (isConnected()) {
-            ws.send("type:button\n" + "name:" + keyName + "\n" + "\n");
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("type:button\n");
+            sb.append("name:" + keyName + "\n");
+            sb.append("\n");
+            Log.i("button","[button] : " + sb.toString());
+            ws.send(sb.toString());
         }
     }
 
     public void move(double dx, double dy) {
         if (isConnected()) {
-            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:0\n" + "\n");
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("type:move\n");
+            sb.append("dx:" + dx + "\n");
+            sb.append("dy:" + dy + "\n");
+            sb.append("down:0\n");
+            sb.append("\n");
+
+            ws.send(sb.toString());
         }
     }
 
     public void move(double dx, double dy, boolean drag) {
         if (isConnected()) {
-            ws.send("type:move\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "down:" + (drag ? 1 : 0) + "\n" + "\n");
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("type:move\n");
+            sb.append("dx:" + dx + "\n");
+            sb.append("dy:" + dy + "\n");
+            sb.append("down:" + (drag ? 1 : 0) + "\n");
+            sb.append("\n");
+
+            ws.send(sb.toString());
         }
     }
 
     public void scroll(double dx, double dy) {
         if (isConnected()) {
-            ws.send("type:scroll\n" + "dx:" + dx + "\n" + "dy:" + dy + "\n" + "\n");
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("type:scroll\n");
+            sb.append("dx:" + dx + "\n");
+            sb.append("dy:" + dy + "\n");
+            sb.append("\n");
+
+            ws.send(sb.toString());
+        }
+    }
+    public void touchRaw(String rawData){
+        if (isConnected()) {
+            ws.send(rawData);
         }
     }
 }
