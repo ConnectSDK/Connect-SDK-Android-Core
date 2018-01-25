@@ -20,28 +20,22 @@
 
 package com.connectsdk.service.sessions;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
-import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommandError;
@@ -53,8 +47,6 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSoc
 
 public class WebOSWebAppSession extends WebAppSession {
     private static final String namespaceKey = "connectsdk.";
-    private static final String ENABLED_SUBTITLE_ID = "1";
-
     protected WebOSTVService service;
 
     ResponseListener<ServiceCommand<ResponseListener<Object>>> mConnectionListener;
@@ -77,7 +69,8 @@ public class WebOSWebAppSession extends WebAppSession {
         super(launchSession, service);
 
         UID = 0;
-        mActiveCommands = new ConcurrentHashMap<String, ServiceCommand<?>>(0, 0.75f, 10);
+        mActiveCommands = new ConcurrentHashMap<String, ServiceCommand<?>>(0,
+                0.75f, 10);
         connected = false;
 
         this.service = (WebOSTVService) service;
@@ -88,7 +81,7 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     public Boolean isConnected() {
-        return connected && socket != null && socket.isConnected();
+        return connected;
     }
 
     public void setConnected(Boolean connected) {
@@ -96,21 +89,11 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     public void handleMediaEvent(JSONObject payload) {
-        String type = payload.optString("type");
-        if (type.length() == 0) {
-            String errorMsg = payload.optString("error");
+        String type = "";
 
-            if (errorMsg.length() == 0) {
-                return;
-            } else {
-                Log.w(Util.T, "Play State Error: " + errorMsg);
-                if (mPlayStateSubscription != null) {
-                    for (PlayStateListener listener : mPlayStateSubscription.getListeners()) {
-                        Util.postError(listener, new ServiceCommandError(errorMsg));
-                    }
-                }
-            }
-        }
+        type = payload.optString("type");
+        if (type.length() == 0)
+            return;
 
         if (type.equals("playState")) {
             if (mPlayStateSubscription == null)
@@ -122,7 +105,8 @@ public class WebOSWebAppSession extends WebAppSession {
 
             final MediaControl.PlayStateStatus playState = parsePlayState(playStateString);
 
-            for (PlayStateListener listener : mPlayStateSubscription.getListeners()) {
+            for (PlayStateListener listener : mPlayStateSubscription
+                    .getListeners()) {
                 Util.postSuccess(listener, playState);
             }
         }
@@ -133,11 +117,13 @@ public class WebOSWebAppSession extends WebAppSession {
             if (launchSession.getSessionType() != LaunchSessionType.WebApp)
                 mFullAppId = launchSession.getAppId();
             else {
-                Enumeration<String> enumeration = service.getWebAppIdMappings().keys();
+                Enumeration<String> enumeration = service.getWebAppIdMappings()
+                        .keys();
 
                 while (enumeration.hasMoreElements()) {
                     String mappedFullAppId = enumeration.nextElement();
-                    String mappedAppId = service.getWebAppIdMappings().get(mappedFullAppId);
+                    String mappedAppId = service.getWebAppIdMappings().get(
+                            mappedFullAppId);
 
                     if (mappedAppId.equalsIgnoreCase(launchSession.getAppId())) {
                         mFullAppId = mappedAppId;
@@ -157,8 +143,7 @@ public class WebOSWebAppSession extends WebAppSession {
         mFullAppId = fullAppId;
     }
 
-    private WebOSTVServiceSocketClientListener mSocketListener =
-            new WebOSTVServiceSocketClientListener() {
+    private WebOSTVServiceSocketClientListener mSocketListener = new WebOSTVServiceSocketClientListener() {
 
         @Override
         public void onRegistrationFailed(ServiceCommandError error) {
@@ -169,7 +154,9 @@ public class WebOSWebAppSession extends WebAppSession {
             String type = payload.optString("type");
 
             if ("p2p".equals(type)) {
-                String fromAppId = payload.optString("from");
+                String fromAppId = null;
+
+                fromAppId = payload.optString("from");
 
                 if (!fromAppId.equalsIgnoreCase(getFullAppId()))
                     return false;
@@ -180,7 +167,8 @@ public class WebOSWebAppSession extends WebAppSession {
                     JSONObject messageJSON = (JSONObject) message;
 
                     String contentType = messageJSON.optString("contentType");
-                    Integer contentTypeIndex = contentType.indexOf("connectsdk.");
+                    Integer contentTypeIndex = contentType
+                            .indexOf("connectsdk.");
 
                     if (contentType != null && contentTypeIndex >= 0) {
                         String payloadKey = contentType.split("connectsdk.")[1];
@@ -188,19 +176,16 @@ public class WebOSWebAppSession extends WebAppSession {
                         if (payloadKey == null || payloadKey.length() == 0)
                             return false;
 
-                        JSONObject messagePayload = messageJSON.optJSONObject(payloadKey);
-
-                        if (payloadKey.equalsIgnoreCase("media-error")) {
-                            handleMediaEvent(messageJSON);
-                            return false;
-                        }
+                        JSONObject messagePayload = messageJSON
+                                .optJSONObject(payloadKey);
 
                         if (messagePayload == null)
                             return false;
 
                         if (payloadKey.equalsIgnoreCase("mediaEvent"))
                             handleMediaEvent(messagePayload);
-                        else if (payloadKey.equalsIgnoreCase("mediaCommandResponse"))
+                        else if (payloadKey
+                                .equalsIgnoreCase("mediaCommandResponse"))
                             handleMediaCommandResponse(messagePayload);
                     } else {
                         handleMessage(messageJSON);
@@ -221,10 +206,9 @@ public class WebOSWebAppSession extends WebAppSession {
             appToAppSubscription = null;
 
             if (mConnectionListener != null) {
-                if (error == null) {
-                    error = new ServiceCommandError(0, "Unknown error connecting to web socket",
-                            null);
-                }
+                if (error == null)
+                    error = new ServiceCommandError(0,
+                            "Unknown error connecting to web socket", null);
 
                 mConnectionListener.onError(error);
             }
@@ -249,10 +233,9 @@ public class WebOSWebAppSession extends WebAppSession {
                 if (error != null)
                     mConnectionListener.onError(error);
                 else {
-                    if (getWebAppSessionListener() != null) {
-                        getWebAppSessionListener()
-                                .onWebAppSessionDisconnect(WebOSWebAppSession.this);
-                    }
+                    if (getWebAppSessionListener() != null)
+                        getWebAppSessionListener().onWebAppSessionDisconnect(
+                                WebOSWebAppSession.this);
                 }
             }
 
@@ -266,12 +249,12 @@ public class WebOSWebAppSession extends WebAppSession {
 
     @SuppressWarnings("unchecked")
     public void handleMediaCommandResponse(final JSONObject payload) {
-        String requestID = payload.optString("requestId");
-        if (requestID.length() == 0)
+        String requetID = payload.optString("requestId");
+        if (requetID.length() == 0)
             return;
 
-        final ServiceCommand<ResponseListener<Object>> command =
-                (ServiceCommand<ResponseListener<Object>>) mActiveCommands.get(requestID);
+        final ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mActiveCommands
+                .get(requetID);
 
         if (command == null)
             return;
@@ -279,12 +262,13 @@ public class WebOSWebAppSession extends WebAppSession {
         String mError = payload.optString("error");
 
         if (mError.length() != 0) {
-            Util.postError(command.getResponseListener(), new ServiceCommandError(0, mError, null));
+            Util.postError(command.getResponseListener(),
+                    new ServiceCommandError(0, mError, null));
         } else {
             Util.postSuccess(command.getResponseListener(), payload);
         }
 
-        mActiveCommands.remove(requestID);
+        mActiveCommands.remove(requetID);
     }
 
     public void handleMessage(final Object message) {
@@ -293,7 +277,8 @@ public class WebOSWebAppSession extends WebAppSession {
             @Override
             public void run() {
                 if (getWebAppSessionListener() != null)
-                    getWebAppSessionListener().onReceiveMessage(WebOSWebAppSession.this, message);
+                    getWebAppSessionListener().onReceiveMessage(
+                            WebOSWebAppSession.this, message);
             }
         });
 
@@ -327,19 +312,29 @@ public class WebOSWebAppSession extends WebAppSession {
             final ResponseListener<Object> connectionListener) {
         if (socket != null
                 && socket.getState() == WebOSTVServiceSocketClient.State.CONNECTING) {
-            if (connectionListener != null) {
-                connectionListener.onError(new ServiceCommandError(
-                        0,
-                        "You have a connection request pending,  please wait until it has finished",
-                        null));
-            }
+            if (connectionListener != null)
+                ;
+            connectionListener
+            .onError(new ServiceCommandError(
+                    0,
+                    "You have a connection request pending,  please wait until it has finished",
+                    null));
 
             return;
         }
 
         if (isConnected()) {
-            if (connectionListener != null)
-                connectionListener.onSuccess(null);
+            if (connectionListener != null) {
+                //2015.11.02 cic hj - add json state
+//                connectionListener.onSuccess(null);
+                JSONObject state = new JSONObject();
+                try {
+                    state.put("state", "CONNECTED");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                connectionListener.onSuccess(state);
+            }
 
             return;
         }
@@ -352,17 +347,17 @@ public class WebOSWebAppSession extends WebAppSession {
                     disconnectFromWebApp();
 
                 if (connectionListener != null) {
-                    if (error == null) {
-                        error = new ServiceCommandError(0, "Unknown error connecting to web app",
-                                null);
-                    }
+                    if (error == null)
+                        error = new ServiceCommandError(0,
+                                "Unknown error connecting to web app", null);
 
                     connectionListener.onError(error);
                 }
             }
 
             @Override
-            public void onSuccess(ServiceCommand<ResponseListener<Object>> object) {
+            public void onSuccess(
+                    ServiceCommand<ResponseListener<Object>> object) {
                 ResponseListener<Object> finalConnectionListener = new ResponseListener<Object>() {
 
                     @Override
@@ -382,7 +377,8 @@ public class WebOSWebAppSession extends WebAppSession {
                     }
                 };
 
-                service.connectToWebApp(WebOSWebAppSession.this, joinOnly, finalConnectionListener);
+                service.connectToWebApp(WebOSWebAppSession.this, joinOnly,
+                        finalConnectionListener);
             }
         };
 
@@ -392,8 +388,8 @@ public class WebOSWebAppSession extends WebAppSession {
             else
                 socket.connect();
         } else {
-            socket = new WebOSTVServiceSocketClient(service, WebOSTVServiceSocketClient
-                    .getURI(service));
+            socket = new WebOSTVServiceSocketClient(service,
+                    WebOSTVServiceSocketClient.getURI(service));
             socket.setListener(mSocketListener);
             socket.connect();
         }
@@ -410,7 +406,6 @@ public class WebOSWebAppSession extends WebAppSession {
 
         if (socket != null) {
             socket.setListener(null);
-            socket.clearRequests();
             socket.disconnect();
             socket = null;
         }
@@ -420,8 +415,10 @@ public class WebOSWebAppSession extends WebAppSession {
     public void sendMessage(final String message,
             final ResponseListener<Object> listener) {
         if (message == null || message.length() == 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message",
-                    null));
+            if (listener != null)
+                listener.onError(new ServiceCommandError(0,
+                        "Cannot send an Empty Message", null));
+
             return;
         }
 
@@ -432,8 +429,9 @@ public class WebOSWebAppSession extends WebAppSession {
     public void sendMessage(final JSONObject message,
             final ResponseListener<Object> listener) {
         if (message == null || message.length() == 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Cannot send an Empty Message",
-                    null));
+            Util.postError(listener, new ServiceCommandError(0,
+                    "Cannot send an Empty Message", null));
+
             return;
         }
 
@@ -452,16 +450,27 @@ public class WebOSWebAppSession extends WebAppSession {
             // do nothing
         }
 
-        if (isConnected()) {
-            socket.sendMessage(_payload, null);
+        final JSONObject payload = _payload;
 
-            Util.postSuccess(listener, null);
+        if (isConnected()) {
+            if(socket == null) {
+                socket = new WebOSTVServiceSocketClient(service,
+                        WebOSTVServiceSocketClient.getURI(service));
+                socket.setListener(mSocketListener);
+                socket.connect();
+            }
+
+            socket.sendMessage(payload, null);
+
+            if (listener != null)
+                listener.onSuccess(null);
         } else {
             ResponseListener<Object> connectListener = new ResponseListener<Object>() {
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    Util.postError(listener, error);
+                    if (listener != null)
+                        listener.onError(error);
                 }
 
                 @Override
@@ -514,21 +523,23 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public ServiceSubscription<WebAppPinStatusListener> subscribeIsWebAppPinned(
             String webAppId, WebAppPinStatusListener listener) {
-        mWebAppPinnedSubscription = service.getWebAppLauncher().subscribeIsWebAppPinned(webAppId,
-                listener);
+        mWebAppPinnedSubscription = service.getWebAppLauncher().subscribeIsWebAppPinned(webAppId, listener);
         return mWebAppPinnedSubscription;
     }
 
     @Override
     public void seek(final long position, ResponseListener<Object> listener) {
         if (position < 0) {
-            Util.postError(listener, new ServiceCommandError(0, "Must pass a valid positive value",
-                    null));
+            if (listener != null)
+                listener.onError(new ServiceCommandError(0,
+                        "Must pass a valid positive value", null));
+
             return;
         }
 
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
@@ -545,7 +556,9 @@ public class WebOSWebAppSession extends WebAppSession {
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            if (listener != null)
+                listener.onError(new ServiceCommandError(0, "JSON Parse error",
+                        null));
         }
 
         ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
@@ -559,7 +572,8 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public void getPosition(final PositionListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
@@ -575,7 +589,8 @@ public class WebOSWebAppSession extends WebAppSession {
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            Util.postError(listener, new ServiceCommandError(0,
+                    "JSON Parse error", null));
         }
 
         ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
@@ -584,16 +599,21 @@ public class WebOSWebAppSession extends WebAppSession {
                     @Override
                     public void onSuccess(Object response) {
                         try {
-                            long position = ((JSONObject) response).getLong("position");
-                            Util.postSuccess(listener, position * 1000);
+                            long position = ((JSONObject) response)
+                                    .getLong("position");
+
+                            if (listener != null)
+                                listener.onSuccess(position * 1000);
                         } catch (JSONException e) {
-                            this.onError(new ServiceCommandError(0, "JSON Parse error", null));
+                            this.onError(new ServiceCommandError(0,
+                                    "JSON Parse error", null));
                         }
                     }
 
                     @Override
                     public void onError(ServiceCommandError error) {
-                        Util.postError(listener, error);
+                        if (listener != null)
+                            listener.onError(error);
                     }
                 });
 
@@ -607,7 +627,8 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
+                if (listener != null)
+                    listener.onError(error);
             }
         });
     }
@@ -615,7 +636,8 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public void getDuration(final DurationListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
@@ -631,7 +653,9 @@ public class WebOSWebAppSession extends WebAppSession {
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            if (listener != null)
+                listener.onError(new ServiceCommandError(0, "JSON Parse error",
+                        null));
         }
 
         ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
@@ -640,19 +664,23 @@ public class WebOSWebAppSession extends WebAppSession {
                     @Override
                     public void onSuccess(Object response) {
                         try {
-                            long position = ((JSONObject) response).getLong("duration");
-                            Util.postSuccess(listener, position * 1000);
+                            long position = ((JSONObject) response)
+                                    .getLong("duration");
+
+                            if (listener != null)
+                                listener.onSuccess(position * 1000);
                         } catch (JSONException e) {
-                            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error",
-                                    null));
+                            this.onError(new ServiceCommandError(0,
+                                    "JSON Parse error", null));
                         }
                     }
 
                     @Override
                     public void onError(ServiceCommandError error) {
-                        Util.postError(listener, error);
+                        if (listener != null)
+                            listener.onError(error);
                     }
-        });
+                });
 
         mActiveCommands.put(requestId, command);
 
@@ -664,7 +692,8 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
+                if (listener != null)
+                    listener.onError(error);
             }
         });
     }
@@ -672,7 +701,8 @@ public class WebOSWebAppSession extends WebAppSession {
     @Override
     public void getPlayState(final PlayStateListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
@@ -688,7 +718,9 @@ public class WebOSWebAppSession extends WebAppSession {
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
+            if (listener != null)
+                listener.onError(new ServiceCommandError(0, "JSON Parse error",
+                        null));
         }
 
         ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
@@ -700,7 +732,9 @@ public class WebOSWebAppSession extends WebAppSession {
                             String playStateString = ((JSONObject) response)
                                     .getString("playState");
                             PlayStateStatus playState = parsePlayState(playStateString);
-                            Util.postSuccess(listener, playState);
+
+                            if (listener != null)
+                                listener.onSuccess(playState);
                         } catch (JSONException e) {
                             this.onError(new ServiceCommandError(0,
                                     "JSON Parse error", null));
@@ -709,7 +743,8 @@ public class WebOSWebAppSession extends WebAppSession {
 
                     @Override
                     public void onError(ServiceCommandError error) {
-                        Util.postError(listener, error);
+                        if (listener != null)
+                            listener.onError(error);
                     }
                 });
 
@@ -723,7 +758,8 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onError(ServiceCommandError error) {
-                Util.postError(listener, error);
+                if (listener != null)
+                    listener.onError(error);
             }
         });
     }
@@ -786,7 +822,8 @@ public class WebOSWebAppSession extends WebAppSession {
             final String title, final String description, final String iconSrc,
             final MediaPlayer.LaunchListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
@@ -807,8 +844,8 @@ public class WebOSWebAppSession extends WebAppSession {
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
+            e.printStackTrace();
+            // Should never hit this
         }
 
         ResponseListener<Object> response = new ResponseListener<Object>() {
@@ -844,61 +881,34 @@ public class WebOSWebAppSession extends WebAppSession {
     }
 
     @Override
-    public void displayImage(MediaInfo mediaInfo, MediaPlayer.LaunchListener listener) {
-        String mediaUrl = null;
-        String mimeType = null;
-        String title = null;
-        String desc = null;
-        String iconSrc = null;
-
-        if (mediaInfo != null) {
-            mediaUrl = mediaInfo.getUrl();
-            mimeType = mediaInfo.getMimeType();
-            title = mediaInfo.getTitle();
-            desc = mediaInfo.getDescription();
-
-            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
-                ImageInfo imageInfo = mediaInfo.getImages().get(0);
-                iconSrc = imageInfo.getUrl();
-            }
-        }
-
-        displayImage(mediaUrl, mimeType, title, desc, iconSrc, listener);
-    }
-
-    @Override
-    public void playMedia(String url, String mimeType, String title, String description,
-                          String iconSrc, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
-        MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType)
-                .setTitle(title)
-                .setDescription(description)
-                .setIcon(iconSrc)
-                .build();
-        playMedia(mediaInfo, shouldLoop, listener);
-    }
-
-    @Override
-    public void playMedia(final MediaInfo mediaInfo,
-                          final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
+    public void displayImage(final MediaInfo mediaInfo,
+            final MediaPlayer.LaunchListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
+
         JSONObject message = null;
-        ImageInfo iconImage = null;
-        List<ImageInfo> images = mediaInfo.getImages();
-
-        if (images != null && !images.isEmpty()) {
-            iconImage = images.get(0);
-        }
-
-        final String iconSrc = iconImage == null ? null : iconImage.getUrl();
-        final SubtitleInfo subtitleInfo = mediaInfo.getSubtitleInfo();
-
         try {
-            message = createPlayMediaJsonRequest(mediaInfo, shouldLoop, requestId, iconSrc,
-                    subtitleInfo);
+            message = new JSONObject() {
+                {
+                    putOpt("contentType", namespaceKey + "mediaCommand");
+                    putOpt("mediaCommand", new JSONObject() {
+                        {
+                            putOpt("type", "displayImage");
+                            putOpt("mediaURL", mediaInfo.getUrl());
+                            putOpt("iconURL", mediaInfo.getImages().get(0)
+                                    .getUrl());
+                            putOpt("title", mediaInfo.getTitle());
+                            putOpt("description", mediaInfo.getDescription());
+                            putOpt("mimeType", mediaInfo.getMimeType());
+                            putOpt("requestId", requestId);
+                        }
+                    });
+                }
+            };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
+            e.printStackTrace();
+            // Should never hit this
         }
 
         ResponseListener<Object> response = new ResponseListener<Object>() {
@@ -910,13 +920,77 @@ public class WebOSWebAppSession extends WebAppSession {
 
             @Override
             public void onSuccess(Object object) {
-                Util.postSuccess(listener, new MediaLaunchObject(launchSession, getMediaControl(),
-                        getPlaylistControl()));
+                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
+                        getMediaControl()));
             }
         };
 
-        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(null, null, null,
-                response);
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
+                socket, null, null, response);
+
+        mActiveCommands.put(requestId, command);
+
+        sendP2PMessage(message, new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+
+            @Override
+            public void onSuccess(Object object) {
+            }
+        });
+    }
+
+    @Override
+    public void playMedia(final String url, final String mimeType,
+            final String title, final String description, final String iconSrc,
+            final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
+        int requestIdNumber = getNextId();
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
+
+        JSONObject message = null;
+        try {
+            message = new JSONObject() {
+                {
+                    putOpt("contentType", namespaceKey + "mediaCommand");
+                    putOpt("mediaCommand", new JSONObject() {
+                        {
+                            putOpt("type", "playMedia");
+                            putOpt("mediaURL", url);
+                            putOpt("iconURL", iconSrc);
+                            putOpt("title", title);
+                            putOpt("description", description);
+                            putOpt("mimeType", mimeType);
+                            putOpt("shouldLoop", shouldLoop);
+                            putOpt("requestId", requestId);
+                        }
+                    });
+                }
+            };
+        } catch (JSONException e) {
+            e.printStackTrace();
+            // Should never hit this
+        }
+
+        ResponseListener<Object> response = new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+
+            @Override
+            public void onSuccess(Object object) {
+                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
+                        getMediaControl()));
+            }
+        };
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
+                null, null, null, response);
 
         mActiveCommands.put(requestId, command);
 
@@ -933,136 +1007,105 @@ public class WebOSWebAppSession extends WebAppSession {
         });
     }
 
-    @NonNull
-    private JSONObject createPlayMediaJsonRequest(final MediaInfo mediaInfo, final boolean
-            shouldLoop, final String requestId, final String iconSrc, final SubtitleInfo
-            subtitleInfo) throws JSONException {
-        return new JSONObject() {{
-            putOpt("contentType", namespaceKey + "mediaCommand");
-            putOpt("mediaCommand", new JSONObject() {{
-                putOpt("type", "playMedia");
-                putOpt("mediaURL", mediaInfo.getUrl());
-                putOpt("iconURL", iconSrc);
-                putOpt("title", mediaInfo.getTitle());
-                putOpt("description", mediaInfo.getDescription());
-                putOpt("mimeType", mediaInfo.getMimeType());
-                putOpt("shouldLoop", shouldLoop);
-                putOpt("requestId", requestId);
-                if (subtitleInfo != null) {
-                    putOpt("subtitles", new JSONObject() {{
-                        putOpt("default", ENABLED_SUBTITLE_ID);
-                        putOpt("enabled", ENABLED_SUBTITLE_ID);
-                        putOpt("tracks", new JSONArray() {{
-                            put(new JSONObject() {{
-                                putOpt("id", ENABLED_SUBTITLE_ID);
-                                putOpt("language", subtitleInfo.getLanguage());
-                                putOpt("source", subtitleInfo.getUrl());
-                                putOpt("label", subtitleInfo.getLabel());
-                            }});
-                        }});
-                    }});
-                }
-            }});
-        }};
-    }
-
-    /****************
-     * Playlist Control *
-     ****************/
-    public PlaylistControl getPlaylistControl() {
-        return this;
-    }
-
     @Override
-    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
-        return CapabilityPriorityLevel.HIGH;
-    }
-
-    @Override
-    public void jumpToTrack(final long index, final ResponseListener<Object> listener) {
+    public void playMedia(final MediaInfo mediaInfo,
+            final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
+        final String requestId = String.format(Locale.US, "req%d",
+                requestIdNumber);
 
         JSONObject message = null;
         try {
             message = new JSONObject() {
                 {
-                    put("contentType", namespaceKey + "mediaCommand");
-                    put("mediaCommand", new JSONObject() {
+                    putOpt("contentType", namespaceKey + "mediaCommand");
+                    putOpt("mediaCommand", new JSONObject() {
                         {
-                            put("type", "jumpToTrack");
-                            put("requestId", requestId);
-                            put("index", (int)index);
+                            putOpt("type", "playMedia");
+                            putOpt("mediaURL", mediaInfo.getUrl());
+                            putOpt("iconURL", mediaInfo.getImages().get(0)
+                                    .getUrl()  == null ? NULL : mediaInfo.getImages().get(0)
+                                            .getUrl()) ;
+                            putOpt("poster", mediaInfo.getImages().get(1).getUrl() == null ? NULL : mediaInfo.getImages().get(1).getUrl());
+                            putOpt("title", mediaInfo.getTitle());
+                            putOpt("description", mediaInfo.getDescription());
+                            putOpt("mimeType", mediaInfo.getMimeType());
+                            putOpt("shouldLoop", shouldLoop);
+                            putOpt("requestId", requestId);
                         }
                     });
                 }
             };
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
+            e.printStackTrace();
+            // Should never hit this
         }
 
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
+        ResponseListener<Object> response = new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+
+            @Override
+            public void onSuccess(Object object) {
+                Util.postSuccess(listener, new MediaLaunchObject(launchSession,
+                        getMediaControl()));
+            }
+        };
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(
+                null, null, null, response);
+
         mActiveCommands.put(requestId, command);
-        sendMessage(message, listener);
+
+        sendMessage(message, new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+
+            @Override
+            public void onSuccess(Object object) {
+            }
+        });
+    }
+
+
+    @Override
+    public void play(ResponseListener<Object> listener) {
+        JSONObject message = new JSONObject();
+        int requestIdNumber = getNextId();
+        try {
+            JSONObject command = new JSONObject();
+            command.put("type", "play");
+            command.put("requestId", requestIdNumber);
+            message.put("mediaCommand",command);
+            message.put("contentType","connectsdk.mediaCommand");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        sendMessage(message, null);
     }
 
     @Override
-    public void previous(final ResponseListener<Object> listener) {
+    public void pause(ResponseListener<Object> listener) {
+        JSONObject message = new JSONObject();
         int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
-
-        JSONObject message = null;
         try {
-            message = new JSONObject() {
-                {
-                    put("contentType", namespaceKey + "mediaCommand");
-                    put("mediaCommand", new JSONObject() {
-                        {
-                            put("type", "playPrevious");
-                            put("requestId", requestId);
-                        }
-                    });
-                }
-            };
+            JSONObject command = new JSONObject();
+            command.put("type", "pause");
+            command.put("requestId", requestIdNumber);
+            message.put("mediaCommand",command);
+            message.put("contentType","connectsdk.mediaCommand");
         } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
+            e.printStackTrace();
         }
 
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
-        mActiveCommands.put(requestId, command);
-        sendMessage(message, listener);
-    }
+        sendMessage(message, null);
 
-    @Override
-    public void next(final ResponseListener<Object> listener) {
-        int requestIdNumber = getNextId();
-        final String requestId = String.format(Locale.US, "req%d", requestIdNumber);
-
-        JSONObject message = null;
-        try {
-            message = new JSONObject() {
-                {
-                    put("contentType", namespaceKey + "mediaCommand");
-                    put("mediaCommand", new JSONObject() {
-                        {
-                            put("type", "playNext");
-                            put("requestId", requestId);
-                        }
-                    });
-                }
-            };
-        } catch (JSONException e) {
-            Util.postError(listener, new ServiceCommandError(0, "JSON Parse error", null));
-            return;
-        }
-
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(null, null, null, listener);
-        mActiveCommands.put(requestId, command);
-        sendMessage(message, listener);
     }
 }

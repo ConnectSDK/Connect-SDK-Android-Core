@@ -1,6 +1,7 @@
 package com.connectsdk.service.webos;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,17 +11,15 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
@@ -54,9 +53,8 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 @SuppressLint("DefaultLocale")
 public class WebOSTVServiceSocketClient extends WebSocketClient implements ServiceCommandProcessor {
 
-    static final String WEBOS_PAIRING_PROMPT = "PROMPT";
-    static final String WEBOS_PAIRING_PIN = "PIN";
-    static final String WEBOS_PAIRING_COMBINED = "COMBINED";
+    private static final String TAG = "Connect SDK";
+    public static String deviceOSReleaseVersion;
 
     public enum State {
         NONE,
@@ -65,7 +63,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         REGISTERING,
         REGISTERED,
         DISCONNECTING
-    }
+    };
 
     WebOSTVServiceSocketClientListener mListener;
     WebOSTVService mService;
@@ -124,7 +122,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     public void connect() {
         synchronized (this) {
             if (state != State.INITIAL) {
-                Log.w(Util.T, "already connecting; not trying to connect again: " + state);
+                Log.w(TAG, "already connecting; not trying to connect again: " + state);
                 return; // don't try to connect again while connected
             }
 
@@ -133,7 +131,11 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
         setupSSL();
 
-        super.connect();
+        try {
+            super.connect();
+        } catch(IllegalStateException err) {
+
+        }
     }
 
     public void disconnect() {
@@ -141,6 +143,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     public void disconnectWithError(ServiceCommandError error) {
+        System.out.println("[disconnectWithError] : " + error);
+        if(error != null){
+            System.out.println("[disconnectWithError] : " + error.toString());
+        }
         this.close();
 
         state = State.INITIAL;
@@ -149,22 +155,19 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             mListener.onCloseWithError(error);
     }
 
-    public void clearRequests() {
-        if (requests != null) {
-            requests.clear();
-        }
-    }
-
     private void setDefaultManifest() {
         manifest = new JSONObject();
         List<String> permissions = mService.getPermissions();
 
         try {
             manifest.put("manifestVersion", 1);
+            manifest.put("appVersion", "1.1");
 //            manifest.put("appId", 1);
 //            manifest.put("vendorId", 1);
 //            manifest.put("localizedAppNames", 1);
+            manifest.put("signed", getSignedManifest());
             manifest.put("permissions",  convertStringListToJSONArray(permissions));
+            manifest.put("signatures", getSignatures());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -189,14 +192,14 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     @Override
     public void onMessage(String data) {
-        Log.d(Util.T, "webOS Socket [IN] : " + data);
+        Log.d(TAG, "webOS Socket [IN] : " + data);
 
         this.handleMessage(data);
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
-        System.out.println("onClose: " + code + ": " + reason);
+        System.out.println("[onClose Code] : " + code + ", [reason] : " + reason + ", [remote] : " + remote);
         this.handleConnectionLost(true, null);
     }
 
@@ -266,10 +269,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
         if ("response".equals(type)) {
             if (request != null) {
-//                Log.d(Util.T, "Found requests need to handle response");
+//                Log.d(TAG, "Found requests need to handle response");
                 if (payload != null) {
                     Util.postSuccess(request.getResponseListener(), payload);
-                } 
+                }
                 else {
                     Util.postError(request.getResponseListener(), new ServiceCommandError(-1, "JSON parse error", null));
                 }
@@ -299,8 +302,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 if (id != null)
                     requests.remove(id);
             }
-        } else if ("error".equals(type)) {
-            String error = message.optString("error");
+        } else if ("error".equals(type) && message instanceof JSONObject) {
+            String error = ((JSONObject) message).optString("error");
             if (error.length() == 0)
                 return;
 
@@ -316,16 +319,16 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             }
 
             if (payload != null) {
-                Log.d(Util.T, "Error Payload: " + payload.toString());
+                Log.d(TAG, "Error Payload: " + payload.toString());
             }
 
             if (message.has("id")) {
-                Log.d(Util.T, "Error Desc: " + errorDesc);
+                Log.d(TAG, "Error Desc: " + errorDesc);
 
                 if (request != null) {
                     Util.postError(request.getResponseListener(), new ServiceCommandError(errorCode, errorDesc, payload));
 
-                    if (!(request instanceof URLServiceSubscription)) 
+                    if (!(request instanceof URLServiceSubscription))
                         requests.remove(id);
 
                 }
@@ -333,11 +336,20 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         } else if ("hello".equals(type)) {
             JSONObject jsonObj = (JSONObject)payload;
 
+            try {
+                deviceOSReleaseVersion = jsonObj.optString("deviceOSReleaseVersion");
+            } catch (Exception e) {
+                deviceOSReleaseVersion = "1.0";
+            }
+
+            System.out.println("deviceOSReleaseVersion >>>> " + deviceOSReleaseVersion);
+
             if (mService.getServiceConfig().getServiceUUID() != null) {
                 if (!mService.getServiceConfig().getServiceUUID().equals(jsonObj.optString("deviceUUID"))) {
                     ((WebOSTVServiceConfig)mService.getServiceConfig()).setClientKey(null);
-                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate((String)null);
-                    mService.getServiceConfig().setServiceUUID(null);
+                    String cert = null;
+                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate(cert);
+                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServiceUUID(null);
                     mService.getServiceDescription().setIpAddress(null);
                     mService.getServiceDescription().setUUID(null);
 
@@ -381,7 +393,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         @SuppressWarnings("deprecation")
         int height = display.getHeight(); // deprecated, but still needed for supporting API levels 10-12
 
-        String screenResolution = String.format("%dx%d", width, height); 
+        String screenResolution = String.format("%dx%d", width, height);
 
         // app Name
         ApplicationInfo applicationInfo;
@@ -430,7 +442,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             @Override
             public void onError(ServiceCommandError error) {
                 state = State.INITIAL;
-                
+
                 if (mListener != null)
                     mListener.onRegistrationFailed(error);
             }
@@ -438,9 +450,17 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             @Override
             public void onSuccess(Object object) {
                 if (object instanceof JSONObject) {
+                    PairingType pairingType = PairingType.NONE;
+
                     JSONObject jsonObj = (JSONObject)object;
                     String type = jsonObj.optString("pairingType");
-                    PairingType pairingType = getPairingTypeFromString(type);
+
+                    if (type.equalsIgnoreCase("PROMPT")) {
+                        pairingType = PairingType.FIRST_SCREEN;
+                    }
+                    else if (type.equalsIgnoreCase("PIN")) {
+                        pairingType = PairingType.PIN_CODE;
+                    }
 
                     if (mListener != null)
                         mListener.onBeforeRegister(pairingType);
@@ -468,9 +488,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
             }
 
-            String pairingTypeString = getPairingTypeString();
-            if (pairingTypeString != null) {
-                payload.put("pairingType", pairingTypeString);
+            if (PairingType.PIN_CODE.equals(mService.getPairingType())) {
+                payload.put("pairingType", "PIN");
             }
 
             if (manifest != null) {
@@ -485,39 +504,13 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         sendMessage(headers, payload);
     }
 
-    private PairingType getPairingTypeFromString(String pairingTypeString) {
-        if (WEBOS_PAIRING_PROMPT.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.FIRST_SCREEN;
-        } else if (WEBOS_PAIRING_PIN.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.PIN_CODE;
-        } else if (WEBOS_PAIRING_COMBINED.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.MIXED;
-        }
-        return PairingType.NONE;
-    }
-
-    private String getPairingTypeString() {
-        PairingType pairingType = mService.getPairingType();
-        if (pairingType != null) {
-            switch (pairingType) {
-                case FIRST_SCREEN:
-                    return WEBOS_PAIRING_PROMPT;
-                case PIN_CODE:
-                    return WEBOS_PAIRING_PIN;
-                case MIXED:
-                    return WEBOS_PAIRING_COMBINED;
-            }
-        }
-        return null;
-    }
-
     public void sendPairingKey(String pairingKey) {
         ResponseListener<Object> listener = new ResponseListener<Object>() {
 
             @Override
             public void onError(ServiceCommandError error) {
                 state = State.INITIAL;
-                
+
                 if (mListener != null)
                     mListener.onFailWithError(error);
             }
@@ -525,29 +518,29 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             @Override
             public void onSuccess(Object object) { }
         };
-        
+
         String uri = "ssap://pairing/setPin";
 
         int dataId = this.nextRequestId++;
-        
+
         ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, null, null, listener);
         command.setRequestId(dataId);
-        
+
         JSONObject headers = new JSONObject();
         JSONObject payload = new JSONObject();
-        
+
         try {
             headers.put("type", "request");
             headers.put("id", dataId);
             headers.put("uri", uri);
-            
+
             payload.put("pin", pairingKey);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         requests.put(dataId, command);
-        
+
         sendMessage(headers, payload);
     }
 
@@ -557,7 +550,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         if (!commandQueue.isEmpty()) {
             LinkedHashSet<ServiceCommand<ResponseListener<Object>>> tempHashSet = new LinkedHashSet<ServiceCommand<ResponseListener<Object>>>(commandQueue);
             for (ServiceCommand<ResponseListener<Object>> command : tempHashSet) {
-                Log.d(Util.T, "executing queued command for " + command.getTarget());
+                Log.d(TAG, "executing queued command for " + command.getTarget());
 
                 sendCommandImmediately(command);
                 commandQueue.remove(command);
@@ -570,9 +563,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 //        ConnectableDevice storedDevice = connectableDeviceStore.getDevice(mService.getServiceConfig().getServiceUUID());
 //        if (storedDevice == null) {
 //            storedDevice = new ConnectableDevice(
-//                    mService.getServiceDescription().getIpAddress(), 
-//                    mService.getServiceDescription().getFriendlyName(), 
-//                    mService.getServiceDescription().getModelName(), 
+//                    mService.getServiceDescription().getIpAddress(),
+//                    mService.getServiceDescription().getFriendlyName(),
+//                    mService.getServiceDescription().getModelName(),
 //                    mService.getServiceDescription().getModelNumber());
 //        }
 //        storedDevice.addService(WebOSTVService.this);
@@ -595,10 +588,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         if (state == State.REGISTERED) {
             this.sendCommandImmediately(command);
         } else if (state == State.CONNECTING || state == State.DISCONNECTING){
-            Log.d(Util.T, "queuing command for " + command.getTarget());
+            Log.d(TAG, "queuing command for " + command.getTarget());
             commandQueue.add((ServiceCommand<ResponseListener<Object>>) command);
         } else {
-            Log.d(Util.T, "queuing command and restarting socket for " + command.getTarget());
+            Log.d(TAG, "queuing command and restarting socket for " + command.getTarget());
             commandQueue.add((ServiceCommand<ResponseListener<Object>>) command);
             connect();
         }
@@ -639,7 +632,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             // ignore
         }
 
-        if (payloadType.equals("p2p"))
+        if (payloadType == "p2p")
         {
             Iterator<?> iterator = payload.keys();
 
@@ -657,8 +650,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             }
 
             this.sendMessage(headers, null);
-        } 
-        else if (payloadType.equals("hello")) {
+        }
+        else if (payloadType == "hello") {
             this.send(payload.toString());
         }
         else {
@@ -678,14 +671,21 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     private void setSSLContext(SSLContext sslContext) {
-        setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+        try {
+            setSocket(sslContext.getSocketFactory().createSocket());
+            setConnectionLostTimeout(0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void setupSSL() {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            customTrustManager = new TrustManager();
-            sslContext.init(null, new TrustManager [] {customTrustManager}, null);
+            customTrustManager = new WebOSTVTrustManager();
+            sslContext.init(null, new WebOSTVTrustManager [] {customTrustManager}, null); // 1.6.1 patch
             setSSLContext(sslContext);
 
             if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
@@ -719,7 +719,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         if (isConnected()) {
             String message = packet.toString();
 
-            Log.d(Util.T, "webOS Socket [OUT] : " + message);
+            Log.d(TAG, "webOS Socket [OUT] : " + message);
 
             this.send(message);
         }
@@ -746,7 +746,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 Util.postError(request.getResponseListener(), new ServiceCommandError(0, "connection lost", null));
         }
 
-        clearRequests();
+        requests.clear();
     }
 
     public void setServerCertificate(X509Certificate cert) {
@@ -807,10 +807,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     public static boolean isInteger(String s) {
-        try { 
-            Integer.parseInt(s); 
-        } catch(NumberFormatException e) { 
-            return false; 
+        try {
+            Integer.parseInt(s);
+        } catch(NumberFormatException e) {
+            return false;
         }
         // only got here if we didn't return false
         return true;
@@ -828,4 +828,66 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     }
 
+    private JSONObject getSignedManifest(){
+        JSONObject signedManifest = new JSONObject();
+        try {
+            signedManifest.put("created", "20150330");
+            signedManifest.put("appId", "com.lge.test");
+            signedManifest.put("vendorId", "com.lge");
+            JSONObject localizedAppNames = new JSONObject();
+            localizedAppNames.put("", "LG TV Plus");
+            localizedAppNames.put("ko-KR", "LG TV Plus");
+            localizedAppNames.put("zxx-XX", "LG TV Plus");
+            signedManifest.put("localizedAppNames", localizedAppNames);
+            JSONObject localizedVendorNames = new JSONObject();
+            localizedVendorNames.put("", "LGElectronics");
+            signedManifest.put("localizedVendorNames", localizedVendorNames);
+            String[] strPermissions = {
+                    "TEST_SECURE",
+                    "CONTROL_INPUT_TEXT",
+                    "CONTROL_MOUSE_AND_KEYBOARD",
+                    "READ_INSTALLED_APPS",
+                    "READ_LGE_SDX",
+                    "READ_NOTIFICATIONS",
+                    "SEARCH",
+                    "WRITE_SETTINGS",
+                    "WRITE_NOTIFICATION_ALERT",
+                    "CONTROL_POWER",
+                    "READ_CURRENT_CHANNEL",
+                    "READ_RUNNING_APPS",
+                    "READ_UPDATE_INFO",
+                    "UPDATE_FROM_REMOTE_APP",
+                    "READ_LGE_TV_INPUT_EVENTS",
+                    "READ_TV_CURRENT_TIME",
+                    "CONTROL_BLUETOOTH",
+                    "CHECK_BLUETOOTH_DEVICE"
+            };
+            List<String> permissions = new ArrayList<String>();
+            for (String perm: strPermissions) {
+                permissions.add(perm);
+            }
+            signedManifest.put("permissions", convertStringListToJSONArray(permissions));
+            signedManifest.put("serial", "6b883dce370f9b0c68e788bc14d08c92");
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return signedManifest;
+    }
+
+    private JSONArray getSignatures(){
+        JSONArray signatures = new JSONArray();
+        JSONObject signature = new JSONObject();
+        try {
+            signature.put("signatureVersion", 1);
+            signature.put("signature", "eyJhbGdvcml0aG0iOiJSU0EtU0hBMjU2Iiwia2V5SWQiOiJ0ZXN0LXNpZ25pbmctY2VydCIsInNpZ25hdHVyZVZlcnNpb24iOjF9.ASBcfvkYg0n8vALbfhPlAyoqijJLib4+KbnRFTfUctJ560YKPRxhN9LJ+CmJAENkRD828/rxRtYdwMlIc1MU6HR2WcBrZUMqck5uxtc5+DFw8umXpLZs/af1MQyjl6CKfFGhHbV0ztgEWULtDFwPgCFAgdd3rLD8fIT2cBhVT5jBSp1UVfLazi4P4u/Ek0pxW44KfmKiPI2ZPt5dlPqvOKrekWHqegOjrE2z3kPDrjCyu5rKffSIRcmraEzEkXMAFEZw2JHXFWQdB/TA32aP3q82Cfqsnbpt04GYZLUCkdkHaqxkx/aaVEy7GEJmWhWEzd4Oa0/Ms0olZmZ1nqb8og==");
+            signatures.put(signature);
+        } catch (JSONException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return signatures;
+    }
 }

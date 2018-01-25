@@ -20,16 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.util.SparseArray;
 
 import com.connectsdk.core.Util;
@@ -38,7 +28,6 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
 import com.connectsdk.etc.helper.DeviceServiceReachability.DeviceServiceReachabilityListener;
 import com.connectsdk.service.capability.CapabilityMethods;
-import com.connectsdk.service.capability.CapabilityMethods.CapabilityPriorityLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaPlayer;
@@ -52,6 +41,16 @@ import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
 
 /**
  * ###Overview
@@ -69,33 +68,10 @@ import com.connectsdk.service.sessions.LaunchSession;
  * All DeviceService objects have a group of capabilities. These capabilities can be implemented by any object, and that object will be returned when you call the DeviceService's capability methods (launcher, mediaPlayer, volumeControl, etc).
  */
 public class DeviceService implements DeviceServiceReachabilityListener, ServiceCommandProcessor {
-
-    /**
-     * Enumerates available pairing types. It is used by a DeviceService for implementing pairing
-     * strategy.
-     */
     public enum PairingType {
-        /**
-         * DeviceService doesn't require pairing
-         */
         NONE,
-
-        /**
-         * In this mode user must confirm pairing on the first screen device (e.g. an alert on a TV)
-         */
         FIRST_SCREEN,
-
-        /**
-         * In this mode user must enter a pin code from a mobile device and send it to the first
-         * screen device
-         */
-        PIN_CODE,
-
-        /**
-         * In this mode user can either enter a pin code from a mobile device or confirm
-         * pairing on the TV
-         */
-        MIXED,
+        PIN_CODE
     }
 
     // @cond INTERNAL
@@ -106,13 +82,10 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     PairingType pairingType = PairingType.NONE;
 
     ServiceDescription serviceDescription;
-
     ServiceConfig serviceConfig;
 
     protected DeviceServiceReachability mServiceReachability;
     protected boolean connected = false;
-
-    private ServiceCommandProcessor commandProcessor;
     // @endcond
 
     /**
@@ -145,14 +118,6 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         mCapabilities = new ArrayList<String>();
 
         updateCapabilities();
-    }
-
-    ServiceCommandProcessor getCommandProcessor() {
-        return commandProcessor == null ? this : commandProcessor;
-    }
-
-    void setCommandProcessor(ServiceCommandProcessor commandProcessor) {
-        this.commandProcessor = commandProcessor;
     }
 
     @SuppressWarnings("unchecked")
@@ -256,10 +221,6 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         }
         else 
             return null;
-    }
-
-    public CapabilityMethods.CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
-        return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
 
     public static DiscoveryFilter discoveryFilter() {
@@ -392,7 +353,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
         if (m.find()) {
             String match = m.group();
             for (String item : this.mCapabilities) {
-                if (item.contains(match)) {
+                if (item.indexOf(match) != -1) {
                     return true;
                 }
             }
@@ -578,7 +539,7 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
             return;
 
         for (String capability : capabilities) {
-            if (capability == null || capability.length() == 0 || mCapabilities.contains(capability))
+            if (capability == null || capability.length() == 0 || mCapabilities.contains(capabilities))
                 continue;
 
             mCapabilities.add(capability);

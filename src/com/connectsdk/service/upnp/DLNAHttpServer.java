@@ -1,16 +1,5 @@
 package com.connectsdk.service.upnp;
 
-import com.connectsdk.core.MediaInfo;
-import com.connectsdk.core.Util;
-import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
-import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.command.URLServiceSubscription;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParserException;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
@@ -24,12 +13,23 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParserException;
+
+import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.Util;
+import com.connectsdk.service.capability.MediaControl.PlayStateStatus;
+import com.connectsdk.service.capability.listeners.ResponseListener;
+import com.connectsdk.service.command.URLServiceSubscription;
+
 public class DLNAHttpServer {
-    final int port = 49291;
+    ServerSocket welcomeSocket;
 
-    volatile ServerSocket welcomeSocket;
+    int port = 49291;
 
-    volatile boolean running = false;
+    boolean running = false;
 
     CopyOnWriteArrayList<URLServiceSubscription<?>> subscriptions;
 
@@ -37,10 +37,9 @@ public class DLNAHttpServer {
         subscriptions = new CopyOnWriteArrayList<URLServiceSubscription<?>>();
     }
 
-    public synchronized void start() {
-        if (running) {
+    public void start() {
+        if (running)
             return;
-        }
 
         running = true;
 
@@ -48,42 +47,11 @@ public class DLNAHttpServer {
             welcomeSocket = new ServerSocket(this.port);
         } catch (IOException ex) {
             ex.printStackTrace();
-            return;
         }
 
-        Util.runInBackground(new Runnable() {
-            @Override
-            public void run() {
-                processRequests();
-            }
-        }, true);
-    }
-
-    public synchronized void stop() {
-        if (!running) {
-            return;
-        }
-
-        for (URLServiceSubscription<?> sub : subscriptions) {
-            sub.unsubscribe();
-        }
-        subscriptions.clear();
-
-        if (welcomeSocket != null && !welcomeSocket.isClosed()) {
-            try {
-                welcomeSocket.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        welcomeSocket = null;
-        running = false;
-    }
-
-    private void processRequests() {
         while (running) {
             if (welcomeSocket == null || welcomeSocket.isClosed()) {
+                stop();
                 break;
             }
 
@@ -96,7 +64,8 @@ public class DLNAHttpServer {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 // this socket may have been closed, so we'll stop
-                break;
+                stop();
+                return;
             }
 
             int c = 0;
@@ -146,8 +115,6 @@ public class DLNAHttpServer {
                     outToClient.close();
                     connectionSocket.close();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
-                } catch (NullPointerException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -238,7 +205,7 @@ public class DLNAHttpServer {
             boolean mute;
 
             try {
-                mute = (Integer.parseInt(muteStatus) == 1);
+                mute = (Integer.parseInt(muteStatus) == 1) ? true : false;
             } catch(NumberFormatException e) {
                 mute = Boolean.parseBoolean(muteStatus);
             }
@@ -272,6 +239,27 @@ public class DLNAHttpServer {
 
         }
 
+    }
+
+    public void stop() {
+        if (!running)
+            return;
+
+        for (URLServiceSubscription<?> sub: subscriptions) {
+            sub.unsubscribe();
+        }
+        subscriptions.clear();
+
+        if (welcomeSocket != null && !welcomeSocket.isClosed()) {
+            try {
+                welcomeSocket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        welcomeSocket = null;
+        running = false;
     }
 
     public int getPort() {

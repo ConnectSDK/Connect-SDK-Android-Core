@@ -37,15 +37,8 @@ public interface MediaControl extends CapabilityMethods {
     public final static String PlayState_Subscribe = "MediaControl.PlayState.Subscribe";
     public final static String Position = "MediaControl.Position";
 
-    /**
-     * This capability is deprecated. Use `PlaylistControl.Previous` instead.
-     */
     @Deprecated
     public final static String Previous = "MediaControl.Previous";
-
-    /**
-     * This capability is deprecated. Use `PlaylistControl.Next` instead.
-     */
     @Deprecated
     public final static String Next = "MediaControl.Next";
 
@@ -72,45 +65,14 @@ public interface MediaControl extends CapabilityMethods {
         Position,
     };
 
-    /**
-     * Enumerates possible playback status
-     */
     public enum PlayStateStatus {
-        /**
-         * Unknown state
-         */
-        Unknown,
-
-        /**
-         * Media source is not set.
-         */
-        Idle,
-
-        /**
-         * Media is playing.
-         */
-        Playing,
-
-        /**
-         * Media is paused.
-         */
-        Paused,
-
-        /**
-         * Media is buffering on the first screen device (e.g. on the TV)
-         */
-        Buffering,
-
-        /**
-         * Playback is finished.
-         */
+        Unknown, 
+        Idle, 
+        Playing, 
+        Paused, 
+        Buffering, 
         Finished;
 
-        /**
-         * Converts int value into PlayStateStatus
-         * @param playerState int value
-         * @return PlayStateStatus
-         */
         public static PlayStateStatus convertPlayerStateToPlayStateStatus(int playerState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -136,11 +98,6 @@ public interface MediaControl extends CapabilityMethods {
             return status;
         }
 
-        /**
-         * Converts String value into PlayStateStatus
-         * @param transportState String value
-         * @return PlayStateStatus
-         */
         public static PlayStateStatus convertTransportStateToPlayStateStatus(String transportState) {
             PlayStateStatus status = PlayStateStatus.Unknown;
 
@@ -167,71 +124,28 @@ public interface MediaControl extends CapabilityMethods {
             }
             return status;
         }
-    }
+    };
 
-    /**
-     * Get MediaControl implementation
-     * @return MediaControl
-     */
     public MediaControl getMediaControl();
-
-    /**
-     * Get a capability priority for current implementation
-     * @return CapabilityPriorityLevel
-     */
     public CapabilityPriorityLevel getMediaControlCapabilityLevel();
 
     public void play(ResponseListener<Object> listener);
-
     public void pause(ResponseListener<Object> listener);
-
     public void stop(ResponseListener<Object> listener);
-
     public void rewind(ResponseListener<Object> listener);
-
     public void fastForward(ResponseListener<Object> listener);
 
-    /**
-     * This method is deprecated.
-     * Use `PlaylistControl#previous(ResponseListener<Object> listener)` instead.
-     */
     @Deprecated
     public void previous(ResponseListener<Object> listener);
 
-    /**
-     * This method is deprecated.
-     * Use `PlaylistControl#next(ResponseListener<Object> listener)` instead.
-     */
     @Deprecated
     public void next(ResponseListener<Object> listener);
 
-    /**
-     * @param position The new position, in milliseconds from the beginning of the stream
-     * @param listener (optional) ResponseListener< Object > with methods to be called on success
-     *                 or failure
-     */
     public void seek(long position, ResponseListener<Object> listener);
-
-    /**
-     * Get the current media duration in milliseconds
-     */
     public void getDuration(DurationListener listener);
-
-    /**
-     * Get the current playback position in milliseconds
-     */
     public void getPosition(PositionListener listener);
 
-    /**
-     * Get the current state of playback
-     */
     public void getPlayState(PlayStateListener listener);
-
-    /**
-     * Subscribe for playback state changes
-     * @param listener receives play state notifications
-     * @return ServiceSubscription<PlayStateListener>
-     */
     public ServiceSubscription<PlayStateListener> subscribePlayState(PlayStateListener listener);
 
     /**

@@ -20,19 +20,6 @@
 
 package com.connectsdk.service;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -40,7 +27,6 @@ import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -56,14 +42,12 @@ import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
-import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaControl;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.MouseControl;
-import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.PowerControl;
 import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
@@ -88,12 +72,27 @@ import com.connectsdk.service.webos.WebOSTVKeyboardInput;
 import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
+import com.lge.tms.loader.config.TmsConfig;
+import com.lge.tms.loader.utils.LLog;
+
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressLint("DefaultLocale")
-public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher, PlaylistControl {
+public class WebOSTVService extends DeviceService implements Launcher, MediaControl, MediaPlayer, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, TextInputControl, PowerControl, KeyControl, WebAppLauncher {
 
     public static final String ID = "webOS TV";
-    private static final String MEDIA_PLAYER_ID = "MediaPlayer";
 
     public interface WebOSTVServicePermission {
         public enum Open implements WebOSTVServicePermission {
@@ -122,7 +121,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             READ_INPUT_DEVICE_LIST,
             READ_NETWORK_STATE,
             READ_TV_CHANNEL_LIST,
-            WRITE_NOTIFICATION_TOAST
+            WRITE_NOTIFICATION_TOAST,
+            CONTROL_BLUETOOTH,
+            CHECK_BLUETOOTH_DEVICE,
+            CONTROL_TV_SCREEN
         }
 
         public static final WebOSTVServicePermission[] PROTECTED = {
@@ -135,7 +137,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             Protected.READ_INPUT_DEVICE_LIST,
             Protected.READ_NETWORK_STATE,
             Protected.READ_TV_CHANNEL_LIST,
-            Protected.WRITE_NOTIFICATION_TOAST
+            Protected.WRITE_NOTIFICATION_TOAST,
+            Protected.CONTROL_BLUETOOTH,
+            Protected.CHECK_BLUETOOTH_DEVICE,
+            Protected.CONTROL_TV_SCREEN
         };
 
         public enum PersonalActivity implements WebOSTVServicePermission {
@@ -158,7 +163,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         "LAUNCH_WEBAPP",
         "APP_TO_APP",
         "CONTROL_AUDIO",
-        "CONTROL_INPUT_MEDIA_PLAYBACK"
+        "CONTROL_INPUT_MEDIA_PLAYBACK",
+        "UPDATE_FROM_REMOTE_APP"
     };
 
     public final static String[] kWebOSTVServiceProtectedPermissions = {
@@ -171,7 +177,13 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         "READ_INPUT_DEVICE_LIST",
         "READ_NETWORK_STATE",
         "READ_TV_CHANNEL_LIST",
-        "WRITE_NOTIFICATION_TOAST"
+        "WRITE_NOTIFICATION_TOAST",
+        "CONTROL_BLUETOOTH",
+        "CHECK_BLUETOOTH_DEVICE",
+        "CONTROL_USER_INFO",
+        "CONTROL_TIMER_INFO",
+        "READ_SETTINGS",
+        "CONTROL_TV_SCREEN"
     };
 
     public final static String[] kWebOSTVServicePersonalActivityPermissions = {
@@ -207,12 +219,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     WebOSTVKeyboardInput keyboardInput;
 
     ConcurrentHashMap<String, String> mAppToAppIdMappings;
-
     ConcurrentHashMap<String, WebOSWebAppSession> mWebAppSessions;
 
     WebOSTVServiceSocketClient socket;
 
     List<String> permissions;
+    boolean isMouseConnecting = false;
 
     public WebOSTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
@@ -229,50 +241,6 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         this.pairingType = pairingType;
     }
 
-    @Override
-    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
-        if (clazz.equals(MediaPlayer.class)) {
-            return getMediaPlayerCapabilityLevel();
-        }
-        else if (clazz.equals(MediaControl.class)) {
-            return getMediaControlCapabilityLevel();
-        }
-        else if (clazz.equals(Launcher.class)) {
-            return getLauncherCapabilityLevel();
-        }
-        else if (clazz.equals(TVControl.class)) {
-            return getTVControlCapabilityLevel();
-        }
-        else if (clazz.equals(VolumeControl.class)) {
-            return getVolumeControlCapabilityLevel();
-        }
-        else if (clazz.equals(ExternalInputControl.class)) {
-            return getExternalInputControlPriorityLevel();
-        }
-        else if (clazz.equals(MouseControl.class)) {
-            return getMouseControlCapabilityLevel();
-        }
-        else if (clazz.equals(TextInputControl.class)) {
-            return getTextInputControlCapabilityLevel();
-        }
-        else if (clazz.equals(PowerControl.class)) {
-            return getPowerControlCapabilityLevel();
-        }
-        else if (clazz.equals(KeyControl.class)) {
-            return getKeyControlCapabilityLevel();
-        }
-        else if (clazz.equals(ToastControl.class)) {
-            return getToastControlCapabilityLevel();
-        }
-        else if (clazz.equals(WebAppLauncher.class)) {
-            return getWebAppLauncherCapabilityLevel();
-        }
-        else if (clazz.equals(PlaylistControl.class)) {
-            return getPlaylistControlCapabilityLevel();
-        }
-        return CapabilityPriorityLevel.NOT_SUPPORTED;
-    }
-    
     @Override
     public void setServiceDescription(ServiceDescription serviceDescription) {
         super.setServiceDescription(serviceDescription);
@@ -330,7 +298,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void disconnect() {
-        Log.d(Util.T, "attempting to disconnect to " + serviceDescription.getIpAddress());
+        Log.d("Connect SDK", "attempting to disconnect to " + serviceDescription.getIpAddress());
 
         Util.runOnUI(new Runnable() {
 
@@ -565,7 +533,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void launchYouTube(String contentId, Launcher.AppLaunchListener listener) {
-        launchYouTube(contentId, (float)0.0, listener);
+        launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
@@ -579,7 +547,9 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             }
 
             try {
-                params.put("contentId", String.format("%s&pairingCode=%s&t=%.1f", contentId, UUID.randomUUID().toString(), startTime));
+                //2015.08.03 hj - 유투브 재생안되는 이슈 수정
+//                params.put("contentId", String.format("%s&pairingCode=%s&t=%.1f", contentId, UUID.randomUUID().toString(), startTime));
+                params.put("contentId", contentId);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -709,7 +679,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         };
 
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
-        request.send();        
+        request.send();
     }
 
     private ServiceCommand<AppInfoListener> getRunningApp(boolean isSubscription, final AppInfoListener listener) {
@@ -735,6 +705,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             }
         };
 
+
+//        JSONObject payload = new JSONObject();
+//        try {
+//            payload.put("type", "subscribe");
+//            if(isExtraApp)
+//                payload.put("extraInfo", true);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+
+
         if (isSubscription)
             request = new URLServiceSubscription<AppInfoListener>(this, FOREGROUND_APP, null, true, responseListener);
         else
@@ -755,11 +736,68 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return (URLServiceSubscription<AppInfoListener>) getRunningApp(true, listener);
     }
 
+    private ServiceCommand<AppInfoListener> getExtraApp(boolean isSubscription, boolean isExtraApp, final AppInfoListener listener) {
+        ServiceCommand<AppInfoListener> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                final JSONObject jsonObj = (JSONObject)response;
+                AppInfo app = new AppInfo() {{
+                    setId(jsonObj.optString("appId"));
+                    setName(jsonObj.optString("appName"));
+                    setRawData(jsonObj);
+                }};
+
+                Util.postSuccess(listener, app);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+
+        JSONObject payload = new JSONObject();
+        try {
+            if(isSubscription)
+                payload.put("type", "subscribe");
+            if(isExtraApp)
+                payload.put("extraInfo", true);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        if (isSubscription)
+            request = new URLServiceSubscription<AppInfoListener>(this, FOREGROUND_APP, payload, true, responseListener);
+        else
+            request = new ServiceCommand<AppInfoListener>(this, FOREGROUND_APP, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+//    @Override
+//    public void getRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener) {
+//        getExtraApp(isSubscription, isExtraApp, listener);
+//    }
+
+    @Override
+    public ServiceSubscription<AppInfoListener> subscribeRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener) {
+        return (URLServiceSubscription<AppInfoListener>) getExtraApp(isSubscription, isExtraApp, listener);
+    }
+
     private ServiceCommand<AppStateListener> getAppState(boolean subscription, LaunchSession launchSession, final AppStateListener listener) {
         ServiceCommand<AppStateListener> request;
         JSONObject params = new JSONObject();
 
         try {
+//            params.put("appId", launchSession.getAppId());
             params.put("id", launchSession.getAppId());
             params.put("sessionId", launchSession.getSessionId());
         } catch (JSONException e) {
@@ -807,13 +845,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /******************
-    TOAST CONTROL
-     *****************/
+    /**
+     * ***************
+     * TOAST CONTROL
+     * ***************
+     */
     @Override
     public ToastControl getToastControl() {
         return this;
     }
+
+    ;
 
     @Override
     public CapabilityPriorityLevel getToastControlCapabilityLevel() {
@@ -826,8 +868,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void showToast(String message, String iconData, String iconExtension, ResponseListener<Object> listener)
-    {
+    public void showToast(String message, String iconData, String iconExtension, ResponseListener<Object> listener) {
         JSONObject payload = new JSONObject();
 
         try {
@@ -941,9 +982,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /******************
-    VOLUME CONTROL
-     *****************/
+    /**
+     * ***************
+     * VOLUME CONTROL
+     * ***************
+     */
     @Override
     public VolumeControl getVolumeControl() {
         return this;
@@ -1044,6 +1087,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         return (ServiceSubscription<VolumeListener>) getVolume(true, listener);
     }
 
+    public void mute() {
+        sendSpecialKey("MUTE", null);
+    }
+    //audio guidance 이슈로 사용하지 않음(WOSLQEVENT-119595), keycode + getmute로 변경
     @Override
     public void setMute(boolean isMute, ResponseListener<Object> listener) {
         String uri = "ssap://audio/setMute";
@@ -1147,9 +1194,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /******************
-    MEDIA PLAYER
-     *****************/
+    /**
+     * ***************
+     * MEDIA PLAYER
+     * ***************
+     */
     @Override
     public MediaPlayer getMediaPlayer() {
         return this;
@@ -1230,6 +1279,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             if (params != null)
                 this.displayMedia(params, listener);
         } else {
+            final String webAppId = "MediaPlayerTest";
+
             final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
 
                 @Override
@@ -1243,18 +1294,52 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 }
             };
 
-            this.getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
+            getRunningApp(false, new AppInfoListener() {
+                @Override
+                public void onSuccess(AppInfo object) {
+                    if (object.getId().equals("com.lgsmartplatform.redirect.MediaPlayer") || object.getId().equals("com.webos.app.webapphost")) {
+                        System.out.println("[DEBUG] getRunningApp is media player");
+
+                        getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+
+                            @Override
+                            public void onError(ServiceCommandError error) {
+                                getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+                            }
+
+                            @Override
+                            public void onSuccess(WebAppSession webAppSession) {
+                                webAppSession.displayImage(url, mimeType, title, description, iconSrc, listener);
+                            }
+                        });
+                    }
+                    else {
+                        System.out.println("[DEBUG] getRunningApp is not media Player");
+
+                        getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+                    }
+                }
 
                 @Override
                 public void onError(ServiceCommandError error) {
-                    getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
-                }
+                    System.out.println("[DEBUG] test getRunningApp Error");
 
-                @Override
-                public void onSuccess(WebAppSession webAppSession) {
-                    webAppSession.displayImage(url, mimeType, title, description, iconSrc, listener);
+                    getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
                 }
             });
+
+//            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+//
+//                @Override
+//                public void onError(ServiceCommandError error) {
+//                    getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+//                }
+//
+//                @Override
+//                public void onSuccess(WebAppSession webAppSession) {
+//                    webAppSession.displayImage(url, mimeType, title, description, iconSrc, listener);
+//                }
+//            });
         }
     }
 
@@ -1282,107 +1367,127 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void playMedia(String url, String mimeType, String title, String description,
-                          String iconSrc, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
-        MediaInfo mediaInfo = new MediaInfo.Builder(url, mimeType)
-                .setTitle(title)
-                .setDescription(description)
-                .setIcon(iconSrc)
-                .build();
-        playMedia(mediaInfo, shouldLoop, listener);
+    public void playMedia(final String url, final String mimeType, final String title, final String description, final String iconSrc, final boolean shouldLoop, final MediaPlayer.LaunchListener listener) {
+        if ("4.0.0".equalsIgnoreCase(this.serviceDescription.getVersion())) {
+            DeviceService dlnaService = this.getDLNAService();
+
+            if (dlnaService != null) {
+                MediaPlayer mediaPlayer = dlnaService.getAPI(MediaPlayer.class);
+
+                if (mediaPlayer != null) {
+                    mediaPlayer.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
+                    return;
+                }
+            }
+
+            JSONObject params = null;
+
+            try {
+                params = new JSONObject() {{
+                    put("target", url);
+                    put("title", title == null ? NULL : title);
+                    put("description", description == null ? NULL : description);
+                    put("mimeType", mimeType == null ? NULL : mimeType);
+                    put("iconSrc", iconSrc == null ? NULL : iconSrc);
+                    put("loop", shouldLoop);
+                }};
+            } catch (JSONException ex) {
+                ex.printStackTrace();
+                Util.postError(listener, new ServiceCommandError(-1, ex.getLocalizedMessage(), ex));
+            }
+
+            if (params != null)
+                this.displayMedia(params, listener);
+        } else {
+            final String webAppId = "MediaPlayerTest";
+
+            final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
+
+                @Override
+                public void onError(ServiceCommandError error) {
+                    listener.onError(error);
+                }
+
+                @Override
+                public void onSuccess(WebAppSession webAppSession) {
+                    webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
+                }
+            };
+
+            getRunningApp(false, new AppInfoListener() {
+                @Override
+                public void onSuccess(AppInfo object) {
+                    if (object.getId().equals("com.lgsmartplatform.redirect.MediaPlayer")|| object.getId().equals("com.webos.app.webapphost")) {
+                        System.out.println("[DEBUG] 2 getRunningApp is media player");
+
+                        getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+
+                            @Override
+                            public void onError(ServiceCommandError error) {
+                                getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+                            }
+
+                            @Override
+                            public void onSuccess(WebAppSession webAppSession) {
+                                webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
+                            }
+                        });
+                    }
+                    else {
+                        System.out.println("[DEBUG] 2 getRunningApp is not media Player");
+
+                        getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+                    }
+                }
+
+                @Override
+                public void onError(ServiceCommandError error) {
+                    System.out.println("[DEBUG] 2 test getRunningApp Error");
+
+                    getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+                }
+            });
+
+
+//            this.getWebAppLauncher().joinWebApp(webAppId, new WebAppSession.LaunchListener() {
+//
+//                @Override
+//                public void onError(ServiceCommandError error) {
+//                    getWebAppLauncher().launchWebApp(webAppId, true, webAppLaunchListener);
+//                }
+//
+//                @Override
+//                public void onSuccess(WebAppSession webAppSession) {
+//                    webAppSession.playMedia(url, mimeType, title, description, iconSrc, shouldLoop, listener);
+//                }
+//            });
+        }
     }
 
     @Override
-    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-                          MediaPlayer.LaunchListener listener) {
-        if ("4.0.0".equalsIgnoreCase(this.serviceDescription.getVersion())) {
-            playMediaByNativeApp(mediaInfo, shouldLoop, listener);
-        } else {
-            playMediaByWebApp(mediaInfo, shouldLoop, listener);
-        }
-    }
-
-    private void playMediaByWebApp(final MediaInfo mediaInfo, final boolean shouldLoop,
-                                   final LaunchListener listener) {
-        final WebAppSession.LaunchListener webAppLaunchListener = new WebAppSession.LaunchListener() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                listener.onError(error);
-            }
-
-            @Override
-            public void onSuccess(WebAppSession webAppSession) {
-                webAppSession.playMedia(mediaInfo, shouldLoop, listener);
-            }
-        };
-
-        getWebAppLauncher().joinWebApp(MEDIA_PLAYER_ID, new WebAppSession.LaunchListener() {
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                getWebAppLauncher().launchWebApp(MEDIA_PLAYER_ID, webAppLaunchListener);
-            }
-
-            @Override
-            public void onSuccess(WebAppSession webAppSession) {
-                webAppSession.playMedia(mediaInfo, shouldLoop, listener);
-            }
-        });
-    }
-
-    private void playMediaByNativeApp(MediaInfo mediaInfo, boolean shouldLoop,
-                                      LaunchListener listener) {
-        DeviceService dlnaService = this.getDLNAService();
-
-        if (dlnaService != null) {
-            MediaPlayer mediaPlayer = dlnaService.getAPI(MediaPlayer.class);
-
-            if (mediaPlayer != null) {
-                mediaPlayer.playMedia(mediaInfo, shouldLoop, listener);
-                return;
-            }
-        }
-
+    public void playMedia(MediaInfo mediaInfo, boolean shouldLoop, MediaPlayer.LaunchListener listener) {
+        String mediaUrl = null;
+        String mimeType = null;
+        String title = null;
+        String desc = null;
         String iconSrc = null;
-        List<ImageInfo> images = mediaInfo.getImages();
 
-        if (images != null && !images.isEmpty()) {
-            ImageInfo iconImage = images.get(0);
-            if (iconImage != null) {
-                iconSrc = iconImage.getUrl();
+        if (mediaInfo != null) {
+            mediaUrl = mediaInfo.getUrl();
+            mimeType = mediaInfo.getMimeType();
+            title = mediaInfo.getTitle();
+            desc = mediaInfo.getDescription();
+
+            if (mediaInfo.getImages() != null && mediaInfo.getImages().size() > 0) {
+                ImageInfo imageInfo = mediaInfo.getImages().get(0);
+                iconSrc = imageInfo.getUrl();
             }
         }
 
-        try {
-            JSONObject params =
-                    createPlayMediaJsonRequestForSsap(mediaInfo, shouldLoop, iconSrc);
-            displayMedia(params, listener);
-        } catch (JSONException ex) {
-            Util.postError(listener, new ServiceCommandError(-1, ex.getLocalizedMessage(), ex));
-            Log.e(Util.T, "Create JSON request for ssap://media.viewer/open failure", ex);
-        }
+        playMedia(mediaUrl, mimeType, title, desc, iconSrc, shouldLoop, listener);
     }
 
-    @NonNull
-    private JSONObject createPlayMediaJsonRequestForSsap(final MediaInfo mediaInfo, final boolean
-            shouldLoop, final String iconSrc) throws JSONException {
-        return new JSONObject() {{
-            put("target", mediaInfo.getUrl());
-            put("title", getJsonValue(mediaInfo.getTitle()));
-            put("description", getJsonValue(mediaInfo.getDescription()));
-            put("mimeType", getJsonValue(mediaInfo.getMimeType()));
-            put("iconSrc", getJsonValue(iconSrc));
-            put("loop", shouldLoop);
-        }};
-    }
-
-    private Object getJsonValue(Object value) {
-        return value == null ? JSONObject.NULL : value;
-    }
-
-
-        @Override
+    @Override
     public void closeMedia(LaunchSession launchSession, ResponseListener<Object> listener) {
         JSONObject payload = new JSONObject();
 
@@ -1400,13 +1505,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
-    /******************
-    MEDIA CONTROL
-     *****************/
+    /**
+     * ***************
+     * MEDIA CONTROL
+     * ***************
+     */
     @Override
     public MediaControl getMediaControl() {
         return this;
     }
+
+    ;
 
     @Override
     public CapabilityPriorityLevel getMediaControlCapabilityLevel() {
@@ -1478,9 +1587,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
-    /******************
-    TV CONTROL
-     *****************/
+
+    /**
+     * ***************
+     * TV CONTROL
+     * ***************
+     */
     @Override
     public TVControl getTVControl() {
         return this;
@@ -1515,27 +1627,13 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
-    /**
-     * Sets current channel
-     * @param channelInfo must not be null
-     * @param listener
-     * @throws NullPointerException if channelInfo is null
-     */
     @Override
     public void setChannel(ChannelInfo channelInfo, ResponseListener<Object> listener) {
-        if (channelInfo == null) {
-            throw new NullPointerException("channelInfo must not be null");
-        }
         String uri = "ssap://tv/openChannel";
         JSONObject payload = new JSONObject();
 
         try {
-            if (channelInfo.getId() != null) {
-                payload.put("channelId", channelInfo.getId());
-            }
-            if (channelInfo.getNumber() != null) {
-                payload.put("channelNumber", channelInfo.getNumber());
-            }
+            payload.put("channelNumber", channelInfo.getNumber());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1702,7 +1800,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             @Override
             public void onSuccess(Object response) {
                 try {
-                    JSONObject jsonObj = (JSONObject)response;
+                    JSONObject jsonObj = (JSONObject) response;
                     JSONObject jsonChannel = (JSONObject) jsonObj.get("channel");
                     ChannelInfo channel = parseRawChannelData(jsonChannel);
                     JSONArray programList = (JSONArray) jsonObj.get("programList");
@@ -1815,9 +1913,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    EXTERNAL INPUT
-     **************/
+    /**
+     * ***********
+     * EXTERNAL INPUT
+     * ************
+     */
     @Override
     public ExternalInputControl getExternalInput() {
         return this;
@@ -1830,23 +1930,12 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void launchInputPicker(final AppLaunchListener listener) {
-        final AppInfo appInfo = new AppInfo() {{
+        AppInfo appInfo = new AppInfo() {{
             setId("com.webos.app.inputpicker");
             setName("InputPicker");
         }};
 
-        launchAppWithInfo(appInfo, null, new AppLaunchListener() {
-            @Override
-            public void onSuccess(LaunchSession object) {
-                listener.onSuccess(object);
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                appInfo.setId("com.webos.app.inputmgr");
-                launchAppWithInfo(appInfo, null, listener);
-            }
-        });
+        launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
@@ -1882,17 +1971,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     @Override
-    public void setExternalInput(ExternalInputInfo externalInputInfo , final ResponseListener<Object> listener) {
+    public void setExternalInput(ExternalInputInfo externalInputInfo, final ResponseListener<Object> listener) {
         String uri = "ssap://tv/switchInput";
 
         JSONObject payload = new JSONObject();
 
         try {
-            if (externalInputInfo  != null && externalInputInfo .getId() != null) {
+            if (externalInputInfo != null && externalInputInfo.getId() != null) {
                 payload.put("inputId", externalInputInfo.getId());
             }
             else {
-                Log.w(Util.T, "ExternalInputInfo has no id");
+                Log.w("Connect SDK", "ExternalInputInfo has no id");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1903,9 +1992,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    MOUSE CONTROL
-     **************/
+    /**
+     * ***********
+     * MOUSE CONTROL
+     * ************
+     */
     @Override
     public MouseControl getMouseControl() {
         return this;
@@ -1918,10 +2009,20 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     @Override
     public void connectMouse() {
+//        if (isMouseConnecting)
+//            return;
+//
+//        isMouseConnecting = true;
         connectMouse(new WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener() {
             @Override
             public void onConnected() {
                 // intentionally left empty
+//                isMouseConnecting = false;
+            }
+
+            @Override
+            public void onDisconnected() {
+                disconnectMouse();
             }
         });
     }
@@ -1936,8 +2037,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
     private void connectMouse(final WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener successHandler) {
-        if (mouseSocket != null)
+        LLog.d("hj", "isMouseConnecting : " + isMouseConnecting);
+//        if (mouseSocket != null)
+//            return;
+        if (mouseSocket != null || isMouseConnecting)//2015.10.16 hj 여러번 connectMouse시 버그 발생함.
             return;
+
+//        try {
+//            throw new Exception();
+//        } catch (Exception e) {
+//            Log.e("hj", "connectMouse StackTrace : ", e);
+//        }
+        isMouseConnecting = true;//2015.10.18 hj 여러번 connectMouse시 버그 발생함.
 
         String uri = "ssap://com.webos.service.networkinput/getPointerInputSocket";
 
@@ -1949,6 +2060,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                     JSONObject jsonObj = (JSONObject)response;
                     String socketPath = (String) jsonObj.get("socketPath");
                     mouseSocket = new WebOSTVMouseSocketConnection(socketPath, successHandler);
+                    isMouseConnecting = false;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -1957,6 +2069,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             @Override
             public void onError(ServiceCommandError error) {
                 Log.w(Util.T, "Connect mouse error: " + error.getMessage());
+                isMouseConnecting = false;
             }
         };
 
@@ -1975,6 +2088,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 public void onConnected() {
                     mouseSocket.click();
                 }
+
+                @Override
+                public void onDisconnected() {
+                    mouseSocket = null;
+                }
             });
         }
     }
@@ -1989,6 +2107,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 @Override
                 public void onConnected() {
                     mouseSocket.move(dx, dy);
+                }
+                @Override
+                public void onDisconnected() {
+                    mouseSocket = null;
                 }
             });
         }
@@ -2010,6 +2132,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 public void onConnected() {
                     mouseSocket.scroll(dx, dy);
                 }
+
+                @Override
+                public void onDisconnected() {
+                    mouseSocket = null;
+                }
             });
         }
     }
@@ -2020,9 +2147,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    KEYBOARD CONTROL
-     **************/
+    /**
+     * ***********
+     * KEYBOARD CONTROL
+     * ************
+     */
     @Override
     public TextInputControl getTextInputControl() {
         return this;
@@ -2066,6 +2195,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 break;
             case ENTER:
                 sendSpecialKey("ENTER", listener);
+                break;
             default:
                 Util.postError(listener, new ServiceCommandError(0, "The keycode is not available", null));
         }
@@ -2086,13 +2216,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    POWER CONTROL
-     **************/
+    /**
+     * ***********
+     * POWER CONTROL
+     * ************
+     */
     @Override
     public PowerControl getPowerControl() {
         return this;
     }
+
+    ;
 
     @Override
     public CapabilityPriorityLevel getPowerControlCapabilityLevel() {
@@ -2126,9 +2260,31 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    KEY CONTROL
-     **************/
+    public void turnOnScreen(ResponseListener<Object> listener) {
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+            @Override
+            public void onSuccess(Object object) {
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+
+            }
+        };
+
+        String uri = "ssap://com.webos.service.tvpower/power/turnOnScreen";
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+    }
+
+
+    /**
+     * ***********
+     * KEY CONTROL
+     * ************
+     */
     @Override
     public KeyControl getKeyControl() {
         return this;
@@ -2150,6 +2306,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 public void onConnected() {
                     mouseSocket.button(key);
                     Util.postSuccess(listener, null);
+                }
+
+                @Override
+                public void onDisconnected() {
+                    mouseSocket = null;
                 }
             });
         }
@@ -2188,6 +2349,10 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                     mouseSocket.click();
                     Util.postSuccess(listener, null);
                 }
+                @Override
+                public void onDisconnected() {
+                    mouseSocket = null;
+                }
             });
         }
     }
@@ -2202,10 +2367,21 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         sendSpecialKey("HOME", listener);
     }
 
+    // LJS_20170518_Add Quick Settings launching
+    public void qmenu(ResponseListener<Object> listener) {
+        sendSpecialKey("QMENU", listener);
+    }
 
-    /**************
-    Web App Launcher
-     **************/
+    // LJS_20170824_Add Info Button
+    public void info(ResponseListener<Object> listener) {
+        sendSpecialKey("INFO", listener);
+    }
+
+    /**
+     * ***********
+     * Web App Launcher
+     * ************
+     */
 
     @Override
     public WebAppLauncher getWebAppLauncher() {
@@ -2227,6 +2403,73 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         launchWebApp(webAppId, null, relaunchIfRunning, listener);
     }
 
+    //2015.01.14 hj - dynamic url 추가
+    public void launchWebApp(final String webAppId, final String webAppUrl, final JSONObject params, final WebAppSession.LaunchListener listener){
+        if (webAppId == null || webAppId.length() == 0) {
+            Util.postError(listener, new ServiceCommandError(-1, "You need to provide a valid webAppId.", null));
+
+            return;
+        }
+
+        final WebOSWebAppSession _webAppSession = mWebAppSessions.get(webAppId);
+
+        String uri = "ssap://webapp/launchWebApp";
+        JSONObject payload = new JSONObject();
+
+        try {
+            payload.put("webAppId", webAppId);
+            payload.put("webAppUrl", webAppUrl);
+            if (params != null) {
+                payload.put("urlParams", params);
+                JSONObject appInfo = new JSONObject();
+                appInfo.put("title", "LG TV Plus");
+//                appInfo.put("defaultWindowType", "overlay");//overlay//floating
+//                appInfo.put("transparent", true);
+                payload.put("appInfo", appInfo);
+
+//            JSONObject param = new JSONObject();
+//            param.put("noLoadingSplash", true);
+//            payload.put("params", param);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(final Object response) {
+                JSONObject obj = (JSONObject) response;
+
+                LaunchSession launchSession = null;
+                WebOSWebAppSession webAppSession = _webAppSession;
+
+                if (webAppSession != null)
+                    launchSession = webAppSession.launchSession;
+                else {
+                    launchSession = LaunchSession.launchSessionForAppId(webAppId);
+                    webAppSession = new WebOSWebAppSession(launchSession, WebOSTVService.this);
+                    mWebAppSessions.put(webAppId, webAppSession);
+                }
+
+                launchSession.setService(WebOSTVService.this);
+                launchSession.setSessionId(obj.optString("sessionId"));
+                launchSession.setSessionType(LaunchSessionType.WebApp);
+                launchSession.setRawData(obj);
+
+                Util.postSuccess(listener, webAppSession);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+    }
+    //2015.11.18 cic hj - title 추가함.
     public void launchWebApp(final String webAppId, final JSONObject params, final WebAppSession.LaunchListener listener) {
         if (webAppId == null || webAppId.length() == 0) {
             Util.postError(listener, new ServiceCommandError(-1, "You need to provide a valid webAppId.", null));
@@ -2241,9 +2484,33 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
         try {
             payload.put("webAppId", webAppId);
+            if ("MediaPlayerTest".equals(webAppId)){
+                JSONObject param = new JSONObject();
+                param.put("lang", Locale.getDefault());
+                payload.put("urlParams", param);
 
-            if (params != null)
+
+
+                JSONObject appInfo = new JSONObject();
+                appInfo.put("title", "LG TV Plus");
+                JSONObject noRecent = new JSONObject();
+                noRecent.put("hidden", true);
+                appInfo.put("class", noRecent);
+                payload.put("appInfo", appInfo);
+
+            }
+            else if (params != null) {
                 payload.put("urlParams", params);
+                JSONObject appInfo = new JSONObject();
+                appInfo.put("title", "LG TV Plus");
+//                appInfo.put("defaultWindowType", "overlay");//overlay//floating
+//                appInfo.put("transparent", true);
+                payload.put("appInfo", appInfo);
+
+//            JSONObject param = new JSONObject();
+//            param.put("noLoadingSplash", true);
+//            payload.put("params", param);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -2328,22 +2595,53 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         }
 
         final WebOSWebAppSession webAppSession = mWebAppSessions.get(launchSession.getAppId());
-        if (webAppSession != null) {
-            webAppSession.disconnectFromWebApp();
+
+        if (webAppSession != null && webAppSession.isConnected()) {
+            JSONObject serviceCommand = new JSONObject();
+            JSONObject closeCommand = new JSONObject();
+
+            try {
+                serviceCommand.put("type", "close");
+
+                closeCommand.put("contentType", "connectsdk.serviceCommand");
+                closeCommand.put("serviceCommand", serviceCommand);
+            } catch (JSONException ex) {
+                ex.printStackTrace();
+            }
+
+            webAppSession.sendMessage(closeCommand, new ResponseListener<Object>() {
+
+                @Override
+                public void onError(ServiceCommandError error) {
+                    webAppSession.disconnectFromWebApp();
+
+                    Util.postError(listener, error);
+                }
+
+                @Override
+                public void onSuccess(Object object) {
+                    webAppSession.disconnectFromWebApp();
+
+                    Util.postSuccess(listener, object);
+                }
+            });
+        } else {
+            if (webAppSession != null)
+                webAppSession.disconnectFromWebApp();
+
+            String uri = "ssap://webapp/closeWebApp";
+            JSONObject payload = new JSONObject();
+
+            try {
+                if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
+                if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+            request.send();
         }
-
-        String uri = "ssap://webapp/closeWebApp";
-        JSONObject payload = new JSONObject();
-
-        try {
-            if (launchSession.getAppId() != null) payload.put("webAppId", launchSession.getAppId());
-            if (launchSession.getSessionId() != null) payload.put("sessionId", launchSession.getSessionId());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
-        request.send();
     }
 
     public void connectToWebApp(final WebOSWebAppSession webAppSession, final boolean joinOnly, final ResponseListener<Object> connectionListener) {
@@ -2392,13 +2690,14 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                 String state = jsonObj.optString("state");
 
-                if (!state.equalsIgnoreCase("CONNECTED")) {
-                    if (joinOnly && state.equalsIgnoreCase("WAITING_FOR_APP")) {
-                        Util.postError(connectionListener, new ServiceCommandError(0, "Web app is not currently running", null));
-                    }
-
-                    return;
-                }
+                LLog.d("hj", "connectToWebApp state : " + state);
+//                if (!state.equalsIgnoreCase("CONNECTED")) {
+//                    if (joinOnly && state.equalsIgnoreCase("WAITING_FOR_APP")) {
+//                        Util.postError(connectionListener, new ServiceCommandError(0, "Web app is not currently running", null));
+//                    }
+//
+//                    return;
+//                }
 
                 String fullAppId = jsonObj.optString("appId");
 
@@ -2435,7 +2734,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
                             @Override
                             public void run() {
-                                webAppSession.getWebAppSessionListener().onWebAppSessionDisconnect(webAppSession);
+                                if(webAppSession != null && webAppSession.getWebAppSessionListener() != null)
+                                    webAppSession.getWebAppSessionListener().onWebAppSessionDisconnect(webAppSession);
                             }
                         });
                     }
@@ -2630,7 +2930,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     @Override
     public void joinWebApp(final LaunchSession webAppLaunchSession, final WebAppSession.LaunchListener listener) {
         final WebOSWebAppSession webAppSession = this.webAppSessionForLaunchSession(webAppLaunchSession);
-
+        webAppSession.launchSession.setAppName(null);//2015.10.29 hj - add null
         webAppSession.join(new ResponseListener<Object>() {
 
             @Override
@@ -2640,6 +2940,19 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
             @Override
             public void onSuccess(Object object) {
+                //2015.10.28 cic hj - Connect 상태 알기 위해 추가함..
+                JSONObject jsonObj = (JSONObject) object;
+                LLog.d("hj", "jsonObj : " + jsonObj);
+                if (jsonObj != null) {
+                    String state = jsonObj.optString("state");
+                    LLog.d("hj", "join state : " + state);
+                    if (state.equalsIgnoreCase("CONNECTED")) {
+                        webAppSession.launchSession.setAppName("CONNECTED");
+                    } else {
+                        webAppSession.launchSession.setAppName(null);
+                    }
+                }
+                ///////////////////////////////////////////
                 Util.postSuccess(listener, webAppSession);
             }
         });
@@ -2705,6 +3018,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             payload.put("type", "p2p");
             payload.put("to", fullAppId);
             payload.put("payload", message);
+
+            Object payTest = payload.get("payload");
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -2730,9 +3045,11 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     }
 
 
-    /**************
-    SYSTEM CONTROL
-     **************/
+    /**
+     * ***********
+     * SYSTEM CONTROL
+     * ************
+     */
     public void getServiceInfo(final ServiceInfoListener listener) {
         String uri = "ssap://api/getServiceList";
 
@@ -2758,6 +3075,26 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
+    public void getCurrentTime(final CurrentTimeListener listener) {
+        String uri = "ssap://com.webos.service.tv.time/getCurrentTime";
+
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject)response;
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        });
+
+        request.send();
+    }
+
     public void getSystemInfo(final SystemInfoListener listener) {
         String uri = "ssap://system/getSystemInfo";
 
@@ -2765,13 +3102,13 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
             @Override
             public void onSuccess(Object response) {
-                try {
+//                try {
                     JSONObject jsonObj = (JSONObject)response;
-                    JSONObject features = (JSONObject) jsonObj.get("features");
-                    Util.postSuccess(listener, features);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+//                    JSONObject features = (JSONObject) jsonObj.get("features");
+                    Util.postSuccess(listener, jsonObj);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
             }
 
             @Override
@@ -2864,33 +3201,15 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
         request.send();
     }
 
-    /******************
-     PLAYLIST CONTROL
-     *****************/
-    @Override
-    public PlaylistControl getPlaylistControl() {
-        return this;
-    }
-
-    @Override
-    public CapabilityPriorityLevel getPlaylistControlCapabilityLevel() {
-        return CapabilityPriorityLevel.HIGH;
-    }
-
-    @Override
-    public void jumpToTrack(long index, ResponseListener<Object> listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-    }
-
-    @Override
-    public void setPlayMode(PlayMode playMode, ResponseListener<Object> listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-    }
-
     @Override
     public void sendCommand(ServiceCommand<?> command) {
-        if (socket != null)
-            socket.sendCommand(command);
+        if (socket != null) {
+            try {
+                socket.sendCommand(command);
+            } catch (WebsocketNotConnectedException err) {
+                Log.e("Tms", "WebsocketNotConnectedException");
+            }
+        }
     }
 
     @Override
@@ -2903,20 +3222,44 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
     protected void updateCapabilities() {
         List<String> capabilities = new ArrayList<String>();
 
-        Collections.addAll(capabilities, VolumeControl.Capabilities);
-        Collections.addAll(capabilities, MediaPlayer.Capabilities);
-
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            Collections.addAll(capabilities, TextInputControl.Capabilities);
-            Collections.addAll(capabilities, MouseControl.Capabilities);
-            Collections.addAll(capabilities, KeyControl.Capabilities);
-            Collections.addAll(capabilities, MediaPlayer.Capabilities);
-            Collections.addAll(capabilities, Launcher.Capabilities);
-            Collections.addAll(capabilities, TVControl.Capabilities);
-            Collections.addAll(capabilities, ExternalInputControl.Capabilities);
-            Collections.addAll(capabilities, ToastControl.Capabilities);
+            for (String capability : TextInputControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : MouseControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : KeyControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : MediaPlayer.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : Launcher.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : TVControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : ExternalInputControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : VolumeControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : ToastControl.Capabilities) {
+                capabilities.add(capability);
+            }
+
             capabilities.add(PowerControl.Off);
         } else {
+            for (String capability : VolumeControl.Capabilities) {
+                capabilities.add(capability);
+            }
+            for (String capability : MediaPlayer.Capabilities) {
+                capabilities.add(capability);
+            }
+
             capabilities.add(Application);
             capabilities.add(Application_Params);
             capabilities.add(Application_Close);
@@ -2933,10 +3276,8 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             capabilities.add(AppState_Subscribe);
         }
 
-        if (serviceDescription != null) {
-            if (serviceDescription.getVersion() != null
-                    && (serviceDescription.getVersion().contains("4.0.0")
-                    || serviceDescription.getVersion().contains("4.0.1"))) {
+        if (serviceDescription != null && serviceDescription.getVersion() != null) {
+            if (serviceDescription.getVersion().contains("4.0.0") || serviceDescription.getVersion().contains("4.0.1")) {
                 capabilities.add(Launch);
                 capabilities.add(Launch_Params);
 
@@ -2949,23 +3290,17 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
                 capabilities.add(PlayState);
 
                 capabilities.add(WebAppLauncher.Close);
-
-                if (getDLNAService() != null) {
-                    capabilities.add(MediaPlayer.Subtitle_SRT);
-                }
             } else {
-                Collections.addAll(capabilities, WebAppLauncher.Capabilities);
-                Collections.addAll(capabilities, MediaControl.Capabilities);
+                for (String capability : WebAppLauncher.Capabilities) {
+                    capabilities.add(capability);
+                }
+                for (String capability : MediaControl.Capabilities) {
+                    if (capability.equalsIgnoreCase(MediaControl.Previous) || capability.equalsIgnoreCase(MediaControl.Next))
+                        continue;
 
-                capabilities.add(MediaPlayer.Subtitle_WebVTT);
-
-                capabilities.add(PlaylistControl.JumpToTrack);
-                capabilities.add(PlaylistControl.Next);
-                capabilities.add(PlaylistControl.Previous);
-
-                capabilities.add(MediaPlayer.Loop);
+                    capabilities.add(capability);
+                }
             }
-
         }
 
         setCapabilities(capabilities);
@@ -2976,11 +3311,18 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             return permissions;
 
         List<String> defaultPermissions = new ArrayList<String>();
-        Collections.addAll(defaultPermissions, kWebOSTVServiceOpenPermissions);
+        for (String perm : kWebOSTVServiceOpenPermissions) {
+            defaultPermissions.add(perm);
+        }
 
         if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
-            Collections.addAll(defaultPermissions, kWebOSTVServiceProtectedPermissions);
-            Collections.addAll(defaultPermissions, kWebOSTVServicePersonalActivityPermissions);
+            for (String perm : kWebOSTVServiceProtectedPermissions) {
+                defaultPermissions.add(perm);
+            }
+
+            for (String perm : kWebOSTVServicePersonalActivityPermissions) {
+                defaultPermissions.add(perm);
+            }
         }
 
         permissions = defaultPermissions;
@@ -2997,7 +3339,7 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
             config.setClientKey(null);
 
             if (isConnected()) {
-                Log.w(Util.T, "Permissions changed -- you will need to re-pair to the TV.");
+                Log.w("Connect SDK", "Permissions changed -- you will need to re-pair to the TV.");
                 disconnect();
             }
         }
@@ -3145,5 +3487,1539 @@ public class WebOSTVService extends DeviceService implements Launcher, MediaCont
 
     public static interface ServiceInfoListener extends ResponseListener<JSONArray> { }
 
-    public static interface SystemInfoListener extends ResponseListener<JSONObject> { }
+    public static interface SystemInfoListener extends ResponseListener<JSONObject> {
+    }
+
+    public static interface CurrentTimeListener extends ResponseListener<JSONObject> {}
+
+    public void getSDXHeader(ResponseListener<Object> listener) {
+        getSDXHeader(false, listener);
+    }
+    public ServiceSubscription<ResponseListener> subscribeSDXHeader(ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getSDXHeader(true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getSDXHeader(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://com.webos.service.sdx/getHttpHeaderForServiceRequest";
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    //2015.03.06 CIC hj - channelList/valueList값 같이 넘김
+//    final float IPChannelMinOS = 2.2f;
+//    final String[] IPChannelCountry = {"KR"};
+    public ServiceCommand<ResponseListener<Object>> getValueChannelList(String contry, final ChannelListListener listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                try {
+                    JSONObject jsonObj = (JSONObject) response;
+                    ArrayList<ChannelInfo> list = new ArrayList<ChannelInfo>();
+                    ChannelInfo value = new ChannelInfo();
+                    try {
+                        String valueList = jsonObj.getString("valueList");
+                        value.setId(valueList);
+                    } catch(JSONException e){
+                        value.setId("");
+                        e.printStackTrace();
+                    }
+                    list.add(value);
+
+                    JSONArray array = (JSONArray) jsonObj.get("channelList");
+                    for (int i = 0; i < array.length(); i++) {
+                        JSONObject object = (JSONObject) array.get(i);
+
+                        ChannelInfo channel = parseRawChannelData(object);
+                        list.add(channel);
+
+//                        Log.d("hj", i + "번 채널 : " + object.toString());
+                    }
+
+                    ChannelInfo url = new ChannelInfo();
+                    try {
+                        String channelLogoServerUrl = jsonObj.getString("channelLogoServerUrl");
+                        url.setId(channelLogoServerUrl);
+                    } catch(JSONException e){
+                        url.setId("");
+                        e.printStackTrace();
+                    }
+                    list.add(url);
+
+                    Util.postSuccess(listener, list);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = null;
+
+//        boolean isIPChannelContry = false;
+//        for(int i=0; i<IPChannelCountry.length; i++) {
+//            if(IPChannelCountry[i].equals(contry)) {
+//                isIPChannelContry = true;
+//                break;
+//            }
+//        }
+//        if(isIPChannelContry) {
+//            String osVersion = WebOSTVServiceSocketClient.deviceOSReleaseVersion;
+//            if (!osVersion.equals("")) {
+//                osVersion = osVersion.substring(0, 3);
+//                try {
+//                    if (Float.valueOf(osVersion) >= IPChannelMinOS) {
+//                        payload = new JSONObject();
+//                        JSONArray modes = new JSONArray();
+//                        modes.put("Tuner");
+//                        modes.put("IP");
+//                        payload.put("channelMode", modes);
+//                    }
+//                } catch (Exception e) {
+//                    Log.e("getValueChannelList", e.toString());
+//                    Log.e("getValueChannelList", "error of osVersion string to float!!!");
+//                }
+//            }
+//        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, CHANNEL_LIST, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+
+/*    //2015.02.24 CIC hj - 숫자키 / 대쉬 / 엔터 키 추가
+    public void num(int num, ResponseListener<Object> listener) {
+        sendSpecialKey(String.valueOf(num));
+    }
+    public void dash(ResponseListener<Object> listener) {
+        sendSpecialKey("DASH");
+    }
+    public void enter(ResponseListener<Object> listener) {
+        sendSpecialKey("ENTER");
+    }
+*/
+    //2015.03.04 hj - 녹화/컬러키 추가
+    public void red(ResponseListener<Object> listener) {
+        sendSpecialKey("RED", null);
+    }
+    public void green(ResponseListener<Object> listener) {
+        sendSpecialKey("GREEN", null);
+    }
+    public void yellow(ResponseListener<Object> listener) {
+        sendSpecialKey("YELLOW", null);
+    }
+    public void blue(ResponseListener<Object> listener) {
+        sendSpecialKey("BLUE", null);
+    }
+    public void recode(ResponseListener<Object> listener) {
+        sendSpecialKey("RECORD", listener);
+    }
+    public void exit(ResponseListener<Object> listener) {
+        sendSpecialKey("EXIT", null);
+    }
+
+    //2015/04.28 hj - 일본키 추가
+    public void sendJapanKey(String type , ResponseListener<Object> listener){
+        sendSpecialKey(type, null);
+    }
+
+    //2015.05.08 cic hj - 3D h/w 버튼
+    public void button_3d(ResponseListener<Object> listener){
+        sendSpecialKey("3D_MODE", null);
+    }
+
+    //2016.08.19 channel up / down key 버튼 추가
+    public void chanUp (ResponseListener<Object> listener){
+        sendSpecialKey("CHANNELUP", null);
+    }
+
+    public void chanDown (ResponseListener<Object> listener){
+        sendSpecialKey("CHANNELDOWN", null);
+    }
+
+/*    //2015.01.29 CIC hj - sdx값 로딩
+    public static interface CurrentProgramListener extends ResponseListener<ProgramInfo> {
+    }
+
+    public ServiceSubscription<WebOSTVService.CurrentProgramListener> subscribeCurrentProgram(CurrentProgramListener listener) {
+        return (ServiceSubscription<WebOSTVService.CurrentProgramListener>) getCurrentProgram(true, listener);
+    }
+*/
+    //2015.02.24 CIC hj - AppInfo 보냄
+    public ServiceCommand<ResponseListener<Object>> getAppInfo(String id, final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.applicationManager/getAppInfo";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("id", id);
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    //2015.02.24 CIC hj - DeepLink
+    public ServiceCommand<ResponseListener<Object>> launchContent(JSONObject payload, final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.applicationManager/launch";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // 2015.04.1 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceCommand<ResponseListener<Object>> setSoundOutput(String output, final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.apiadapter/audio/changeSoundOutput";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("output", output);
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceSubscription<ResponseListener> subscribeSoundOutput(ResponseListener listener) {
+        // timeout modified from 20 seconds to 10 seconds, for performance improvement
+        return (ServiceSubscription<ResponseListener>) getSoundOutput(true, listener);
+    }
+
+    // 2015.10.20 CIC - BT Agent - Haejung Kim - getSoundOutput
+    private ServiceCommand<ResponseListener<Object>> getSoundOutput(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String url = "ssap://com.webos.service.apiadapter/audio/getSoundOutput";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+//        try {
+//            payload.put("deviceClass", deviceclass);
+//            payload.put("seconds", seconds);
+//        } catch (JSONException e){
+//
+//        }
+
+        if (isSubscription) {
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        } else
+            request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+    // 2015.04.2 LGSI - BT Agent - Raghavendra Ramesh
+      @SuppressWarnings("unchecked")
+    public ServiceSubscription<ResponseListener> subscribeFindBTDevices(ResponseListener listener) {
+		// timeout modified from 20 seconds to 10 seconds, for performance improvement
+        return (ServiceSubscription<ResponseListener>) findBTAudioDevices(true, 4, 10, listener);
+    }
+
+    // 2015.04.2 LGSI - BT Agent - Raghavendra Ramesh
+    private ServiceCommand<ResponseListener<Object>> findBTAudioDevices(boolean isSubscription, int deviceclass, int seconds, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String BTDEVICE = "ssap://com.webos.service.bluetooth/gap/findDevices";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("deviceClass", deviceclass);
+            payload.put("seconds", seconds);
+        } catch (JSONException e){
+
+        }
+
+        if (isSubscription) {
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, BTDEVICE, payload, true, responseListener);
+        } else
+            request = new ServiceCommand<ResponseListener<Object>>(this, BTDEVICE, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    //2015.04.30 cic hj - getStates
+    public ServiceCommand<ResponseListener<Object>> getStatesOfBTAudioDevice(final ResponseListener<Object> listener) {
+
+        String CONNECT = "ssap://com.webos.service.bluetooth/service/getStates";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("service", "audio");
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, CONNECT, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // 2015.04.2 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceCommand<ResponseListener<Object>> connectBTAudioDevice(String mac, final ResponseListener<Object> listener) {
+
+        String CONNECT = "ssap://com.webos.service.bluetooth/service/connect";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("service", "audio");
+            payload.put("address", mac);
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, CONNECT, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // 2015.04.2 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceCommand<ResponseListener<Object>> disconnectBTAudioDevice(String mac, final ResponseListener<Object> listener) {
+
+        String DISCONNECT = "ssap://com.webos.service.bluetooth/service/disconnect";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("service", "audio");
+            payload.put("address", mac);
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, DISCONNECT, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // 2015.04.2 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceCommand<ResponseListener<Object>> getTrustedBTAudioDevice(final ResponseListener<Object> listener) {
+
+        String TRUSTEDDEVICE = "ssap://com.webos.service.bluetooth/gap/getTrustedDevices";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("service", "audio");
+
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, TRUSTEDDEVICE, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // 2015.04.15 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceCommand<ResponseListener<Object>> removeTrustedBTAudioDevice(String mac, final ResponseListener<Object> listener) {
+
+        String REMOVETRUSTEDDEVICE = "ssap://com.webos.service.bluetooth/gap/removeTrustedDevice";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+
+        };
+
+        JSONObject payload = new JSONObject();
+
+        try {
+            payload.put("address", mac);
+
+        } catch (JSONException e){
+
+        }
+        request = new ServiceCommand<ResponseListener<Object>>(this, REMOVETRUSTEDDEVICE, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+    
+    public ServiceCommand<ResponseListener<Object>> getCurrentSWInfo(final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.update/getCurrentSWInformation";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> startUpdateByRemoteApp(String httpURL, final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.update/startUpdateByRemoteApp";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("server_url", httpURL);
+        } catch (JSONException e){
+
+        }
+
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceSubscription<ResponseListener> subscribeFOTAInstallProgress(ResponseListener listener) {
+        return (ServiceSubscription<ResponseListener>) getFOTAInstallProgress(true, listener);
+    }
+
+    private ServiceCommand<ResponseListener<Object>> getFOTAInstallProgress(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://com.webos.service.update/getProgress";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Log.d("FOTA", jsonObj.toString());
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("subscribe", true);
+        } catch (JSONException e){
+
+        }
+
+        if (isSubscription) {
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        } else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    public ServiceSubscription<ResponseListener> subscribeFOTAInstallStatus(ResponseListener listener) {
+        return (ServiceSubscription<ResponseListener>) getFOTAInstallStatus(true, listener);
+    }
+
+    private ServiceCommand<ResponseListener<Object>> getFOTAInstallStatus(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://com.webos.service.update/getStatus";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Log.d("FOTA", jsonObj.toString());
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("subscribe", true);
+        } catch (JSONException e){
+
+        }
+
+        if (isSubscription) {
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        } else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    public void touchRaw(String rawData) {
+        if (mouseSocket != null)
+            mouseSocket.touchRaw(rawData);
+        else {
+            connectMouse();
+        }
+    }
+
+    // 2015.04.20 LGSI - BT Agent - Raghavendra Ramesh
+    public ServiceSubscription<ResponseListener> subscribeNotifications(ResponseListener listener) {
+        return (ServiceSubscription<ResponseListener>) getNotification(true, listener);
+    }
+
+
+    // 2015.04.20 LGSI - BT Agent - Raghavendra Ramesh
+    private ServiceCommand<ResponseListener<Object>> getNotification(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String SUBSCRIBE = "ssap://com.webos.service.bluetooth/service/subscribeNotifications";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("subscribe", isSubscription);
+        } catch (JSONException e){
+
+        }
+
+        if (isSubscription) {
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, SUBSCRIBE, payload, true, responseListener);
+        } else
+            request = new ServiceCommand<ResponseListener<Object>>(this, SUBSCRIBE, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+
+    //2015.06.24 hj - UAC
+    public ServiceCommand<ResponseListener<Object>> setUserInfo(JSONObject payload, final ResponseListener<Object> listener) {
+
+        String url = "ssap://user/setUserInfo";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> delelteUserInfo(JSONObject payload, final ResponseListener<Object> listener) {
+
+        String url = "ssap://user/resetUserInfo";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    //2015.06.29 hj - My Starter
+    public ServiceCommand<ResponseListener<Object>> setUserSchedule(JSONObject payload, final ResponseListener<Object> listener) {
+
+        String url = "ssap://user/setUserSchedule";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    //2015.06.30 hj - wifi-mac
+    public ServiceCommand<ResponseListener<Object>> getWifiMacAddress(final ResponseListener<Object> listener) {
+
+        String DISCONNECT = "ssap://com.webos.service.connectionmanager/getinfo";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, DISCONNECT, null, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    //2016.06.03 js 추가중
+    // ~webOS 3.5 : getP2pState, webOS 4.0~ : getState
+    public ServiceSubscription<ResponseListener> subscribeP2pState(ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getP2pState(true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getP2pState(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "";
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            uri = "ssap://com.webos.service.miracast/getState";
+        } else {
+            uri = "ssap://com.webos.service.miracast/getP2pState";
+        }
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    //2015.07.17 cic hj - OnTimer 추가
+    public ServiceCommand<ResponseListener<Object>> setTimer(JSONObject payload, final ResponseListener<Object> listener) {
+
+        String url = "ssap://timer/setSettings";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public void getOnTimer(JSONObject payload, ResponseListener<Object> listener) {
+        getOnTimer(payload, false, listener);
+    }
+    public ServiceSubscription<ResponseListener> subscribeOnTimer(JSONObject payload,ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getOnTimer(payload, true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getOnTimer(JSONObject payload, boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://timer/getSettings";
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+    public ServiceCommand<ResponseListener<Object>> launchOverlayApp(final ResponseListener<Object> listener) {
+        String url = "";
+        JSONObject payload = new JSONObject();
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            url = "ssap://com.webos.service.miracast/launchOverlayApp";
+            try {
+                payload.put("sender", "com.lgsmartplatform.redirect.SampleMobileWebApp.miracast");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+        return request;
+    }
+
+    //kheo new API checkMircast 4.0~
+    /*
+       Name : checkMiracast
+       Parameter : isAPMode - for AP mode(true), request getConnectedDeviceInfo service
+                              for p2p mode(false), request getstatus service.
+                              calling checkMiracast at very firsttime, parameter isAPMode should be true,
+                              so we can get the connectionmode.
+     */
+    public ServiceCommand<ResponseListener<Object>> getConnectionMode(final ResponseListener<Object> listener) {
+        String url = "";
+        JSONObject payload = new JSONObject();
+        url = "ssap://com.webos.service.miracast/getConnectedDeviceInfo";
+        try {
+            payload.put("subscribe", true);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+        return request;
+    }
+
+
+
+    public ServiceCommand<ResponseListener<Object>> getMiracastInfo(boolean isAPMode, final ResponseListener<Object> listener) {
+        String url = "";
+        JSONObject payload = new JSONObject();
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            if(isAPMode) {
+                url = "ssap://com.webos.service.miracast/getConnectedDeviceInfo";
+            } else {
+                url = "ssap://com.webos.service.connectionmanager/getstatus";
+                try {
+                    payload.put("subscribe", true);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+            }
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+        return request;
+    }
+
+    // ~webOS 3.5 : close,  webOS 4.0~ : sendRTSPRequest
+    public ServiceCommand<ResponseListener<Object>> closeMiracast(final ResponseListener<Object> listener) {
+        String url = "";
+        JSONObject payload = new JSONObject();
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            url = "ssap://com.webos.service.miracast/sendRTSPRequest";
+            try {
+                payload.put("message", "teardown");
+                payload.put("extraInfo", "tms");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            url = "ssap://com.webos.service.miracast/close";
+            try {
+                payload.put("reason", "tms");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // ~webOS 3.5 : setUACSettings,  webOS 4.0~ : setWFDConnectionMode
+    public ServiceCommand<ResponseListener<Object>> enableMiracast(String uacMode, final ResponseListener<Object> listener) {
+        String url = "";
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            url = "ssap://com.webos.service.miracast/setWFDConnectionMode";
+        } else {
+            url = "ssap://com.webos.service.miracast/setUACSettings";
+        }
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("UACMode", uacMode);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // webOS 4.0~
+    public ServiceCommand<ResponseListener<Object>> getWFDConnectionMode(boolean isSubscribe, final ResponseListener<Object> listener) {
+
+        String url = "ssap://com.webos.service.miracast/getWFDConnectionMode";
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("subscribe", isSubscribe);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        if(isSubscribe)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // ~webOS 3.5 : setUACSettings,  webOS 4.0~ : setWFDConnectionMode
+    public ServiceCommand<ResponseListener<Object>> disableMiracast(final ResponseListener<Object> listener) {
+
+        String url = "";
+        if(TmsConfig.getFeatureType() >= TmsConfig.VER_40_UP) {
+            url = "ssap://com.webos.service.miracast/setWFDConnectionMode";
+        } else {
+            url = "ssap://com.webos.service.miracast/setUACSettings";
+        }
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("UACMode", "disabled");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> isWiFiOnly(final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.bluetooth/gap/isWiFiOnly";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // ~webOS 3.5
+    public ServiceCommand<ResponseListener<Object>> getUibcKeyEvent(boolean isSubscribe, final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.miracast/uibc/getUibcKeyEvent";
+
+        ServiceCommand<ResponseListener<Object>> request;
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("subscribe", isSubscribe);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if(isSubscribe)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    // ~webOS 3.5
+    public ServiceCommand<ResponseListener<Object>> getConnectionStatus(final ResponseListener<Object> listener) {
+        String uri = "ssap://com.webos.service.miracast/getConnectionStatus";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> setUserData(JSONObject payload, final ResponseListener<Object> listener) {
+
+        String url = "ssap://user/setUserData";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, jsonObj);
+
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+        request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> getTwinConfig(boolean isSubscribe, final ResponseListener<Object> listener) {
+
+        String url = "ssap://config/getConfigs";
+
+        ServiceCommand<ResponseListener<Object>> request;
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("configNames", "tv.model.twinTV");
+            if(isSubscribe)
+                payload.put("subscribe", true);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if(isSubscribe)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+//    public ServiceCommand<ResponseListener<Object>> getTwinSetting(boolean isSubscribe, final ResponseListener<Object> listener) {
+//
+//        String url = "ssap://settings/getSystemSettings";
+//
+//        ServiceCommand<ResponseListener<Object>> request;
+//        JSONObject payload = new JSONObject();
+//        try {
+//            payload.put("category", "twinTv");
+//            JSONArray jsonArray = new JSONArray();
+//            jsonArray.put("status");
+//            jsonArray.put("role");
+//            jsonArray.put("systemMode");
+//            payload.put("keys",jsonArray);
+//            if(isSubscribe)
+//                payload.put("subscribe", true);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+//
+//            @Override
+//            public void onSuccess(Object response) {
+//                JSONObject jsonObj = (JSONObject) response;
+//                Util.postSuccess(listener, (JSONObject) response);
+//            }
+//
+//            @Override
+//            public void onError(ServiceCommandError error) {
+//                Util.postError(listener, error);
+//            }
+//        };
+//
+//        if(isSubscribe)
+//            request = new URLServiceSubscription<ResponseListener<Object>>(this, url, payload, true, responseListener);
+//        else
+//            request = new ServiceCommand<ResponseListener<Object>>(this, url, payload, true, responseListener);
+//        request.send();
+//
+//        return request;
+//    }
+
+    //15.10.27 cic hj - subscribeTwinSetting 추가
+    public ServiceSubscription<ResponseListener> subscribeTwinSetting(ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getTwinSetting(true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getTwinSetting(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://settings/getSystemSettings";
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("category", "twinTv");
+            JSONArray jsonArray = new JSONArray();
+            jsonArray.put("status");  // complete / none/ undefined / inprogress
+            jsonArray.put("role");    // undefined / master / slave
+            jsonArray.put("systemMode"); // wide / split
+            payload.put("keys",jsonArray);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+
+    //15.11.18 cic hj - subscribeHostMessage 추가
+    public ServiceSubscription<ResponseListener> subscribeHostMessage(ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getHostMessage(true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getHostMessage(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://system/getHostMessage";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    //15.11.18 cic hj - subscribeHostMessage 추가
+    public ServiceSubscription<ResponseListener> subscribePowerState(ResponseListener<Object> listener) {
+        return (ServiceSubscription<ResponseListener>) getPowerState(true, listener);
+    }
+    private ServiceCommand<ResponseListener<Object>> getPowerState(boolean isSubscription, final ResponseListener<Object> listener) {
+        ServiceCommand<ResponseListener<Object>> request;
+        String uri = "ssap://com.webos.service.tvpower/power/getPowerState";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        if (isSubscription)
+            request = new URLServiceSubscription<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        else
+            request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+
+        request.send();
+
+        return request;
+    }
+
+    //2015.12.07 cic hj - bt agent api 추
+    public ServiceCommand<ResponseListener<Object>> getConfig(JSONObject payload, final ResponseListener<Object> listener) {
+        String uri = "ssap://config/getConfigs";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                JSONObject jsonObj = (JSONObject) response;
+                Util.postSuccess(listener, (JSONObject) response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    public ServiceCommand<ResponseListener<Object>> sendAlert(JSONObject payload, final ResponseListener<Object> listener) {
+        String uri = "ssap://system.notifications/createAlert";
+
+        ServiceCommand<ResponseListener<Object>> request;
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+                Util.postSuccess(listener, response);
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        request = new ServiceCommand<>(this, uri, payload, true, responseListener);
+        request.send();
+
+        return request;
+    }
+
+    //2016.07.28 alert popup 추가
+    public void closeAlert(JSONObject payload, ResponseListener<Object> listener) {
+        String uri = "ssap://system.notifications/closeAlert";
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, true, listener);
+        request.send();
+    }
 }

@@ -50,6 +50,10 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     JmDNS jmdns;
     InetAddress srcAddress;
 
+    private final static int RESCAN_INTERVAL = 10000;
+    private final static int RESCAN_ATTEMPTS = 6;
+    private final static int TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
+
     private Timer scanTimer;
 
     List<DiscoveryFilter> serviceFilters;
@@ -70,17 +74,18 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
                 return;
             }
 
+            String uuid = ipAddress;
             String friendlyName = ev.getInfo().getName();
             int port = ev.getInfo().getPort();
 
-            ServiceDescription foundService = foundServices.get(ipAddress);
+            ServiceDescription foundService = foundServices.get(uuid);
 
             boolean isNew = foundService == null;
             boolean listUpdateFlag = false;
 
             if (isNew) {
                 foundService = new ServiceDescription();
-                foundService.setUUID(ipAddress);
+                foundService.setUUID(uuid);
                 foundService.setServiceFilter(ev.getInfo().getType());
                 foundService.setIpAddress(ipAddress);
                 foundService.setServiceID(serviceIdForFilter(ev.getInfo().getType()));
@@ -99,7 +104,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (foundService != null)
                 foundService.setLastDetection(new Date().getTime());
 
-            foundServices.put(ipAddress, foundService);
+            foundServices.put(uuid, foundService);
 
             if (listUpdateFlag) {
                 for (DiscoveryProviderListener listener: serviceListeners) {
@@ -266,7 +271,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     @Override
     public void addDeviceFilter(DiscoveryFilter filter) {
         if (filter.getServiceFilter() == null) {
-            Log.e(Util.T, "This device filter does not have zeroconf filter info");
+            Log.e("Connect SDK", "This device filter does not have zeroconf filter info");
         } else {
             serviceFilters.add(filter);
         }
@@ -274,7 +279,26 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void removeDeviceFilter(DiscoveryFilter filter) {
-        serviceFilters.remove(filter);
+        String removalServiceId;
+        boolean shouldRemove = false;
+        int removalIndex = -1;
+
+        removalServiceId = filter.getServiceId();
+
+        for (int i = 0; i < serviceFilters.size(); i++) {
+            DiscoveryFilter serviceFilter = serviceFilters.get(i);
+            String serviceId = serviceFilter.getServiceId();
+
+            if (serviceId.equals(removalServiceId)) {
+                shouldRemove = true;
+                removalIndex = i;
+                break;
+            }
+        }
+
+        if (shouldRemove) {
+            serviceFilters.remove(removalIndex);
+        }
     }
 
     @Override

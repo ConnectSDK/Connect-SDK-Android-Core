@@ -25,11 +25,13 @@ import android.util.Log;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
+import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryProvider;
 import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.discovery.provider.ssdp.SSDPClient;
 import com.connectsdk.discovery.provider.ssdp.SSDPDevice;
 import com.connectsdk.discovery.provider.ssdp.SSDPPacket;
+import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.config.ServiceDescription;
 
 import org.xml.sax.SAXException;
@@ -52,6 +54,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class SSDPDiscoveryProvider implements DiscoveryProvider {
     Context context;
+
+    private final static int RESCAN_INTERVAL = 10000;
+    private final static int RESCAN_ATTEMPTS = 30;
+    private final static int SSDP_TIMEOUT = RESCAN_INTERVAL * RESCAN_ATTEMPTS;
 
     boolean needToStartSearch = false;
 
@@ -109,7 +115,6 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             return;
 
         isRunning = true;
-
         openSocket();
 
         scanTimer = new Timer();
@@ -131,7 +136,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     public void sendSearch() {
         List<String> killKeys = new ArrayList<String>();
 
-        long killPoint = new Date().getTime() - TIMEOUT;
+        long killPoint = new Date().getTime() - SSDP_TIMEOUT;
 
         for (String key : foundServices.keySet()) {
             ServiceDescription service = foundServices.get(key);
@@ -144,6 +149,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
             final ServiceDescription service = foundServices.get(key);
 
             if (service != null) {
+                Log.i("hj", "notifyListenersOfLostService 151");
                 notifyListenersOfLostService(service);
             }
 
@@ -216,13 +222,13 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
                 timer.schedule(task, i * 1000);
             }
         }
-
+        ;
     }
 
     @Override
     public void addDeviceFilter(DiscoveryFilter filter) {
         if (filter.getServiceFilter() == null) {
-            Log.e(Util.T, "This device filter does not have ssdp filter info");
+            Log.e("Connect SDK", "This device filter does not have ssdp filter info");
         } else {
             serviceFilters.add(filter);
         }
@@ -230,7 +236,26 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void removeDeviceFilter(DiscoveryFilter filter) {
-        serviceFilters.remove(filter);
+        String removalServiceId;
+        boolean shouldRemove = false;
+        int removalIndex = -1;
+
+        removalServiceId = filter.getServiceId();
+
+        for (int i = 0; i < serviceFilters.size(); i++) {
+            DiscoveryFilter serviceFilter = serviceFilters.get(i);
+            String serviceId = serviceFilter.getServiceId();
+
+            if (serviceId.equals(removalServiceId)) {
+                shouldRemove = true;
+                removalIndex = i;
+                break;
+            }
+        }
+
+        if (shouldRemove) {
+            serviceFilters.remove(removalIndex);
+        }
     }
 
     @Override
@@ -277,20 +302,23 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
         }
     };
 
-    private void handleSSDPPacket(SSDPPacket ssdpPacket) {
-        // Debugging stuff
-//        Util.runOnUI(new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.type);
-//
-//                for (String key : ssdpPacket.data.keySet()) {
-//                    Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.data.get(key));
-//                }
-//                Log.d("Connect SDK Socket", "__________________________________________");
-//            }
-//        });
+    private void handleSSDPPacket(final SSDPPacket ssdpPacket) {
+        // Debugging stuff - hj
+
+        /*if(DiscoveryManager.mSearching) {
+            Util.runOnUI(new Runnable() {
+
+                @Override
+                public void run() {
+                    Log.d("Connect SDK Socket", "Packet received | type = " + ssdpPacket.getType());
+
+                    for (String key : ssdpPacket.getData().keySet()) {
+                        Log.d("Connect SDK Socket", "    " + key + " = " + ssdpPacket.getData().get(key));
+                    }
+                    Log.d("Connect SDK Socket", "__________________________________________");
+                }
+            });
+        }*/
         // End Debugging stuff
 
         if (ssdpPacket == null || ssdpPacket.getData().size() == 0 || ssdpPacket.getType() == null)
@@ -318,7 +346,7 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
             if (service != null) {
                 foundServices.remove(uuid);
-
+                Log.i("hj", "notifyListenersOfLostService 360");
                 notifyListenersOfLostService(service);
             }
         } else {
@@ -430,6 +458,11 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
     }
 
     private void notifyListenersOfLostService(ServiceDescription service) {
+//        try {
+//            throw new Exception();
+//        } catch (Exception e) {
+//            Log.e("hj", "notifyListenersOfLostService StackTrace : ", e);
+//        }
         List<String> serviceIds = serviceIdsForFilter(service.getServiceFilter());
 
         for (String serviceId : serviceIds) {

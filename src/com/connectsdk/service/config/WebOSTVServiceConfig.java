@@ -31,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Base64;
+import android.util.Log;
 
 public class WebOSTVServiceConfig extends ServiceConfig {
 
@@ -82,13 +83,19 @@ public class WebOSTVServiceConfig extends ServiceConfig {
     }
 
     public void setServerCertificate(X509Certificate cert) {
-        this.cert = cert;
-        notifyUpdate();
+//        Log.i("hj", "setServerCertificate X509Certificate : " + cert);
+//        if(cert != null) {
+            this.cert = cert;
+            notifyUpdate();
+//        }
     }
 
     public void setServerCertificate(String cert) {
-        this.cert = loadCertificateFromPEM(cert);
-        notifyUpdate();
+//        Log.i("hj", "setServerCertificate String : " + cert);
+//        if(cert != null) {
+            this.cert = loadCertificateFromPEM(cert);
+            notifyUpdate();
+//        }
     }
 
     public String getServerCertificateInString() {

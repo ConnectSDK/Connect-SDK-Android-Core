@@ -20,15 +20,35 @@
 
 package com.connectsdk.service;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.etc.helper.DeviceServiceReachability;
-import com.connectsdk.etc.helper.HttpConnection;
 import com.connectsdk.etc.helper.HttpMessage;
-import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.NotSupportedServiceSubscription;
@@ -40,20 +60,9 @@ import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 public class DIALService extends DeviceService implements Launcher {
 
     public static final String ID = "DIAL";
-    private static final String APP_NETFLIX = "Netflix";
 
     private static List<String> registeredApps = new ArrayList<String>();
 
@@ -68,18 +77,16 @@ public class DIALService extends DeviceService implements Launcher {
             registeredApps.add(appId);
     }
 
+    HttpClient httpClient;
+
     public DIALService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
-    }
 
-    @Override
-    public CapabilityPriorityLevel getPriorityLevel(Class<? extends CapabilityMethods> clazz) {
-        if (clazz.equals(Launcher.class)) {
-            return getLauncherCapabilityLevel();
-        }
-        return CapabilityPriorityLevel.NOT_SUPPORTED;
+        httpClient = new DefaultHttpClient();
+        ClientConnectionManager mgr = httpClient.getConnectionManager();
+        HttpParams params = httpClient.getParams();
+        httpClient = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
     }
-
 
     public static DiscoveryFilter discoveryFilter() {
         return new DiscoveryFilter(ID, "urn:dial-multiscreen-org:service:dial:1");
@@ -132,6 +139,40 @@ public class DIALService extends DeviceService implements Launcher {
         launchAppWithInfo(appInfo, listener);
     }
 
+//    private void launchApplication(final String appName, String contentId, final AppLaunchListener listener) {
+//        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+//
+//            @Override
+//            public void onSuccess(Object response) {
+//                LaunchSession launchSession = new LaunchSession();
+//                launchSession.setService(DIALService.this);
+//                launchSession.setAppName(appName);
+//
+//                Util.postSuccess(listener, launchSession);
+//            }
+//
+//            @Override
+//            public void onError(ServiceCommandError error) {
+//                Util.postError(listener, error);
+//            }
+//        };
+//
+//        String uri = requestURL(appName);
+//
+//        String payload = null;
+//        if (contentId != null) {
+//            StringBuilder sb = new StringBuilder();
+//            sb.append("v");
+//            sb.append("=");
+//            sb.append(contentId);
+//
+//            payload = sb.toString();
+//        }
+//
+//        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, payload, responseListener);
+//        request.send();
+//    }
+
     @Override
     public void launchAppWithInfo(AppInfo appInfo, AppLaunchListener listener) {
         launchAppWithInfo(appInfo, null, listener);
@@ -139,9 +180,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     @Override
     public void launchAppWithInfo(final AppInfo appInfo, Object params, final AppLaunchListener listener) {
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
-                        requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
             @Override
             public void onError(ServiceCommandError error) {
                 Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
@@ -175,18 +214,14 @@ public class DIALService extends DeviceService implements Launcher {
             public void onSuccess(AppState state) {
                 String uri = requestURL(launchSession.getAppName());
 
-                if (launchSession.getSessionId().contains("http://")
-                        || launchSession.getSessionId().contains("https://"))
+                if (launchSession.getSessionId().contains("http://") || launchSession.getSessionId().contains("https://"))
                     uri = launchSession.getSessionId();
-                else if (launchSession.getSessionId().endsWith("run")
-                        || launchSession.getSessionId().endsWith("run/"))
+                else if (launchSession.getSessionId().endsWith("run") || launchSession.getSessionId().endsWith("run/"))
                     uri = requestURL(launchSession.getAppId() + "/run");
                 else
                     uri = requestURL(launchSession.getSessionId());
 
-                ServiceCommand<ResponseListener<Object>> command =
-                        new ServiceCommand<ResponseListener<Object>>(launchSession.getService(),
-                                uri, null, listener);
+                ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(launchSession.getService(), uri, null, listener);
                 command.setHttpMethod(ServiceCommand.TYPE_DEL);
                 command.send();
             }
@@ -200,7 +235,7 @@ public class DIALService extends DeviceService implements Launcher {
 
     @Override
     public void launchYouTube(String contentId, AppLaunchListener listener) {
-        launchYouTube(contentId, (float) 0.0, listener);
+        launchYouTube(contentId, (float)0.0, listener);
     }
 
     @Override
@@ -236,15 +271,16 @@ public class DIALService extends DeviceService implements Launcher {
 
         if (contentId != null && contentId.length() > 0) {
             try {
-                params = new JSONObject() {{
+                new JSONObject() {{
                     put("v", contentId);
                 }};
             } catch (JSONException e) {
-                Log.e(Util.T, "Launch Netflix error", e);
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
 
-        AppInfo appInfo = new AppInfo(APP_NETFLIX);
+        AppInfo appInfo = new AppInfo("Netflix");
         appInfo.setName(appInfo.getId());
 
         launchAppWithInfo(appInfo, params, listener);
@@ -292,9 +328,7 @@ public class DIALService extends DeviceService implements Launcher {
 
         String uri = requestURL(appName);
 
-        ServiceCommand<ResponseListener<Object>> request =
-                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(), uri, null,
-                        responseListener);
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, responseListener);
         request.setHttpMethod(ServiceCommand.TYPE_GET);
 
         request.send();
@@ -398,36 +432,65 @@ public class DIALService extends DeviceService implements Launcher {
                 ServiceCommand<ResponseListener<Object>> command = (ServiceCommand<ResponseListener<Object>>) mCommand;
                 Object payload = command.getPayload();
 
-                try {
-                    HttpConnection connection = createHttpConnection(mCommand.getTarget());
-                    if (payload != null || command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
-                        connection.setMethod(HttpConnection.Method.POST);
-                        if (payload != null) {
-                            connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; " +
-                                    "charset=\"utf-8\"");
-                            connection.setPayload(payload.toString());
+                HttpRequestBase request = command.getRequest();
+                HttpResponse response = null;
+                int code = -1;
+
+                if (payload != null && command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
+                    request.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; charset=\"utf-8\"");
+                    HttpPost post = (HttpPost) request;
+                    HttpEntity entity = null;
+                    try {
+                        if (payload instanceof String) {
+                            entity = new StringEntity((String) payload);
+
+                        } else if (payload instanceof JSONObject) {
+                            entity = new StringEntity((String) payload);
                         }
-                    } else if (command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_DEL)) {
-                        connection.setMethod(HttpConnection.Method.DELETE);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                        //  Error is handled below if entity is null;
                     }
-                    connection.execute();
-                    int code = connection.getResponseCode();
-                    if (code == 200) {
-                        Util.postSuccess(command.getResponseListener(), connection.getResponseString());
+
+                    if (entity == null) {
+                        Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Unknown Error while preparing to send message", null));
+
+                        return;
+                    }
+
+                    post.setEntity(entity);
+                }
+
+                try {
+                    response = httpClient.execute(request);
+
+                    code = response.getStatusLine().getStatusCode();
+
+                    if (code == 200) { 
+                        HttpEntity entity = response.getEntity();
+                        String message = EntityUtils.toString(entity, "UTF-8");
+
+                        Util.postSuccess(command.getResponseListener(), message);
                     } else if (code == 201) {
-                        Util.postSuccess(command.getResponseListener(), connection.getResponseHeader("Location"));
-                    } else {
+                        String locationPath = response.getHeaders("Location")[0].getValue();
+
+                        Util.postSuccess(command.getResponseListener(), locationPath);
+                    }
+                    else {
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
-                } catch (Exception e) {
-                    Util.postError(command.getResponseListener(), new ServiceCommandError(0, e.getMessage(), null));
+                } catch (IllegalStateException e) {
+                    //  TODO:  Find out why this is needed.
+                    e.printStackTrace();
+                } catch (ClientProtocolException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
         });
-    }
-
-    HttpConnection createHttpConnection(String target) throws IOException {
-        return HttpConnection.newInstance(URI.create(target));
     }
 
     private String requestURL(String appName) {
@@ -464,15 +527,14 @@ public class DIALService extends DeviceService implements Launcher {
     private void hasApplication(String appID, ResponseListener<Object> listener) {
         String uri = requestURL(appID);
 
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(), uri, null, listener);
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, uri, null, listener);
         command.setHttpMethod(ServiceCommand.TYPE_GET);
         command.send();
     }
 
     private void probeForAppSupport() {
         if (serviceDescription.getApplicationURL() == null) {
-            Log.d(Util.T, "unable to check for installed app; no service application url");
+            Log.d("Connect SDK", "unable to check for installed app; no service application url");
             return;
         }
 
@@ -488,5 +550,10 @@ public class DIALService extends DeviceService implements Launcher {
                 }
             });
         }
+    }
+
+    @Override
+    public ServiceSubscription<AppInfoListener> subscribeRunningExtraApp(boolean isSubscription, boolean isExtraApp, AppInfoListener listener) {
+        return null;
     }
 }

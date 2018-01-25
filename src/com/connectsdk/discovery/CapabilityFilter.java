@@ -21,7 +21,6 @@
 package com.connectsdk.discovery;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -130,6 +129,7 @@ public class CapabilityFilter {
      * @param capabilities String[] of capability names 
      */
     public void addCapabilities(String... capabilities) {
-        Collections.addAll(this.capabilities, capabilities);
+        for (String capability : capabilities)
+            this.capabilities.add(capability);
     }
 }

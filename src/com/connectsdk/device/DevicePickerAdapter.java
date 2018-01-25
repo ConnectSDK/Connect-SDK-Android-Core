@@ -20,17 +20,16 @@
 
 package com.connectsdk.device;
 
-import java.util.HashMap;
-
-import com.connectsdk.discovery.DiscoveryManager;
-
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import com.connectsdk.discovery.DiscoveryManager;
+
+import java.util.HashMap;
 
 
 public class DevicePickerAdapter extends ArrayAdapter<ConnectableDevice> {
@@ -71,11 +70,12 @@ public class DevicePickerAdapter extends ArrayAdapter<ConnectableDevice> {
             text = device.getModelName();
         }
 
-        view.setBackgroundColor(Color.BLACK);
+        //2015.02.27 CIC hj - Device 리스트 팝업 배경색 텍스트 컬러 삭제
+//        view.setBackgroundColor(Color.BLACK);
 
         TextView textView = (TextView) view.findViewById(textViewResourceId);
         textView.setText(text);
-        textView.setTextColor(Color.WHITE);
+//        textView.setTextColor(Color.WHITE);
 
         boolean isDebuggable =  (0 != (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE));
         boolean hasNoFilters = DiscoveryManager.getInstance().getCapabilityFilters().size() == 0;
@@ -86,14 +86,14 @@ public class DevicePickerAdapter extends ArrayAdapter<ConnectableDevice> {
         boolean shouldShowServiceNames = hasServiceNames && (isDebuggable || hasNoFilters);
 
         TextView subTextView = (TextView) view.findViewById(subTextViewResourceId);
-
-        if (shouldShowServiceNames) {
-            subTextView.setText(serviceNames);
-            subTextView.setTextColor(Color.WHITE);
-        } else {
-            subTextView.setText(null);
-        }
-
+        //2015.02.27 CIC hj - 서비스 이름 대신 IP주소 뿌림.
+//        if (shouldShowServiceNames) {
+//            subTextView.setText(serviceNames);
+//            subTextView.setTextColor(Color.WHITE);
+//        } else {
+//            subTextView.setText(null);
+//        }
+        subTextView.setText(device.getIpAddress());
         return view;
     }
 }

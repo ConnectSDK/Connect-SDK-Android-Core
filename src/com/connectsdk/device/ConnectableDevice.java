@@ -20,26 +20,12 @@
 
 package com.connectsdk.device;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.util.Log;
-
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService;
 import com.connectsdk.service.DeviceService.DeviceServiceListener;
 import com.connectsdk.service.DeviceService.PairingType;
 import com.connectsdk.service.capability.CapabilityMethods;
-import com.connectsdk.service.capability.CapabilityMethods.CapabilityPriorityLevel;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
 import com.connectsdk.service.capability.Launcher;
@@ -53,8 +39,23 @@ import com.connectsdk.service.capability.TextInputControl;
 import com.connectsdk.service.capability.ToastControl;
 import com.connectsdk.service.capability.VolumeControl;
 import com.connectsdk.service.capability.WebAppLauncher;
+import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceDescription;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * ###Overview
@@ -176,8 +177,11 @@ public class ConnectableDevice implements DeviceServiceListener {
 
             @Override
             public void run() {
-                for (ConnectableDeviceListener listener : listeners)
-                    listener.onCapabilityUpdated(ConnectableDevice.this, added, new ArrayList<String>());
+                for (ConnectableDeviceListener listener : listeners) {
+                    //2015.03.19 CIC hj - check null
+                    if (listener != null)
+                        listener.onCapabilityUpdated(ConnectableDevice.this, added, new ArrayList<String>());
+                }
             }
         });
 
@@ -283,7 +287,7 @@ public class ConnectableDevice implements DeviceServiceListener {
      * @param listener ConnectableDeviceListener to listen to device events (connect, disconnect, ready, etc)
      */
     public void addListener(ConnectableDeviceListener listener) {
-        if (!listeners.contains(listener)) {
+        if (listeners.contains(listener) == false) {
             listeners.add(listener);
         }
     }
@@ -291,12 +295,10 @@ public class ConnectableDevice implements DeviceServiceListener {
     /**
      * Clears the array of listeners and adds the provided `listener` to the array. If `listener` is null, the array will be empty.
      * 
-     * This method is deprecated. Since version 1.2.1, use
-     * `ConnectableDevice#addListener(ConnectableDeviceListener listener)` instead
+     * @deprecated Since version 1.2.1, use addListener instead
      * 
      * @param listener ConnectableDeviceListener to listen to device events (connect, disconnect, ready, etc)
      */
-    @Deprecated
     public void setListener(ConnectableDeviceListener listener) {
         listeners = new CopyOnWriteArrayList<ConnectableDeviceListener>();
 
@@ -342,8 +344,11 @@ public class ConnectableDevice implements DeviceServiceListener {
 
             @Override
             public void run() {
-                for (ConnectableDeviceListener listener : listeners)
-                    listener.onDeviceDisconnected(ConnectableDevice.this);
+                for (ConnectableDeviceListener listener : listeners) {
+                    //2015.03.19 CIC hj - check null
+                    if(listener != null)
+                        listener.onDeviceDisconnected(ConnectableDevice.this);
+                }
             }
         });
     }
@@ -487,8 +492,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority Launcher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public Launcher getLauncher() {
@@ -497,8 +501,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MediaPlayer object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public MediaPlayer getMediaPlayer() {
@@ -507,8 +510,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MediaControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public MediaControl getMediaControl() {
@@ -517,8 +519,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority PlaylistControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public PlaylistControl getPlaylistControl() {
@@ -527,8 +528,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority VolumeControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public VolumeControl getVolumeControl() {
@@ -537,8 +537,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority WebAppLauncher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public WebAppLauncher getWebAppLauncher() {
@@ -547,8 +546,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority TVControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public TVControl getTVControl() {
@@ -557,8 +555,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority ToastControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public ToastControl getToastControl() {
@@ -567,8 +564,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority TextInputControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public TextInputControl getTextInputControl() {
@@ -577,8 +573,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority MouseControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public MouseControl getMouseControl() {
@@ -587,8 +582,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority ExternalInputControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public ExternalInputControl getExternalInputControl() {
@@ -597,8 +591,7 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority PowerLauncher object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public PowerControl getPowerControl() {
@@ -607,47 +600,71 @@ public class ConnectableDevice implements DeviceServiceListener {
 
     /**
      * Accessor for highest priority KeyControl object
-     * This method is deprecated. Use
-     * `ConnectableDevice#getCapability(Class<T> controllerClass)` method instead
+     * @deprecated Use getCapability method instead
      */
     @Deprecated
     public KeyControl getKeyControl() {
         return getCapability(KeyControl.class);
     }
 
-    /**
-     * Get a capability with the highest priority from a device. If device doesn't have such
-     * capability then returns null.
-     * @param controllerClass type of capability
-     * @return capability implementation
-     */
-    public <T extends CapabilityMethods> T getCapability(Class<T> controllerClass) {
+    private <T extends CapabilityMethods> T getApiController(Class<T> controllerClass, String priorityMethod) {
         T foundController = null;
-        CapabilityPriorityLevel foundControllerPriority = CapabilityPriorityLevel.NOT_SUPPORTED;
         for (DeviceService service: services.values()) {
             if (service.getAPI(controllerClass) == null)
                 continue;
 
             T controller = service.getAPI(controllerClass);
-            CapabilityPriorityLevel controllerPriority = service.getPriorityLevel(controllerClass);
 
             if (foundController == null) {
                 foundController = controller;
- 
-                if (controllerPriority == null || controllerPriority == CapabilityPriorityLevel.NOT_SUPPORTED) {
-                    Log.w(Util.T, "We found a mathcing capability class, but no priority level for the class. Please check \"getPriorityLevel()\" in your class");
-                }
-                foundControllerPriority = controllerPriority;
             }
-            else if (controllerPriority != null && foundControllerPriority != null) {
-                if (controllerPriority.getValue() > foundControllerPriority.getValue()) {
-                    foundController = controller;
-                    foundControllerPriority = controllerPriority;
+            else {
+                Method method;
+                try {
+                    method = controllerClass.getMethod(priorityMethod);
+                    CapabilityMethods.CapabilityPriorityLevel controllerProirity = 
+                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(controller);
+                    CapabilityMethods.CapabilityPriorityLevel foundControllerProirity = 
+                            (CapabilityMethods.CapabilityPriorityLevel)method.invoke(foundController);
+                    if (controllerProirity.getValue() > foundControllerProirity.getValue()) {
+                        foundController = controller;
+                    }
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (RuntimeException e) {
+                    e.printStackTrace();
                 }
             }
         }
 
         return foundController;
+    }
+
+    /**
+     * get the highest priority capability of a service
+     * @param clazz
+     * @return
+     */
+    public <T extends CapabilityMethods> T getCapability(Class<T> clazz) {
+        Map<Class, String> methods = new HashMap<Class, String>();
+        methods.put(Launcher.class, "getLauncherCapabilityLevel");
+        methods.put(MediaPlayer.class, "getMediaPlayerCapabilityLevel");
+        methods.put(MediaControl.class, "getMediaControlCapabilityLevel");
+        methods.put(PlaylistControl.class, "getPlaylistControlCapabilityLevel");
+        methods.put(VolumeControl.class, "getVolumeControlCapabilityLevel");
+        methods.put(WebAppLauncher.class, "getWebAppLauncherCapabilityLevel");
+        methods.put(TVControl.class, "getTVControlCapabilityLevel");
+        methods.put(ToastControl.class, "getToastControlCapabilityLevel");
+        methods.put(TextInputControl.class, "getTextInputControlCapabilityLevel");
+        methods.put(MouseControl.class, "getMouseControlCapabilityLevel");
+        methods.put(ExternalInputControl.class, "getExternalInputControlPriorityLevel");
+        methods.put(PowerControl.class, "getPowerControlCapabilityLevel");
+        methods.put(KeyControl.class, "getKeyControlCapabilityLevel");
+        return getApiController(clazz, methods.get(clazz));
     }
 
     /** 
@@ -858,8 +875,35 @@ public class ConnectableDevice implements DeviceServiceListener {
     @Override
     public void onConnectionFailure(DeviceService service, Error error) {
         // disconnect device if all services are not connected
-        onDisconnect(service, error);
-    } 
+
+        ServiceCommandError mError = (ServiceCommandError)error;
+
+
+        try {
+
+            int errorCode = mError.getCode();
+            System.out.println("[DEBUG] AHAAHAHAHAH1111: " + errorCode);
+            if (errorCode == 403) {
+                onPairingFailed(service, error);
+            } else {
+                //2015.10.27 cic hj - change 403
+                JSONObject payload = (JSONObject) mError.getPayload();
+                if (payload != null) {
+                    int errorCode1 = payload.optInt("errorCode");
+                    System.out.println("[DEBUG] AHAAHAHAHAH2222: " + errorCode1);
+                    if (errorCode1 == -1000) {
+                        onPairingFailed(service, error);
+                    } else {
+                        onDisconnect(service, error);
+                    }
+                } else {
+                    onDisconnect(service, error);
+                }
+            }
+        } catch (Exception e) {
+            onDisconnect(service, error);
+        }
+    }
 
     @Override public void onConnectionRequired(DeviceService service) {
     } 
@@ -878,8 +922,11 @@ public class ConnectableDevice implements DeviceServiceListener {
 
                 @Override
                 public void run() {
-                    for (ConnectableDeviceListener listener : listeners)
-                        listener.onDeviceReady(ConnectableDevice.this);
+                    for (ConnectableDeviceListener listener : listeners) {
+                        //2015.03.19 CIC hj - check null
+                        if(listener != null)
+                            listener.onDeviceReady(ConnectableDevice.this);
+                    }
                 }
             });
 
@@ -891,7 +938,9 @@ public class ConnectableDevice implements DeviceServiceListener {
     public void onDisconnect(DeviceService service, Error error) {
         if (getConnectedServiceCount() == 0 || services.size() == 0) {
             for (ConnectableDeviceListener listener : listeners) {
-                listener.onDeviceDisconnected(this);
+                //2015.03.19 CIC hj check null
+                if(listener != null)
+                    listener.onDeviceDisconnected(this);
             }
         }
     }

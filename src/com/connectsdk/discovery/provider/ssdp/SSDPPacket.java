@@ -29,9 +29,7 @@ public class SSDPPacket {
     DatagramPacket datagramPacket;
     Map<String, String> data = new HashMap<String, String>();
     String type;
-    static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
-    static final String CRLF = "\r\n";
-    static final String LF = "\n";
+    Charset ASCII_CHARSET = Charset.forName("US-ASCII");
 
     public SSDPPacket(DatagramPacket datagramPacket) {
         this.datagramPacket = datagramPacket;
@@ -40,7 +38,9 @@ public class SSDPPacket {
 
         int pos = 0;
 
-	        int eolPos;
+        String CRLF = "\r\n";
+        String LF = "\n";
+        int eolPos;
 
         if ((eolPos = text.indexOf(CRLF)) != -1) {
             pos = eolPos + CRLF.length();
