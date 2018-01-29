@@ -1,6 +1,7 @@
 package com.connectsdk.service.webos;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -10,17 +11,14 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.X509TrustManager;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.client.DefaultSSLWebSocketClientFactory;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
@@ -678,14 +676,22 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     private void setSSLContext(SSLContext sslContext) {
-        setWebSocketFactory(new DefaultSSLWebSocketClientFactory(sslContext));
+        //Web-Socket 1.3.7 patch
+        try {
+            setSocket(sslContext.getSocketFactory().createSocket());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
+        //patch ends
     }
 
     protected void setupSSL() {
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            customTrustManager = new TrustManager();
-            sslContext.init(null, new TrustManager [] {customTrustManager}, null);
+            customTrustManager = new WebOSTVTrustManager();
+            sslContext.init(null, new WebOSTVTrustManager [] {customTrustManager}, null);
             setSSLContext(sslContext);
 
             if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
