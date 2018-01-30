@@ -679,6 +679,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         //Web-Socket 1.3.7 patch
         try {
             setSocket(sslContext.getSocketFactory().createSocket());
+			setConnectionLostTimeout(0);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (RuntimeException e) {
