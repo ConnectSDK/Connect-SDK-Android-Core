@@ -20,8 +20,13 @@
 
 package com.connectsdk.service.webos;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLContext;
 
 import org.java_websocket.WebSocket.READYSTATE;
 import org.java_websocket.client.WebSocketClient;
@@ -95,14 +100,19 @@ public class WebOSTVMouseSocketConnection {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             customTrustManager = new WebOSTVTrustManager();
             sslContext.init(null, new WebOSTVTrustManager[] {customTrustManager}, null);
-            WebSocketClient.WebSocketClientFactory fac = new DefaultSSLWebSocketClientFactory(sslContext);
-            ws.setWebSocketFactory(fac);
+            //Web-Socket 1.3.7 patch
+            ws.setSocket(sslContext.getSocketFactory().createSocket());
+            ws.setConnectionLostTimeout(0);
         } catch (KeyException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
-
+        //patch ends
         ws.connect();
     }
 
