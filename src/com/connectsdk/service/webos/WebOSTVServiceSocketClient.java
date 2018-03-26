@@ -49,6 +49,10 @@ import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
 
+import java.security.PublicKey;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+
 @SuppressLint("DefaultLocale")
 public class WebOSTVServiceSocketClient extends WebSocketClient implements ServiceCommandProcessor {
 
@@ -290,12 +294,18 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
                 // Track SSL certificate
                 // Not the prettiest way to get it, but we don't have direct access to the SSLEngine
-                ((WebOSTVServiceConfig) mService.getServiceConfig()).setServerCertificate(customTrustManager.getLastCheckedCertificate());
 
-                handleRegistered();
+                sendVerification();
+                if (verification_status) {
+                    ((WebOSTVServiceConfig) mService.getServiceConfig()).setServerCertificate(customTrustManager.getLastCheckedCertificate());
+                    handleRegistered();
 
-                if (id != null)
-                    requests.remove(id);
+                    if (id != null)
+                        requests.remove(id);
+                } else {
+                    Log.d(TAG, "Certification Verification Failed");
+                    mListener.onRegistrationFailed(new ServiceCommandError(0, "Certificate Registration failed", null));
+                }
             }
         } else if ("error".equals(type)) {
             String error = message.optString("error");
@@ -420,6 +430,84 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
         ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, null, sendData, true, null);
         this.sendCommandImmediately(request);
+    }
+
+    protected void sendVerification() {
+        ResponseListener<Object> listener = new ResponseListener<Object>() {
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                state = State.INITIAL;
+
+                if (mListener != null)
+                    mListener.onRegistrationFailed(error);
+            }
+
+            @Override
+            public void onSuccess(Object object) {
+                if (object instanceof JSONObject) {
+
+                }
+            }
+        };
+
+        int dataId = this.nextRequestId++;
+
+        ServiceCommand<ResponseListener<Object>> command = new ServiceCommand<ResponseListener<Object>>(this, null, null, listener);
+        command.setRequestId(dataId);
+
+        JSONObject headers = new JSONObject();
+        JSONObject payload = new JSONObject();
+        int public_key_value = 0;
+        int valid_value = 0;
+
+        try {
+
+            headers.put("type", "verification");
+            headers.put("id", dataId);
+
+            X509Certificate cert = customTrustManager.getLastCheckedCertificate();
+            PublicKey pk = null;
+
+
+                pk = cert.getPublicKey();
+                String pubKey = Base64.encodeToString(pk.getEncoded(),Base64.DEFAULT);
+
+                if(!(Public_Key == null || Public_Key.isEmpty())) {
+                        boolean verified = pubKey.trim().equalsIgnoreCase(Public_Key.trim());
+                        if (verified) {
+                            payload.put("public-key", 1);
+                            public_key_value = 1;
+                        } else {
+                            payload.put("public-key", -1);
+                            public_key_value = -1;
+                        }
+                    } else {
+                        payload.put("public-key", -1);
+                        public_key_value = -1;
+                    }
+
+
+            try {
+                ((X509Certificate)cert).checkValidity();
+                payload.put("validity", 1);
+                valid_value = 1;
+            }catch (CertificateExpiredException|CertificateNotYetValidException e) {
+                payload.put("validity", -1);
+                valid_value = -1;
+                e.printStackTrace();
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        requests.put(dataId, command);
+        sendMessage(headers, payload);
+
+        if(public_key_value == 1 && valid_value == 1) {
+            verification_status = true;
+        }
     }
 
     protected void sendRegister() {
