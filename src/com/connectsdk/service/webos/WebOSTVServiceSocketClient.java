@@ -67,7 +67,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         REGISTERING,
         REGISTERED,
         DISCONNECTING
-    }
+    };
 
     WebOSTVServiceSocketClientListener mListener;
     WebOSTVService mService;
@@ -80,6 +80,13 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     JSONObject manifest;
 
     static final int PORT = 3001;
+    static boolean verification_status = false;
+    static final String Public_Key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2At7fSUHuMw6bm/z3Q+X4oY9KpDa1s06\n" +
+            "mht9vNmSkZE5xMo9asOtZAWLLbJLxifY6qz6LWKgNw4Pyk6HVTLFdj4jrV//gNGQvYtCp3HRriqg\n" +
+            "2YoceBNG59+SW3xNzuhUqy5/nerQPfNQiz9z9RqtGj/YWItlJcKrNOBecNmHc7Xmu+3yPN6kD1G2\n" +
+            "6uU8wPBqzMdqFpPcubedIOmh4nNa2sNkfvMkbR4Pk/YupsDpic56dMxX0Twvg6SiaKGjv8NO9Lcv\n"+
+            "hLt2dR2XXi/z2F6uVjP5oYPvlSAK9GHVo96khpafKGPvIwPSSGtlHI4is/yT7WEeLuQs5FD/vAs9\n"+
+            "eqQNkQIDAQAB\n";
 
     // Queue of commands that should be sent once register is complete
     LinkedHashSet<ServiceCommand<ResponseListener<Object>>> commandQueue = new LinkedHashSet<ServiceCommand<ResponseListener<Object>>>();
