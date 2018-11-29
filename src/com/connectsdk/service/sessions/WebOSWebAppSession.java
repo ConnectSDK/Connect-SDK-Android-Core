@@ -216,6 +216,21 @@ public class WebOSWebAppSession extends WebAppSession {
         }
 
         @Override
+        public void updateClientKey(String ClientKey) {
+
+        }
+
+        @Override
+        public void updateUUID(String UUID) {
+
+        }
+
+        @Override
+        public void updateIPAddress(String IPAddress) {
+
+        }
+
+        @Override
         public void onFailWithError(ServiceCommandError error) {
             connected = false;
             appToAppSubscription = null;
@@ -386,17 +401,6 @@ public class WebOSWebAppSession extends WebAppSession {
             }
         };
 
-        if (socket != null) {
-            if (socket.isConnected())
-                mConnectionListener.onSuccess(null);
-            else
-                socket.connect();
-        } else {
-            socket = new WebOSTVServiceSocketClient(service, WebOSTVServiceSocketClient
-                    .getURI(service));
-            socket.setListener(mSocketListener);
-            socket.connect();
-        }
     }
 
     public void disconnectFromWebApp() {

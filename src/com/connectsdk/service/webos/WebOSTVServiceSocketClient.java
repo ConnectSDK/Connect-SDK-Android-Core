@@ -1,30 +1,5 @@
 package com.connectsdk.service.webos;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.KeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-
-import javax.net.ssl.SSLContext;
-
-import org.java_websocket.WebSocket;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -40,7 +15,6 @@ import android.view.WindowManager;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService.PairingType;
-import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
@@ -49,12 +23,36 @@ import com.connectsdk.service.command.ServiceSubscription;
 import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
 
-import java.security.NoSuchProviderException;
+import org.java_websocket.WebSocket;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
-import java.security.SignatureException;
+import java.security.KeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+
+import javax.net.ssl.SSLContext;
 
 @SuppressLint("DefaultLocale")
 public class WebOSTVServiceSocketClient extends WebSocketClient implements ServiceCommandProcessor {
@@ -73,8 +71,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     };
 
     WebOSTVServiceSocketClientListener mListener;
-    WebOSTVService mService;
-    WebOSTVTrustManager customTrustManager;
+
+    WebOSTVTrustManager customTrustManager;  // 1.6.1 patch
 
     int nextRequestId = 1;
 
@@ -99,17 +97,28 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     boolean mConnectSucceeded = false;
     Boolean mConnected;
 
-    public WebOSTVServiceSocketClient(WebOSTVService service, URI uri) {
+    WebOSTVServiceConfig mconfig;
+    List<String> permissions;
+    PairingType mPairingType;
+
+    public String getClientKey() {
+        return mconfig.getClientKey();
+    }
+
+    public WebOSTVServiceSocketClient(WebOSTVServiceConfig config, PairingType pairingType , List<String> permissions, URI uri) {
         super(uri);
 
-        this.mService = service;
+        this.mPairingType = pairingType;
+        this.mconfig = config;
+        state = State.INITIAL;
+        this.permissions = permissions;
         state = State.INITIAL;
 
         setDefaultManifest();
     }
 
-    public static URI getURI(WebOSTVService service) {
-        String uriString = "wss://" + service.getServiceDescription().getIpAddress() + ":" + PORT;
+    public static URI getURI(String IpAddress) {
+        String uriString = "wss://" + IpAddress + ":" + PORT;
         URI uri = null;
 
         try {
@@ -169,7 +178,6 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
     private void setDefaultManifest() {
         manifest = new JSONObject();
-        List<String> permissions = mService.getPermissions();
 
         try {
             manifest.put("manifestVersion", 1);
@@ -294,20 +302,21 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 System.err.println("no matching request id: " + strId + ", payload: " + payload.toString());
             }
         } else if ("registered".equals(type)) {
-            if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-                mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+            if (!(mconfig instanceof WebOSTVServiceConfig)) {
+
+                mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
             }
 
             if (payload instanceof JSONObject) {
                 String clientKey = ((JSONObject) payload).optString("client-key");
-                ((WebOSTVServiceConfig) mService.getServiceConfig()).setClientKey(clientKey);
-
+                mconfig.setClientKey(clientKey);
+                mListener.updateClientKey(clientKey);
                 // Track SSL certificate
                 // Not the prettiest way to get it, but we don't have direct access to the SSLEngine
 
                 sendVerification();
                 if (verification_status) {
-                    ((WebOSTVServiceConfig) mService.getServiceConfig()).setServerCertificate(customTrustManager.getLastCheckedCertificate());
+                    ((WebOSTVServiceConfig) mconfig).setServerCertificate(customTrustManager.getLastCheckedCertificate());
                     handleRegistered();
 
                     if (id != null)
@@ -351,21 +360,24 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         } else if ("hello".equals(type)) {
             JSONObject jsonObj = (JSONObject)payload;
 
-            if (mService.getServiceConfig().getServiceUUID() != null) {
-                if (!mService.getServiceConfig().getServiceUUID().equals(jsonObj.optString("deviceUUID"))) {
-                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setClientKey(null);
-                    ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate((String)null);
-                    mService.getServiceConfig().setServiceUUID(null);
-                    mService.getServiceDescription().setIpAddress(null);
-                    mService.getServiceDescription().setUUID(null);
+            if (mconfig.getServiceUUID() != null) {
+                if (!mconfig.getServiceUUID().equals(jsonObj.optString("deviceUUID"))) {
+                    mconfig.setClientKey(null);
+                    mconfig.setServerCertificate((String)null);
+                    mconfig.setServiceUUID(null);
+                    mListener.updateClientKey(null);
+                    mListener.updateUUID(null);
+                    mListener.updateIPAddress(null);
+                    mListener.updateIPAddress(null);
+                    mListener.updateUUID(null);
 
                     disconnect();
                 }
             }
             else {
                 String uuid = jsonObj.optString("deviceUUID");
-                mService.getServiceConfig().setServiceUUID(uuid);
-                mService.getServiceDescription().setUUID(uuid);
+                mconfig.setServiceUUID(uuid);
+                mListener.updateUUID(uuid);
             }
 
             state = State.REGISTERING;
@@ -540,10 +552,16 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             @Override
             public void onSuccess(Object object) {
                 if (object instanceof JSONObject) {
+                    PairingType pairingType = PairingType.NONE;
+                    
                     JSONObject jsonObj = (JSONObject)object;
                     String type = jsonObj.optString("pairingType");
-                    PairingType pairingType = getPairingTypeFromString(type);
-
+                    if (type.equalsIgnoreCase("PROMPT")) {
+                        pairingType = PairingType.FIRST_SCREEN;
+                    }
+                    else if (type.equalsIgnoreCase("PIN")) {
+                        pairingType = PairingType.PIN_CODE;
+                    }
                     if (mListener != null)
                         mListener.onBeforeRegister(pairingType);
                 }
@@ -562,17 +580,16 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             headers.put("type", "register");
             headers.put("id", dataId);
 
-            if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-                mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+            if (!(mconfig instanceof WebOSTVServiceConfig)) {
+                mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
             }
 
-            if (((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey() != null) {
-                payload.put("client-key", ((WebOSTVServiceConfig)mService.getServiceConfig()).getClientKey());
+            if (mconfig.getClientKey() != null) {
+                payload.put("client-key", mconfig.getClientKey());
             }
 
-            String pairingTypeString = getPairingTypeString();
-            if (pairingTypeString != null) {
-                payload.put("pairingType", pairingTypeString);
+            if (PairingType.PIN_CODE.equals(mPairingType)) {
+                payload.put("pairingType", "PIN");
             }
 
             if (manifest != null) {
@@ -585,32 +602,6 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         requests.put(dataId, command);
 
         sendMessage(headers, payload);
-    }
-
-    private PairingType getPairingTypeFromString(String pairingTypeString) {
-        if (WEBOS_PAIRING_PROMPT.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.FIRST_SCREEN;
-        } else if (WEBOS_PAIRING_PIN.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.PIN_CODE;
-        } else if (WEBOS_PAIRING_COMBINED.equalsIgnoreCase(pairingTypeString)) {
-            return PairingType.MIXED;
-        }
-        return PairingType.NONE;
-    }
-
-    private String getPairingTypeString() {
-        PairingType pairingType = mService.getPairingType();
-        if (pairingType != null) {
-            switch (pairingType) {
-                case FIRST_SCREEN:
-                    return WEBOS_PAIRING_PROMPT;
-                case PIN_CODE:
-                    return WEBOS_PAIRING_PIN;
-                case MIXED:
-                    return WEBOS_PAIRING_COMBINED;
-            }
-        }
-        return null;
     }
 
     public void sendPairingKey(String pairingKey) {
@@ -799,10 +790,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             sslContext.init(null, new WebOSTVTrustManager [] {customTrustManager}, null);
             setSSLContext(sslContext);
 
-            if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-                mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+            if (!(mconfig instanceof WebOSTVServiceConfig)) {
+                mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
             }
-            customTrustManager.setExpectedCertificate(((WebOSTVServiceConfig)mService.getServiceConfig()).getServerCertificate());
+            customTrustManager.setExpectedCertificate(mconfig.getServerCertificate());
         } catch (KeyException e) {
         } catch (NoSuchAlgorithmException e) {
         }
@@ -861,35 +852,35 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     public void setServerCertificate(X509Certificate cert) {
-        if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-            mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+        if (!(mconfig instanceof WebOSTVServiceConfig)) {
+            mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
         }
 
-        ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate(cert);
+        mconfig.setServerCertificate(cert);
     }
 
     public void setServerCertificate(String cert) {
-        if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-            mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+        if (!(mconfig instanceof WebOSTVServiceConfig)) {
+            mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
         }
 
-        ((WebOSTVServiceConfig)mService.getServiceConfig()).setServerCertificate(loadCertificateFromPEM(cert));
+        mconfig.setServerCertificate(loadCertificateFromPEM(cert));
     }
 
     public X509Certificate getServerCertificate() {
-        if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-            mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+        if (!(mconfig instanceof WebOSTVServiceConfig)) {
+            mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
         }
 
-        return ((WebOSTVServiceConfig)mService.getServiceConfig()).getServerCertificate();
+        return mconfig.getServerCertificate();
     }
 
     public String getServerCertificateInString() {
-        if (!(mService.getServiceConfig() instanceof WebOSTVServiceConfig)) {
-            mService.setServiceConfig(new WebOSTVServiceConfig(mService.getServiceConfig().getServiceUUID()));
+        if (!(mconfig instanceof WebOSTVServiceConfig)) {
+            mconfig = new WebOSTVServiceConfig(mconfig.getServiceUUID());
         }
 
-        return exportCertificateToPEM(((WebOSTVServiceConfig)mService.getServiceConfig()).getServerCertificate());
+        return exportCertificateToPEM(mconfig.getServerCertificate());
     }
 
     private String exportCertificateToPEM(X509Certificate cert) {
@@ -937,5 +928,8 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         public void onRegistrationFailed(ServiceCommandError error);
         public Boolean onReceiveMessage(JSONObject message);
 
+         public void updateClientKey(String ClientKey);
+         public void updateUUID(String UUID);
+         public void updateIPAddress(String IPAddress);
     }
 }

@@ -27,7 +27,8 @@ public class WebOSTVServiceSocketClientTest {
     public void setUp() {
         WebOSTVService service = Mockito.mock(WebOSTVService.class);
         URI uri = URI.create("http://127.0.0.1/");
-        socketClient = new WebOSTVServiceSocketClient(service, uri);
+        socketClient = new WebOSTVServiceSocketClient(service.getWebOSTVServiceConfig(),
+                        service.getPairingType(), service.getPermissions(), uri);
     }
 
     @Test
