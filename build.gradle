@@ -12,6 +12,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+         maven { url "https://jitpack.io" }
     }
 }
 
@@ -66,6 +67,7 @@ dependencies {
     //implementation project(':Java-WebSocket')
     implementation files('libs/javax.jmdns_3.4.1-patch2.jar')
     implementation 'com.android.support:support-v4:21.0.0'
+     implementation 'com.github.jitpack:gradle-simple:1.0'
     implementation 'com.android.support:mediarouter-v7:21.0.0'
     implementation 'com.android.support:appcompat-v7:21.0.0'
     implementation 'com.google.android.gms:play-services-cast:7.8.0'
