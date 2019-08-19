@@ -138,6 +138,11 @@ public class SimpleDevicePicker implements ConnectableDeviceListener {
 
                 selectDevice(device);
             }
+        }, new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                listener.onPickDeviceFailed(true);
+            }
         });
 
         pickerDialog.show();
