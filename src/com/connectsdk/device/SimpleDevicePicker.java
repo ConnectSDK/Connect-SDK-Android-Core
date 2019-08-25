@@ -24,6 +24,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.util.Log;
 import android.view.View;
@@ -137,6 +138,11 @@ public class SimpleDevicePicker implements ConnectableDeviceListener {
                 ConnectableDevice device = (ConnectableDevice) adapter.getItemAtPosition(pos);
 
                 selectDevice(device);
+            }
+        }, new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                listener.onPickDeviceFailed(true);
             }
         });
 
