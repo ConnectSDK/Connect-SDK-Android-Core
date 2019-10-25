@@ -260,7 +260,15 @@ public class WebOSTVDeviceService extends DeviceService implements PowerControl,
                 try {
                     JSONObject jsonObj = (JSONObject) response;
                     boolean isMute = (Boolean) jsonObj.get("mute");
-                    int iVolume = jsonObj.getInt("volume");
+                    int iVolume = 0;
+                    if (jsonObj.has("volume"))
+                    {
+                        iVolume = (Integer) jsonObj.get("volume");
+                    }
+                    else if (jsonObj.has("volumeStatus"))
+                    {
+                        iVolume = (Integer) (jsonObj.getJSONObject("volumeStatus")).get("volume");
+                    }
                     float fVolume = (float) (iVolume / 100.0);
 
                     Util.postSuccess(listener, new VolumeControl.VolumeStatus(isMute, fVolume));
@@ -618,7 +626,16 @@ public class WebOSTVDeviceService extends DeviceService implements PowerControl,
 
                 try {
                     JSONObject jsonObj = (JSONObject)response;
-                    int iVolume = (Integer) jsonObj.get("volume");
+                    int iVolume = 0;
+                    if (jsonObj.has("volume"))
+                    {
+                        iVolume = (Integer) jsonObj.get("volume");
+                    }
+                    else if (jsonObj.has("volumeStatus"))
+                    {
+                        iVolume = (Integer) (jsonObj.getJSONObject("volumeStatus")).get("volume");
+                    }
+
                     float fVolume = (float) (iVolume / 100.0);
 
                     Util.postSuccess(listener, fVolume);
