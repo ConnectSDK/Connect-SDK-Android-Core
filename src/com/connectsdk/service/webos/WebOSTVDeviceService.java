@@ -58,9 +58,6 @@ import java.util.Map;
 
 public class WebOSTVDeviceService extends DeviceService implements PowerControl, MediaControl {
 
-    protected PairingType pairingType = PairingType.NONE;
-    protected ServiceDescription serviceDescription;
-    protected ServiceConfig serviceConfig;
     static String MUTE = "ssap://audio/getMute";
     static String VOLUME_STATUS = "ssap://audio/getStatus";
     static String CHANNEL = "ssap://tv/getCurrentChannel";
