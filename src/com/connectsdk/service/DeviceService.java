@@ -103,11 +103,11 @@ public class DeviceService implements DeviceServiceReachabilityListener, Service
     public static final String KEY_CONFIG = "config";
     public static final String KEY_DESC = "description";
 
-    PairingType pairingType = PairingType.NONE;
+    protected PairingType pairingType = PairingType.NONE;
 
-    ServiceDescription serviceDescription;
+    protected ServiceDescription serviceDescription;
 
-    ServiceConfig serviceConfig;
+    protected ServiceConfig serviceConfig;
 
     protected DeviceServiceReachability mServiceReachability;
     protected boolean connected = false;

@@ -71,13 +71,21 @@ import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSoc
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 @SuppressLint("DefaultLocale")
 public class WebOSTVService extends WebOSTVDeviceService implements Launcher, MediaPlayer, PlaylistControl, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, KeyControl, TextInputControl, WebAppLauncher {
@@ -115,20 +123,18 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     WebOSTVServiceSocketClient socket;
 
-    private WebOSTVServiceConfig webOSTVServiceConfig;
     List<String> permissions;
 
-    public WebOSTVService(ServiceDescription serviceDescription, ServiceConfig serviceConfig) {
-        super(serviceDescription, serviceConfig);
-        setServiceDescription(serviceDescription);
-        this.webOSTVServiceConfig = new WebOSTVServiceConfig(serviceConfig.getServiceUUID());
+    public WebOSTVService(ServiceDescription serviceDescription, ServiceConfig serviceConf) {
+        super(serviceDescription, serviceConf);
+        serviceConfig = new WebOSTVServiceConfig(serviceConf.toJSONObject());
         pairingType = PairingType.FIRST_SCREEN;
         mAppToAppIdMappings = new ConcurrentHashMap<String, String>();
         mWebAppSessions = new ConcurrentHashMap<String, WebOSWebAppSession>();
     }
 
     public WebOSTVServiceConfig getWebOSTVServiceConfig() {
-        return webOSTVServiceConfig;
+        return (WebOSTVServiceConfig) serviceConfig;
     }
 
     @Override
@@ -203,7 +209,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public boolean isConnected() {
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
             return this.socket != null && this.socket.isConnected() && this.socket.getClientKey() != null;
         } else {
             return this.socket != null && this.socket.isConnected();
@@ -213,7 +219,8 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     @Override
     public void connect() {
         if (this.socket == null) {
-            this.socket = new WebOSTVServiceSocketClient(this.webOSTVServiceConfig, this.getPairingType(), getPermissions() , WebOSTVServiceSocketClient.getURI(this.getServiceDescription().getIpAddress()));
+            this.socket = new WebOSTVServiceSocketClient(this.getWebOSTVServiceConfig(), this.getPairingType(),
+                    getPermissions() , WebOSTVServiceSocketClient.getURI(this.getServiceDescription().getIpAddress()));
             this.socket.setListener(mSocketListener);
         }
 
@@ -263,16 +270,11 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     }
 
     public String getClientKey() {
-        if(webOSTVServiceConfig != null)
-            return webOSTVServiceConfig.getClientKey();
-        return "";
+        return this.getWebOSTVServiceConfig().getClientKey();
     }
 
     public void setClientKey(String ClientKey) {
-        if(webOSTVServiceConfig == null) {
-            webOSTVServiceConfig = new WebOSTVServiceConfig(serviceConfig.getServiceUUID());
-        }
-        webOSTVServiceConfig.setClientKey(ClientKey);
+        this.getWebOSTVServiceConfig().setClientKey(ClientKey);
     }
 
     private WebOSTVServiceSocketClientListener mSocketListener = new WebOSTVServiceSocketClientListener() {
@@ -352,7 +354,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
         @Override
         public void onBeforeRegister(final PairingType pairingType) {
-            if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.ON) >= 0) {
+            if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
                 Util.runOnUI(new Runnable() {
 
                     @Override
@@ -2370,7 +2372,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         Collections.addAll(capabilities, VolumeControl.Capabilities);
         Collections.addAll(capabilities, MediaPlayer.Capabilities);
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
             Collections.addAll(capabilities, TextInputControl.Capabilities);
             Collections.addAll(capabilities, MouseControl.Capabilities);
             Collections.addAll(capabilities, KeyControl.Capabilities);
@@ -2442,7 +2444,9 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         List<String> defaultPermissions = new ArrayList<String>();
         Collections.addAll(defaultPermissions, kWebOSTVServiceOpenPermissions);
 
-        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+        if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.PROTECTED) {
+            Collections.addAll(defaultPermissions, kWebOSTVServiceProtectedPermissions);
+        } else if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
             Collections.addAll(defaultPermissions, kWebOSTVServiceProtectedPermissions);
             Collections.addAll(defaultPermissions, kWebOSTVServicePersonalActivityPermissions);
         }
