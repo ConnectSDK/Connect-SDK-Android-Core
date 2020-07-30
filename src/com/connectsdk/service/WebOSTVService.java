@@ -352,7 +352,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
         @Override
         public void onBeforeRegister(final PairingType pairingType) {
-            if (DiscoveryManager.getInstance().getPairingLevel() == PairingLevel.ON) {
+            if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.ON) >= 0) {
                 Util.runOnUI(new Runnable() {
 
                     @Override

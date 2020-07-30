@@ -102,7 +102,13 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
          * Specifies that pairing is on. DeviceService will try to pair if it is required by a first
          * screen device.
          */
-        ON
+        ON,
+
+        /**
+         * Specifies that pairing is secure. DeviceService will try to pair in secure mode
+         * if it is required by a first screen device (webOS - Secure Permission).
+         */
+        SECURE
     }
 
     // @cond INTERNAL
