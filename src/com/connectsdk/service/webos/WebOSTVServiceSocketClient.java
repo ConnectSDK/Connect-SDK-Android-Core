@@ -130,6 +130,19 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         return uri;
     }
 
+    public static URI getURI(String IpAddress, int port) {
+        String uriString = "wss://" + IpAddress + ":" + port;
+        URI uri = null;
+
+        try {
+            uri = new URI(uriString);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return uri;
+    }
+
     public WebOSTVServiceSocketClientListener getListener() {
         return mListener;
     }

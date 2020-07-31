@@ -199,6 +199,21 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
             this.serviceDescription.setVersion(systemVersion);
 
+            try {
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder docBuilder = dbFactory.newDocumentBuilder();
+                InputSource source = new InputSource();
+                source.setCharacterStream(new StringReader(serviceDescription.getLocationXML()));
+                Document doc = docBuilder.parse(source);
+                NodeList nodes = doc.getElementsByTagName("serviceId");
+                Node node = nodes.item(0);
+
+                String[] tempArr = node.getTextContent().split("-");
+                this.serviceDescription.setPort(Integer.parseInt(tempArr[tempArr.length - 1]));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             this.updateCapabilities();
         }
     }
@@ -219,8 +234,8 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     @Override
     public void connect() {
         if (this.socket == null) {
-            this.socket = new WebOSTVServiceSocketClient(this.getWebOSTVServiceConfig(), this.getPairingType(),
-                    getPermissions() , WebOSTVServiceSocketClient.getURI(this.getServiceDescription().getIpAddress()));
+            this.socket = new WebOSTVServiceSocketClient(this.getWebOSTVServiceConfig(), this.getPairingType(), getPermissions(),
+                    WebOSTVServiceSocketClient.getURI(this.getServiceDescription().getIpAddress(), this.getServiceDescription().getPort()));
             this.socket.setListener(mSocketListener);
         }
 
