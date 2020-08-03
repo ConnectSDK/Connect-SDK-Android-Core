@@ -321,7 +321,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         for (ConnectableDevice device: allDevices.values()) {
             if (deviceIsCompatible(device)) {
-                compatibleDevices.put(device.getIpAddress(), device);
+                String devKey = device.getFriendlyName() + device.getIpAddress();
+                compatibleDevices.put(devKey, device);
 
                 handleDeviceAdd(device);
             }
@@ -594,7 +595,8 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         if (!deviceIsCompatible(device)) 
             return;
 
-        compatibleDevices.put(device.getIpAddress(), device);
+        String devKey = device.getFriendlyName() + device.getIpAddress();
+        compatibleDevices.put(devKey, device);
 
         for (DiscoveryManagerListener listenter: discoveryListeners) {
             listenter.onDeviceAdded(this, device);
@@ -602,8 +604,10 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     public void handleDeviceUpdate(ConnectableDevice device) {
+        String devKey = device.getFriendlyName() + device.getIpAddress();
+
         if (deviceIsCompatible(device)) {
-            if (device.getIpAddress() != null && compatibleDevices.containsKey(device.getIpAddress())) {
+            if (device.getIpAddress() != null && compatibleDevices.containsKey(devKey)) {
                 for (DiscoveryManagerListener listenter: discoveryListeners) {
                     listenter.onDeviceUpdated(this, device);
                 }
@@ -613,7 +617,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             }
         }
         else {
-            compatibleDevices.remove(device.getIpAddress());
+            compatibleDevices.remove(devKey);
             handleDeviceLoss(device);
         }
     }
@@ -720,7 +724,11 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     public void onServiceAdded(DiscoveryProvider provider, ServiceDescription serviceDescription) {
         Log.d(Util.T, "Service added: " + serviceDescription.getFriendlyName() + " (" + serviceDescription.getServiceID() + ")");
 
-        boolean deviceIsNew = !allDevices.containsKey(serviceDescription.getIpAddress());
+        // Use device name and IP for identification of device,
+        // because some devices have multiple device instances with same IP.
+        // (i.e., a device including docker containers with host network setting.)
+        String devKey = serviceDescription.getFriendlyName() + serviceDescription.getIpAddress();
+        boolean deviceIsNew = !allDevices.containsKey(devKey);
         ConnectableDevice device = null;
 
         if (deviceIsNew) {
@@ -728,18 +736,18 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
                 device = connectableDeviceStore.getDevice(serviceDescription.getUUID());
 
                 if (device != null) {
-                    allDevices.put(serviceDescription.getIpAddress(), device);
+                    allDevices.put(devKey, device);
                     device.setIpAddress(serviceDescription.getIpAddress());
                 }
             }
         } else {
-            device = allDevices.get(serviceDescription.getIpAddress());
+            device = allDevices.get(devKey);
         }
 
         if (device == null) {
             device = new ConnectableDevice(serviceDescription);
             device.setIpAddress(serviceDescription.getIpAddress());
-            allDevices.put(serviceDescription.getIpAddress(), device);
+            allDevices.put(devKey, device);
             deviceIsNew = true;
         }
 
@@ -754,7 +762,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
         if (device.getServices().size() == 0) {
             // we get here when a non-LG DLNA TV is found
 
-            allDevices.remove(serviceDescription.getIpAddress());
+            allDevices.remove(devKey);
 
             return;
         }
@@ -775,13 +783,14 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
 
         Log.d(Util.T, "onServiceRemoved: friendlyName: " + serviceDescription.getFriendlyName());
 
-        ConnectableDevice device = allDevices.get(serviceDescription.getIpAddress());
+        String devKey = serviceDescription.getFriendlyName() + serviceDescription.getIpAddress();
+        ConnectableDevice device = allDevices.get(devKey);
 
         if (device != null) { 
             device.removeServiceWithId(serviceDescription.getServiceID());
 
             if (device.getServices().isEmpty()) {
-                allDevices.remove(serviceDescription.getIpAddress());
+                allDevices.remove(devKey);
 
                 handleDeviceLoss(device);
             }
