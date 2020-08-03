@@ -401,6 +401,17 @@ public class WebOSWebAppSession extends WebAppSession {
             }
         };
 
+        if (socket != null) {
+            if (socket.isConnected()){
+                mConnectionListener.onSuccess(null);
+            } else {
+                socket.connect();
+            }
+        } else {
+            socket = new WebOSTVServiceSocketClient(service, WebOSTVServiceSocketClient.getURI(service));
+            socket.setListener(mSocketListener);
+            socket.connect();
+        }
     }
 
     public void disconnectFromWebApp() {

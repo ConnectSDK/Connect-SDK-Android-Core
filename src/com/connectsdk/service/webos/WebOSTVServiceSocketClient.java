@@ -15,6 +15,7 @@ import android.view.WindowManager;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.DeviceService.PairingType;
+import com.connectsdk.service.WebOSTVService;
 import com.connectsdk.service.capability.listeners.ResponseListener;
 import com.connectsdk.service.command.ServiceCommand;
 import com.connectsdk.service.command.ServiceCommand.ServiceCommandProcessor;
@@ -115,6 +116,31 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         state = State.INITIAL;
 
         setDefaultManifest();
+    }
+
+    public WebOSTVServiceSocketClient(WebOSTVService service, URI uri) {
+        super(uri);
+
+        this.mPairingType = service.getPairingType();
+        this.mconfig = service.getWebOSTVServiceConfig();
+        this.permissions = service.getPermissions();
+        state = State.INITIAL;
+
+        setDefaultManifest();
+    }
+
+    public static URI getURI(WebOSTVService service) {
+        String uriString = "wss://" + service.getServiceDescription().getIpAddress() + ":"
+                + service.getServiceDescription().getPort();
+        URI uri = null;
+
+        try {
+            uri = new URI(uriString);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return uri;
     }
 
     public static URI getURI(String IpAddress) {
