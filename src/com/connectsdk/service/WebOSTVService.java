@@ -224,10 +224,11 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public boolean isConnected() {
+        if (this.socket == null) return false;
         if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
-            return this.socket != null && this.socket.isConnected() && this.socket.getClientKey() != null;
+            return this.socket.isConnected() && this.socket.getClientKey() != "";
         } else {
-            return this.socket != null && this.socket.isConnected();
+            return this.socket.isConnected();
         }
     }
 

@@ -74,17 +74,13 @@ public class AirPlayServiceSocketClient implements ServiceCommandProcessor {
             public void run() {
                 try {
                     airPlayAuth.doPairing(pin);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                try {
                     socket = airPlayAuth.authenticate();
                     state = State.REGISTERED;
                     if (mListener != null) {
                         mListener.onConnect();
                     }
                 } catch (Exception ex) {
+                    state = State.INITIAL;
                     ex.printStackTrace();
                     mListener.onRegistrationFailed(new ServiceCommandError(ex.toString()));
                 }
@@ -102,27 +98,37 @@ public class AirPlayServiceSocketClient implements ServiceCommandProcessor {
             state = State.CONNECTING;
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    socket = airPlayAuth.authenticate();
-                    state = State.REGISTERED;
-                    if (mListener != null) {
-                        mListener.onConnect();
-                    }
-                } catch (Exception e) {
-                    try {
-                        airPlayAuth.startPairing();
-                        if (mListener != null)
-                            mListener.onBeforeRegister(mPairingType);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        mListener.onRegistrationFailed(new ServiceCommandError(ex.toString()));
-                    }
-                }
+        try {
+            socket = airPlayAuth.authenticate();
+            state = State.REGISTERED;
+            if (mListener != null) {
+                mListener.onConnect();
             }
-        }).start();
+        } catch (Exception e) {
+            try {
+                airPlayAuth.startPairing();
+                if (mListener != null)
+                    mListener.onBeforeRegister(mPairingType);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                mListener.onRegistrationFailed(new ServiceCommandError(ex.toString()));
+            }
+        }
+
+        int count = 0;
+        while(state == State.CONNECTING){
+            try {
+                count++;
+                Thread.sleep(100);
+                if (count > 200) {
+                    mListener.onRegistrationFailed(new ServiceCommandError("Pairing Timeout"));
+                    break;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                mListener.onRegistrationFailed(new ServiceCommandError(e.toString()));
+            }
+        }
     }
 
     public void disconnect() {
@@ -131,7 +137,7 @@ public class AirPlayServiceSocketClient implements ServiceCommandProcessor {
         airPlayAuth = null;
         state = State.INITIAL;
         try {
-            socket.close();
+            if (socket != null) socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
