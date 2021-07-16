@@ -20,8 +20,10 @@
 
 package com.connectsdk.service.sessions;
 
-import android.support.annotation.NonNull;
+import android.annotation.*;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import java.util.Enumeration;
 import java.util.List;

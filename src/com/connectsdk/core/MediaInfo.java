@@ -20,7 +20,9 @@
 
 package com.connectsdk.core;
 
-import android.support.annotation.NonNull;
+import android.annotation.*;
+
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
