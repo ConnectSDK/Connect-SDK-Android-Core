@@ -19,7 +19,7 @@
  */
 package com.connectsdk.core;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Normalized reference object for information about a subtitle track. It's used in `MediaInfo` class.

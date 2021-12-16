@@ -1,7 +1,7 @@
 buildscript {
     repositories {
-        jcenter()
         google()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.1'
@@ -10,7 +10,8 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
 }
 
@@ -18,7 +19,6 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion '27.0.3'
 
     packagingOptions {
         exclude 'LICENSE.txt'
@@ -53,6 +53,10 @@ android {
             minifyEnabled false
         }
     }
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 25
+    }
 }
 
 dependencies {
@@ -62,4 +66,7 @@ dependencies {
     implementation 'com.android.support:mediarouter-v7:21.0.3'
     implementation 'com.android.support:appcompat-v7:21.0.3'
     implementation 'com.google.android.gms:play-services-cast:19.0.0'
+    implementation 'com.googlecode.plist:dd-plist:1.23'
+    implementation group: 'net.i2p.crypto', name: 'eddsa', version: '0.3.0'
+    implementation group: 'com.nimbusds', name: 'srp6a', version: '2.1.0'
 }

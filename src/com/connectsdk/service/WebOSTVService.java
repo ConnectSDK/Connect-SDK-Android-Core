@@ -22,7 +22,7 @@ package com.connectsdk.service;
 
 import android.annotation.SuppressLint;
 import android.graphics.PointF;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.connectsdk.core.AppInfo;
