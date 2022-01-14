@@ -21,7 +21,10 @@
 package com.connectsdk.service;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.PointF;
+
 import androidx.annotation.NonNull;
 import android.util.Log;
 
@@ -34,6 +37,8 @@ import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
+import com.connectsdk.service.capability.LGCastControl;
+import com.connectsdk.service.lgcast.screenmirroring.ScreenMirroringApi;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
@@ -57,6 +62,7 @@ import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
+import com.connectsdk.service.lgcast.screenmirroring.ScreenMirroringHelper;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.sessions.WebAppSession;
@@ -68,6 +74,7 @@ import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
+import com.lge.lgcast.common.utils.XmlUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -88,7 +95,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 @SuppressLint("DefaultLocale")
-public class WebOSTVService extends WebOSTVDeviceService implements Launcher, MediaPlayer, PlaylistControl, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, KeyControl, TextInputControl, WebAppLauncher {
+public class WebOSTVService extends WebOSTVDeviceService implements Launcher, MediaPlayer, PlaylistControl, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, KeyControl, TextInputControl, WebAppLauncher, LGCastControl {
 
     public static final String ID = "webOS TV";
     private static final String MEDIA_PLAYER_ID = "MediaPlayer";
@@ -2448,6 +2455,16 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
                 capabilities.add(MediaPlayer.Loop);
             }
 
+            String locationXML = serviceDescription.getLocationXML();
+            String appCasting = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCasting") : null;
+            String appCastingFeature = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCastingFeature") : null;
+
+            if (appCastingFeature != null) {
+                if (appCastingFeature.contains("mirroring")) capabilities.add(LGCastControl.ScreenMirroring);
+                if (appCastingFeature.contains("camera")) capabilities.add(LGCastControl.RemoteCamera);
+            } else if (appCasting != null) {
+                if ("support".equals(appCasting)) capabilities.add(LGCastControl.ScreenMirroring);
+            }
         }
 
         setCapabilities(capabilities);
@@ -2552,4 +2569,47 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     public static interface ServiceInfoListener extends ResponseListener<JSONArray> { }
 
     public static interface SystemInfoListener extends ResponseListener<JSONObject> { }
+
+    /**********************************************************************************************
+     * LG CAST - SCREEN MIRRORING
+     *********************************************************************************************/
+    @Override
+    public void startScreenMirroring(Context context, Intent projectionData, ScreenMirroringStartListener listener) {
+        startScreenMirroring(context, projectionData, null, listener);
+    }
+
+    @Override
+    public void startScreenMirroring(Context context, Intent projectionData, Class secondScreenClass, ScreenMirroringStartListener listener) {
+        try {
+            if (hasCapability(LGCastControl.ScreenMirroring) == false) throw new Exception("This device does not support LG Cast");
+            if (ScreenMirroringHelper.isOsCompatible() == false) throw new Exception("Incompatible OS version (LG Cast is compatible from Android Q).");
+            if (ScreenMirroringHelper.isRunning(context) == true) throw new Exception("Screen Mirroring is already running");
+            ScreenMirroringApi.getInstance().startMirroring(context, projectionData, getServiceDescription().getIpAddress(), secondScreenClass, listener);
+        } catch (Exception e) {
+            listener.onError(new ServiceCommandError(LGCastControl.SCREEN_MIRRORING_ERROR_GENERIC, e.getMessage()));
+        }
+    }
+
+    @Override
+    public void stopScreenMirroring(Context context, ScreenMirroringStopListener listener) {
+        try {
+            if (ScreenMirroringHelper.isRunning(context) == false) throw new Exception("Screen Mirroring is not running");
+            ScreenMirroringApi.getInstance().stopMirroring(context, listener);
+        } catch (Exception e) {
+            listener.onError(new ServiceCommandError(e.getMessage()));
+        }
+    }
+
+    /**********************************************************************************************
+     * LG CAST - REMOTE CAMERA
+     *********************************************************************************************/
+    @Override
+    public void startRemoteCamera() {
+        // TODO
+    }
+
+    @Override
+    public void stopRemoteCamera() {
+        // TODO
+    }
 }
