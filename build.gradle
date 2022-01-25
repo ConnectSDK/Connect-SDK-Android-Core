@@ -66,8 +66,7 @@ android {
 dependencies {
     implementation files('libs/Java-WebSocket-1.3.7.jar')
     implementation files('libs/javax.jmdns_3.4.1-patch2.jar')
-    implementation files('libs/lgcast_sdk_v2.1.1.aar')
-    implementation 'androidx.preference:preference:1.1.1'
+    implementation files('libs/lgcast-sdk-2.1.2.aar')
     implementation 'com.google.android.gms:play-services-cast:19.0.0'
     implementation 'com.googlecode.plist:dd-plist:1.23'
     implementation group: 'net.i2p.crypto', name: 'eddsa', version: '0.3.0'

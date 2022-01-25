@@ -16,8 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.connectsdk.service.lgcast.screenmirroring;
+package com.connectsdk.service.webos.lgcast.screenmirroring;
 
 import android.content.Context;
 import android.content.Intent;
