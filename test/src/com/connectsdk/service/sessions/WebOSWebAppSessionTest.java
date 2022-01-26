@@ -45,7 +45,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-import androidx.annotation.NonNull;
+import android.support.annotation.NonNull;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE)

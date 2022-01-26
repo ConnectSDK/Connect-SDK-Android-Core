@@ -3,9 +3,8 @@
     android:versionCode="8"
     android:versionName="1.4.2" >
 
-    <application android:usesCleartextTraffic="true">
-        <receiver android:name=".ScreenOnOffReceiver"
-            android:exported="false">
+    <application>
+        <receiver android:name=".ScreenOnOffReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.SCREEN_ON" />
                 <action android:name="android.intent.action.SCREEN_OFF" />
