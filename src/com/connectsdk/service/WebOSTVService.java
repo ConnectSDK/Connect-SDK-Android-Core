@@ -74,7 +74,6 @@ import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
-import com.lge.lgcast.common.utils.XmlUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -82,8 +81,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -2456,8 +2459,8 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
             }
 
             String locationXML = serviceDescription.getLocationXML();
-            String appCasting = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCasting") : null;
-            String appCastingFeature = (locationXML != null) ? XmlUtil.findElement(locationXML, "supportAppcastingFeatures") : null;
+            String appCasting = (locationXML != null) ? findElement(locationXML, "appCasting") : null;
+            String appCastingFeature = (locationXML != null) ? findElement(locationXML, "supportAppcastingFeatures") : null;
 
             if (appCastingFeature != null) {
                 if (appCastingFeature.contains("mirroring")) capabilities.add(LGCastControl.ScreenMirroring);
@@ -2468,6 +2471,34 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         }
 
         setCapabilities(capabilities);
+    }
+
+    private String findElement(String serviceDescription, String elementName) {
+        try {
+            if (serviceDescription == null) throw new Exception("Invalid serviceDescription");
+            if (elementName == null) throw new Exception("Invalid elementName");
+
+            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+            parser.setInput(new ByteArrayInputStream(serviceDescription.getBytes(StandardCharsets.UTF_8)), "UTF-8");
+
+            int eventType = parser.getEventType();
+            String tagName = null;
+
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG) {
+                    tagName = parser.getName();
+                } else if (eventType == XmlPullParser.TEXT) {
+                    if (tagName != null && tagName.equals(elementName)) return parser.getText();
+                } else if (eventType == XmlPullParser.END_TAG) {
+                    tagName = null;
+                }
+                eventType = parser.next();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public List<String> getPermissions() {
