@@ -38,7 +38,7 @@ import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
 import com.connectsdk.service.capability.LGCastControl;
-import com.connectsdk.service.lgcast.screenmirroring.ScreenMirroringApi;
+import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringApi;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
@@ -62,7 +62,7 @@ import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
-import com.connectsdk.service.lgcast.screenmirroring.ScreenMirroringHelper;
+import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringHelper;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.sessions.WebAppSession;
@@ -2457,11 +2457,11 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
             String locationXML = serviceDescription.getLocationXML();
             String appCasting = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCasting") : null;
-            String appCastingFeature = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCastingFeature") : null;
+            String appCastingFeature = (locationXML != null) ? XmlUtil.findElement(locationXML, "supportAppcastingFeatures") : null;
 
             if (appCastingFeature != null) {
                 if (appCastingFeature.contains("mirroring")) capabilities.add(LGCastControl.ScreenMirroring);
-                if (appCastingFeature.contains("camera")) capabilities.add(LGCastControl.RemoteCamera);
+                if (appCastingFeature.contains("remote-camera")) capabilities.add(LGCastControl.RemoteCamera);
             } else if (appCasting != null) {
                 if ("support".equals(appCasting)) capabilities.add(LGCastControl.ScreenMirroring);
             }
