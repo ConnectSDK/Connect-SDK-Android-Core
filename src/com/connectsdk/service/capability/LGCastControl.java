@@ -22,7 +22,7 @@ package com.connectsdk.service.capability;
 import android.content.Context;
 import android.content.Intent;
 import com.connectsdk.service.capability.listeners.ResponseListener;
-import com.connectsdk.service.lgcast.screenmirroring.SecondScreen;
+import com.connectsdk.service.webos.lgcast.screenmirroring.SecondScreen;
 
 public interface LGCastControl extends CapabilityMethods {
     String Any = "LGCast.Any";

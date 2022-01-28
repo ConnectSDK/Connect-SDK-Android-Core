@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package com.connectsdk.service.lgcast.remotecamera;
+package com.connectsdk.service.webos.lgcast.remotecamera;
 
 import android.app.ActivityManager;
 import android.content.Context;

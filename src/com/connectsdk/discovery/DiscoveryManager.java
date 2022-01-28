@@ -185,7 +185,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     public static synchronized void destroy() {
-        instance.onDestroy();
+        if (instance != null) instance.onDestroy();
     }
 
     /**
