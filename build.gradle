@@ -41,7 +41,6 @@ android {
             renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
             assets.srcDirs = ['assets']
-            jniLibs.srcDirs = ['jniLibs']
         }
         androidTest {
             java.srcDirs = [
@@ -66,7 +65,7 @@ android {
 dependencies {
     implementation files('libs/Java-WebSocket-1.3.7.jar')
     implementation files('libs/javax.jmdns_3.4.1-patch2.jar')
-    implementation files('libs/lgcast-sdk-2.1.2.aar')
+    compileOnly files('libs/lgcast-sdk-2.1.2.aar')
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'com.google.android.gms:play-services-cast:19.0.0'
     implementation 'com.googlecode.plist:dd-plist:1.23'
