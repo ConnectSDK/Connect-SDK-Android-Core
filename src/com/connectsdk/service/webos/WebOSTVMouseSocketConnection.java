@@ -28,7 +28,7 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLContext;
 
-import org.java_websocket.WebSocket.READYSTATE;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
@@ -126,10 +126,10 @@ public class WebOSTVMouseSocketConnection {
     public boolean isConnected() {
         if (ws == null) 
             System.out.println("ws is null");
-        else if (ws.getReadyState() != READYSTATE.OPEN) {
+        else if (ws.getReadyState() != ReadyState.OPEN) {
             System.out.println("ws state is not ready");
         }
-        return (ws != null) && (ws.getReadyState() == READYSTATE.OPEN);
+        return (ws != null) && (ws.getReadyState() == ReadyState.OPEN);
     }
 
     public void click() {

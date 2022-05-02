@@ -685,6 +685,36 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
     }
 
     /**
+     * Returns the device which is matched with deviceId.
+     * Returns null if deviceId is null.
+     */
+    public ConnectableDevice getDeviceById(String deviceId) {
+        if (deviceId != null) {
+            for (ConnectableDevice dvc : allDevices.values()) {
+                if (deviceId.equals(dvc.getId()) == true)
+                    return dvc;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the device which is matched with deviceId.
+     * Returns null if deviceId is null.
+     */
+    public ConnectableDevice getDeviceByIpAddress(String ipAddress) {
+        if (ipAddress != null) {
+            for (ConnectableDevice dvc : allDevices.values()) {
+                if (ipAddress.equals(dvc.getIpAddress()) == true)
+                    return dvc;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Filtered list of discovered ConnectableDevices, limited to devices that match at least one of the CapabilityFilters in the capabilityFilters array. Each ConnectableDevice object is keyed against its current IP address.
      */
     public Map<String, ConnectableDevice> getCompatibleDevices() {

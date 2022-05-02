@@ -1,0 +1,8 @@
+<resources>
+    <string name="notification_screen_sharing_title">Screen Share</string>
+    <string name="notification_screen_sharing_desc">Connected device has been set to screen sharing.</string>
+    <string name="notification_disconnect_action">Disconnect</string>
+
+    <string name="notification_remote_camera_title">Phone Camera</string>
+    <string name="notification_remote_camera_desc">Phone Camera is running.</string>
+</resources>
