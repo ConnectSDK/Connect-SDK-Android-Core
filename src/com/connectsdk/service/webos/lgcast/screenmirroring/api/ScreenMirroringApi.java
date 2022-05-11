@@ -30,7 +30,6 @@ import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringS
 import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringStopListener;
 import com.connectsdk.service.webos.lgcast.common.utils.LocalBroadcastEx;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
-import com.connectsdk.service.webos.lgcast.remotecamera.service.CameraServiceIF;
 import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig;
 import com.connectsdk.service.webos.lgcast.screenmirroring.service.MirroringServiceError;
 import com.connectsdk.service.webos.lgcast.screenmirroring.service.MirroringServiceIF;
@@ -89,7 +88,7 @@ public class ScreenMirroringApi {
             if (ScreenMirroringControl.isRunning(context) == false) throw new Exception("Screen Mirroring is NOT running");
 
             mLocalBroadcastEx.registerOnce(context, MirroringServiceIF.ACTION_STOP_RESPONSE, intent -> {
-                boolean result = intent.getBooleanExtra(CameraServiceIF.EXTRA_RESULT, false);
+                boolean result = intent.getBooleanExtra(MirroringServiceIF.EXTRA_RESULT, false);
                 if (stopListener != null) stopListener.onStop(result);
                 mLocalBroadcastEx.unregisterAll(context);
             });
