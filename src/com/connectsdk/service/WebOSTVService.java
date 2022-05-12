@@ -1,10 +1,10 @@
 /*
  * WebOSTVService
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 19 Jan 2014
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PointF;
-
-import androidx.annotation.NonNull;
 import android.util.Log;
-
+import android.view.Surface;
+import androidx.annotation.NonNull;
 import com.connectsdk.core.AppInfo;
 import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.ExternalInputInfo;
@@ -37,8 +36,6 @@ import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryManager.PairingLevel;
-import com.connectsdk.service.capability.LGCastControl;
-import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringApi;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.ExternalInputControl;
 import com.connectsdk.service.capability.KeyControl;
@@ -48,6 +45,8 @@ import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.capability.MouseControl;
 import com.connectsdk.service.capability.PlaylistControl;
 import com.connectsdk.service.capability.PowerControl;
+import com.connectsdk.service.capability.RemoteCameraControl;
+import com.connectsdk.service.capability.ScreenMirroringControl;
 import com.connectsdk.service.capability.TVControl;
 import com.connectsdk.service.capability.TextInputControl;
 import com.connectsdk.service.capability.ToastControl;
@@ -62,7 +61,6 @@ import com.connectsdk.service.command.URLServiceSubscription;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.config.WebOSTVServiceConfig;
-import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringHelper;
 import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.LaunchSession.LaunchSessionType;
 import com.connectsdk.service.sessions.WebAppSession;
@@ -74,6 +72,9 @@ import com.connectsdk.service.webos.WebOSTVMouseSocketConnection;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient.WebOSTVServiceSocketClientListener;
 
+import com.connectsdk.service.webos.lgcast.common.utils.XmlUtil;
+import com.connectsdk.service.webos.lgcast.remotecamera.api.RemoteCameraApi;
+import com.connectsdk.service.webos.lgcast.screenmirroring.api.ScreenMirroringApi;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,12 +82,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserFactory;
 
-import java.io.ByteArrayInputStream;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -98,7 +95,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 @SuppressLint("DefaultLocale")
-public class WebOSTVService extends WebOSTVDeviceService implements Launcher, MediaPlayer, PlaylistControl, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, KeyControl, TextInputControl, WebAppLauncher, LGCastControl {
+public class WebOSTVService extends WebOSTVDeviceService implements Launcher, MediaPlayer, PlaylistControl, VolumeControl, TVControl, ToastControl, ExternalInputControl, MouseControl, KeyControl, TextInputControl, WebAppLauncher, ScreenMirroringControl, RemoteCameraControl {
 
     public static final String ID = "webOS TV";
     private static final String MEDIA_PLAYER_ID = "MediaPlayer";
@@ -195,7 +192,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         }
         return CapabilityPriorityLevel.NOT_SUPPORTED;
     }
-    
+
     @Override
     public void setServiceDescription(ServiceDescription serviceDescription) {
         super.setServiceDescription(serviceDescription);
@@ -823,7 +820,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         request.send();
     }
 
-    public void setVolume(int volume) { 
+    public void setVolume(int volume) {
         setVolume(volume, null);
     }
 
@@ -1284,7 +1281,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public void set3DEnabled(final boolean enabled, final ResponseListener<Object> listener) {
-        String uri; 
+        String uri;
         if (enabled)
             uri = "ssap://com.webos.service.tv.display/set3DOn";
         else
@@ -1324,7 +1321,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         ServiceCommand<State3DModeListener> request;
         if (isSubscription)
             request = new URLServiceSubscription<State3DModeListener>(this, uri, null, true, responseListener);
-        else 
+        else
             request = new ServiceCommand<State3DModeListener>(this, uri, null, true, responseListener);
 
         request.send();
@@ -1955,7 +1952,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
             }
             return;
         }
-        
+
         String uri = "ssap://webapp/pinWebApp";
         JSONObject payload = new JSONObject();
 
@@ -1984,7 +1981,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
             }
         };
 
-        ServiceCommand<ResponseListener<Object>> request = 
+        ServiceCommand<ResponseListener<Object>> request =
                 new URLServiceSubscription<ResponseListener<Object>>(this, uri, payload, true, responseListener);
         request.send();
     }
@@ -2070,7 +2067,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         ServiceCommand<WebAppPinStatusListener> request;
         if (isSubscription)
             request = new URLServiceSubscription<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
-        else 
+        else
             request = new ServiceCommand<WebAppPinStatusListener>(this, uri, payload, true, responseListener);
 
         request.send();
@@ -2208,7 +2205,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     public void sendMessage(String message, LaunchSession launchSession, ResponseListener<Object> listener) {
         if (message != null && message.length() > 0) {
             sendMessage((Object) message, launchSession, listener);
-        } 
+        }
         else {
             Util.postError(listener, new ServiceCommandError(0, "Cannot send a null message", null));
         }
@@ -2459,46 +2456,20 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
             }
 
             String locationXML = serviceDescription.getLocationXML();
-            String appCasting = (locationXML != null) ? findElement(locationXML, "appCasting") : null;
-            String appCastingFeature = (locationXML != null) ? findElement(locationXML, "supportAppcastingFeatures") : null;
+            String appCasting = (locationXML != null) ? XmlUtil.findElement(locationXML, "appCasting") : null;
+            String appCastingFeature = (locationXML != null) ? XmlUtil.findElement(locationXML, "supportAppcastingFeatures") : null;
 
             if (appCastingFeature != null) {
-                if (appCastingFeature.contains("mirroring")) capabilities.add(LGCastControl.ScreenMirroring);
-                if (appCastingFeature.contains("remote-camera")) capabilities.add(LGCastControl.RemoteCamera);
+                // <supportAppcastingFeatures>mirroring|remote-camera</supportAppcastingFeatures>
+                if (appCastingFeature.contains("mirroring")) capabilities.add(ScreenMirroringControl.ScreenMirroring);
+                if (appCastingFeature.contains("remote-camera")) capabilities.add(RemoteCameraControl.RemoteCamera);
             } else if (appCasting != null) {
-                if ("support".equals(appCasting)) capabilities.add(LGCastControl.ScreenMirroring);
+                // <appCasting>support</appCasting>
+                if ("support".equals(appCasting)) capabilities.add(ScreenMirroringControl.ScreenMirroring);
             }
         }
 
         setCapabilities(capabilities);
-    }
-
-    private String findElement(String serviceDescription, String elementName) {
-        try {
-            if (serviceDescription == null) throw new Exception("Invalid serviceDescription");
-            if (elementName == null) throw new Exception("Invalid elementName");
-
-            XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
-            parser.setInput(new ByteArrayInputStream(serviceDescription.getBytes(StandardCharsets.UTF_8)), "UTF-8");
-
-            int eventType = parser.getEventType();
-            String tagName = null;
-
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.START_TAG) {
-                    tagName = parser.getName();
-                } else if (eventType == XmlPullParser.TEXT) {
-                    if (tagName != null && tagName.equals(elementName)) return parser.getText();
-                } else if (eventType == XmlPullParser.END_TAG) {
-                    tagName = null;
-                }
-                eventType = parser.next();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     public List<String> getPermissions() {
@@ -2602,45 +2573,76 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     public static interface SystemInfoListener extends ResponseListener<JSONObject> { }
 
     /**********************************************************************************************
-     * LG CAST - SCREEN MIRRORING
+     * SCREEN MIRRORING
      *********************************************************************************************/
     @Override
-    public void startScreenMirroring(Context context, Intent projectionData, ScreenMirroringStartListener listener) {
-        startScreenMirroring(context, projectionData, null, listener);
+    public ScreenMirroringControl getScreenMirroringControl() {
+        return this;
     }
 
     @Override
-    public void startScreenMirroring(Context context, Intent projectionData, Class secondScreenClass, ScreenMirroringStartListener listener) {
-        try {
-            if (hasCapability(LGCastControl.ScreenMirroring) == false) throw new Exception("This device does not support LG Cast");
-            if (ScreenMirroringHelper.isOsCompatible() == false) throw new Exception("Incompatible OS version (LG Cast is compatible from Android Q).");
-            if (ScreenMirroringHelper.isRunning(context) == true) throw new Exception("Screen Mirroring is already running");
-            ScreenMirroringApi.getInstance().startMirroring(context, projectionData, getServiceDescription().getIpAddress(), secondScreenClass, listener);
-        } catch (Exception e) {
-            listener.onError(new ServiceCommandError(LGCastControl.SCREEN_MIRRORING_ERROR_GENERIC, e.getMessage()));
-        }
+    public void startScreenMirroring(Context context, Intent projectionData, ScreenMirroringStartListener startListener) {
+        ScreenMirroringApi.getInstance().startMirroring(context, projectionData, getServiceDescription().getIpAddress(), null, startListener);
     }
 
     @Override
-    public void stopScreenMirroring(Context context, ScreenMirroringStopListener listener) {
-        try {
-            if (ScreenMirroringHelper.isRunning(context) == false) throw new Exception("Screen Mirroring is not running");
-            ScreenMirroringApi.getInstance().stopMirroring(context, listener);
-        } catch (Exception e) {
-            listener.onError(new ServiceCommandError(e.getMessage()));
-        }
+    public void startScreenMirroring(Context context, Intent projectionData, Class secondScreenClass, ScreenMirroringStartListener startListener) {
+        ScreenMirroringApi.getInstance().startMirroring(context, projectionData, getServiceDescription().getIpAddress(), secondScreenClass, startListener);
     }
+
+    @Override
+    public void stopScreenMirroring(Context context, ScreenMirroringStopListener stopListener) {
+        ScreenMirroringApi.getInstance().stopMirroring(context, stopListener);
+    }
+
+    @Override
+    public void setErrorListener(Context context, ScreenMirroringErrorListener errorListener) {
+        ScreenMirroringApi.getInstance().setErrorListener(context, screenMirroringError -> {
+            errorListener.onError(screenMirroringError);
+        });
+    }
+
 
     /**********************************************************************************************
-     * LG CAST - REMOTE CAMERA
+     * REMOTE CAMERA
      *********************************************************************************************/
     @Override
-    public void startRemoteCamera() {
-        // TODO
+    public RemoteCameraControl getRemoteCameraControl() {
+        return this;
     }
 
     @Override
-    public void stopRemoteCamera() {
-        // TODO
+    public void startRemoteCamera(Context context, Surface previewSurface, boolean micMute, int lensFacing, RemoteCameraStartListener startListener) {
+        RemoteCameraApi.getInstance().startRemoteCamera(context, previewSurface, getServiceDescription().getIpAddress(), micMute, lensFacing, startListener);
+    }
+
+    @Override
+    public void stopRemoteCamera(Context context, RemoteCameraStopListener stopListener) {
+        RemoteCameraApi.getInstance().stopRemoteCamera(context, stopListener);
+    }
+
+    @Override
+    public void setMicMute(Context context, boolean micMute) {
+        RemoteCameraApi.getInstance().setMicMute(context, micMute);
+    }
+
+    @Override
+    public void setLensFacing(Context context, int lensFacing) {
+        RemoteCameraApi.getInstance().setLensFacing(context, lensFacing);
+    }
+
+    @Override
+    public void setCameraPlayingListener(Context context, RemoteCameraPlayingListener playingListener) {
+        RemoteCameraApi.getInstance().setCameraPlayingListener(context, playingListener);
+    }
+
+    @Override
+    public void setPropertyChangeListener(Context context, RemoteCameraPropertyChangeListener propertyChangeListener) {
+        RemoteCameraApi.getInstance().setPropertyChangeListener(context, propertyChangeListener);
+    }
+
+    @Override
+    public void setErrorListener(Context context, RemoteCameraErrorListener errorListener) {
+        RemoteCameraApi.getInstance().setErrorListener(context, errorListener);
     }
 }

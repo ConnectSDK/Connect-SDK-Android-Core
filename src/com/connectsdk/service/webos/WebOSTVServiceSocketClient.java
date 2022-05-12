@@ -26,6 +26,7 @@ import com.connectsdk.service.config.WebOSTVServiceConfig;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -839,7 +840,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     public boolean isConnected() {
-        return this.getReadyState() == WebSocket.READYSTATE.OPEN;
+        return this.getReadyState() == ReadyState.OPEN;
     }
 
     public void sendMessage(JSONObject packet, JSONObject payload) {

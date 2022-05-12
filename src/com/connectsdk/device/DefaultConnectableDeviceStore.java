@@ -34,8 +34,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Environment;
 
 import com.connectsdk.core.Util;
 import com.connectsdk.service.DeviceService;
@@ -56,7 +54,6 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
     static final int CURRENT_VERSION = 0;
 
-    static final String DIRPATH = "/android/data/connect_sdk/";
     static final String FILENAME = "StoredDevices";
 
     static final String IP_ADDRESS = "ipAddress";
@@ -101,21 +98,8 @@ public class DefaultConnectableDeviceStore implements ConnectableDeviceStore {
 
     private boolean waitToWrite = false;
 
-    public DefaultConnectableDeviceStore(Context context) { 
-        String dirPath;
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            dirPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-        }
-        else {
-            dirPath = Environment.MEDIA_UNMOUNTED;
-        }
-        fileFullPath = dirPath + DIRPATH + FILENAME;
-
-        try {
-            fileFullPath = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.dataDir + "/" + FILENAME;
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
-        }
+    public DefaultConnectableDeviceStore(Context context) {
+        fileFullPath = new File(context.getFilesDir(), FILENAME).getPath();
 
         load();
     }
