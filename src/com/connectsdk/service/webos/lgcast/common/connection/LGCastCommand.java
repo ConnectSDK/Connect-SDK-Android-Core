@@ -70,17 +70,12 @@ public class LGCastCommand {
     }
 
     public boolean sendConnect() {
-        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN); // To clear existing session
-        sendServiceCommand(payload.toJSONObject());
-        ThreadUtil.sleep(10);
-
-        payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT);
+        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT);
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
     public JSONObject sendGetParameter(String featureName) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_GET_PARAMETER).put(KEY_SERVICE, featureName);
-        Logger.error("$$$$$ GET PARAMETER: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject());
     }
 
@@ -88,7 +83,6 @@ public class LGCastCommand {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_SET_PARAMETER);
         if (name != null && capability != null) payload.put(name, capability);
         if (deviceInfo != null) payload.put(KEY_DEVICEINFO, deviceInfo);
-        Logger.error("$$$$$ SET PARAMETER: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -96,7 +90,6 @@ public class LGCastCommand {
     public JSONObject sendGetParameterResponse(String name, JSONObject parameter) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_GET_PARAMETER_RESPONSE);
         if (name != null && parameter != null) payload.put(name, parameter);
-        Logger.error("$$$$$ GET PARAMETER RESPONSE: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject());
     }
 
@@ -104,7 +97,6 @@ public class LGCastCommand {
     public boolean sendSetParameterResponse(String name, JSONObject parameter) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_SET_PARAMETER_RESPONSE);
         if (name != null && parameter != null) payload.put(name, parameter);
-        Logger.error("$$$$$ SET PARAMETER RESPONSE: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 

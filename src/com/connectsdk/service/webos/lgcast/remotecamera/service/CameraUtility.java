@@ -66,7 +66,6 @@ public class CameraUtility {
         float green;
         float blue;
 
-        // Calculate red
         if (temperature <= 66) {
             red = 255;
         } else {
@@ -76,7 +75,6 @@ public class CameraUtility {
             if (red > 255) red = 255;
         }
 
-        // Calculate green
         if (temperature <= 66) {
             green = temperature;
             green = (float) (99.4708025861 * Math.log(green) - 161.1195681661);
@@ -89,7 +87,6 @@ public class CameraUtility {
             if (green > 255) green = 255;
         }
 
-        // calculate blue
         if (temperature >= 66) {
             blue = 255;
         } else if (temperature <= 19) {
