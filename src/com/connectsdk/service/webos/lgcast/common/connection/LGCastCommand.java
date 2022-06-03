@@ -69,8 +69,8 @@ public class LGCastCommand {
         subscribeToService(SSAP_GET_POWERSTATE, payload.toJSONObject(), commandListener, responseHandler);
     }
 
-    public boolean sendConnect() {
-        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT);
+    public boolean sendConnect(String featureName) {
+        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT).put(KEY_SERVICE, featureName);;
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -116,8 +116,8 @@ public class LGCastCommand {
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
-    public boolean sendTeardown() {
-        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN);
+    public boolean sendTeardown(String featureName) {
+        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN).put(KEY_SERVICE, featureName);
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -147,7 +147,7 @@ public class LGCastCommand {
     private JSONObject sendServiceCommand(JSONObject payload) {
         if (ThreadUtil.isMainThread() == true) throw new IllegalStateException("Invalid state");
         if (payload == null) return null;
-        ThreadWait<JSONObject> threadWait = new ThreadWait();
+        ThreadWait<JSONObject> threadWait = new ThreadWait<>();
 
         ResponseListener<Object> listener = new ResponseListener<Object>() {
             @Override

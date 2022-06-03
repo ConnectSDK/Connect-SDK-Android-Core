@@ -8,7 +8,7 @@ import android.os.Handler;
 import android.os.Message;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import com.connectsdk.service.webos.lgcast.remotecamera.RemoteCameraConfig;
-import com.lge.lib.mediacapture.iface.MediaData;
+import com.lge.lib.lgcast.iface.MediaData;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 

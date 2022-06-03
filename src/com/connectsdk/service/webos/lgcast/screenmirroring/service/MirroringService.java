@@ -31,10 +31,10 @@ import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSinkCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSourceCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
-import com.lge.lib.mediacapture.iface.AudioCaptureIF;
-import com.lge.lib.mediacapture.iface.CaptureStatus;
-import com.lge.lib.mediacapture.iface.VideoCaptureIF;
-import com.lge.lib.security.iface.MasterKeyFactoryIF;
+import com.lge.lib.lgcast.iface.AudioCaptureIF;
+import com.lge.lib.lgcast.iface.CaptureStatus;
+import com.lge.lib.lgcast.iface.VideoCaptureIF;
+import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
 import org.json.JSONObject;
 
 public class MirroringService extends Service {

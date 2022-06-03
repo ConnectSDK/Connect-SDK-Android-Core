@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Timer;
 import org.json.JSONObject;
 
-/* Refer to http://collab.lge.com/main/pages/viewpage.action?pageId=1279300558 */
-
 public class ConnectionManager implements ConnectableDeviceListener {
     public enum ConnectionState {
         NONE, CONNECTING, CONNECTED, DISCONNECTING, DISCONNECTED
@@ -98,7 +96,7 @@ public class ConnectionManager implements ConnectableDeviceListener {
         if (mKeepAliveTimer != null) mKeepAliveTimer.cancel();
         mKeepAliveTimer = null;
 
-        if (mLGCastCommand != null) mLGCastCommand.sendTeardown();
+        if (mLGCastCommand != null) mLGCastCommand.sendTeardown(mServiceName);
         mLGCastCommand = null;
 
         if (mConnectableDevice != null) mConnectableDevice.removeListener(this);
@@ -114,7 +112,7 @@ public class ConnectionManager implements ConnectableDeviceListener {
         mCurrentState = ConnectionState.DISCONNECTED;
     }
 
-    public void notifyScreenOnOff(@NonNull boolean isOn) {
+    public void notifyScreenOnOff(boolean isOn) {
         Logger.print("notifyScreenOnOff (isOn=%s)", isOn);
         if (mCurrentState == ConnectionState.CONNECTED) {
             mConnectionHandler.post(() -> {
@@ -223,7 +221,7 @@ public class ConnectionManager implements ConnectableDeviceListener {
 
     private void sendConnect() {
         Logger.print("sendConnect");
-        if (mLGCastCommand.sendConnect() == true) getParameter();
+        if (mLGCastCommand.sendConnect(mServiceName) == true) getParameter();
         else callOnConnectionFailed("sendConnect failure");
     }
 

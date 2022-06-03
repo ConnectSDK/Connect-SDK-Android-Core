@@ -4,8 +4,8 @@ import android.content.Context;
 import android.util.Size;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import com.connectsdk.service.webos.lgcast.remotecamera.service.CameraUtility;
-import com.lge.lib.security.iface.MasterKey;
-import com.lge.lib.security.iface.MasterKeyFactoryIF;
+import com.lge.lib.lgcast.iface.MasterKey;
+import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,7 +21,7 @@ public class CameraSourceCapability {
         cameraSourceCapability.mSupportedPreviewSizes = new ArrayList<>();
 
         for (Size s : CameraUtility.getSupportedPreviewSizes(context)) {
-            boolean c1 = s.getWidth() <= 1920 && s.getHeight() <= 1080;
+            boolean c1 = s.getWidth() <= 1280 && s.getHeight() <= 720;
             boolean c2 = s.getWidth() >= 320 && s.getHeight() >= 240;
             if (c1 == true && c2 == true) cameraSourceCapability.mSupportedPreviewSizes.add(s);
         }

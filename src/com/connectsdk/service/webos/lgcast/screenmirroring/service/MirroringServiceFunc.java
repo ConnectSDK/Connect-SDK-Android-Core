@@ -28,8 +28,8 @@ import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSinkCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSourceCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
-import com.lge.lib.security.iface.MasterKey;
-import com.lge.lib.security.iface.MasterKeyFactoryIF;
+import com.lge.lib.lgcast.iface.MasterKey;
+import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
 import java.util.ArrayList;
 import org.json.JSONObject;
 
