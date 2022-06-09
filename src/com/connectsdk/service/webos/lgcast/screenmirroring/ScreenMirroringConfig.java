@@ -46,7 +46,7 @@ public class ScreenMirroringConfig {
         public static final int pcAudioUdpPort = 5002;
 
         public static final boolean testMkiUpdate = false; // false in release version
-        public static final boolean showDebugLog = true; // false in release version
+        public static final boolean showDebugLog = false; // false in release version
         public static final String displayOrientation = null; // null in release version. values are null, portrait or landscape
         public static final boolean captureByDisplaySize = false; // false in release version
     }

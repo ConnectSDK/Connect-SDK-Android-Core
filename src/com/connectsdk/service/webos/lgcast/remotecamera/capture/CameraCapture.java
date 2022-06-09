@@ -18,7 +18,7 @@ import com.connectsdk.service.webos.lgcast.common.utils.ThreadUtil;
 import com.connectsdk.service.webos.lgcast.remotecamera.RemoteCameraConfig;
 import com.connectsdk.service.webos.lgcast.remotecamera.service.CameraProperty;
 import com.connectsdk.service.webos.lgcast.remotecamera.service.CameraUtility;
-import com.lge.lib.mediacapture.iface.MediaData;
+import com.lge.lib.lgcast.iface.MediaData;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,7 +68,7 @@ public class CameraCapture {
         mImageReaderHandler.start();
 
         boolean isMaxResolution = (cameraProperty.width == RemoteCameraConfig.Properties.MAX_WIDTH) && (cameraProperty.height == RemoteCameraConfig.Properties.MAX_HEIGHT);
-        int jpegQuality = (isMaxResolution == true) ? RemoteCameraConfig.Camera.MIN_JPEG_QUALITY : RemoteCameraConfig.Camera.DEFAULT_JPEG_QUALITY;
+        int jpegQuality = (isMaxResolution == true) ? RemoteCameraConfig.Camera.JPEG_QUALITY_70 : RemoteCameraConfig.Camera.JPEG_QUALITY_90;
 
         mImageReader = ImageReader.newInstance(cameraProperty.width, cameraProperty.height, ImageFormat.YUV_420_888, 10);
         mImageReader.setOnImageAvailableListener(imageReader -> onImageAvailable(imageReader, jpegQuality), mImageReaderHandler.getHandler());

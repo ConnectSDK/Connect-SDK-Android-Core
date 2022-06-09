@@ -69,18 +69,13 @@ public class LGCastCommand {
         subscribeToService(SSAP_GET_POWERSTATE, payload.toJSONObject(), commandListener, responseHandler);
     }
 
-    public boolean sendConnect() {
-        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN); // To clear existing session
-        sendServiceCommand(payload.toJSONObject());
-        ThreadUtil.sleep(10);
-
-        payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT);
+    public boolean sendConnect(String featureName) {
+        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_CONNECT).put(KEY_SERVICE, featureName);;
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
     public JSONObject sendGetParameter(String featureName) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_GET_PARAMETER).put(KEY_SERVICE, featureName);
-        Logger.error("$$$$$ GET PARAMETER: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject());
     }
 
@@ -88,7 +83,6 @@ public class LGCastCommand {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_SET_PARAMETER);
         if (name != null && capability != null) payload.put(name, capability);
         if (deviceInfo != null) payload.put(KEY_DEVICEINFO, deviceInfo);
-        Logger.error("$$$$$ SET PARAMETER: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -96,7 +90,6 @@ public class LGCastCommand {
     public JSONObject sendGetParameterResponse(String name, JSONObject parameter) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_GET_PARAMETER_RESPONSE);
         if (name != null && parameter != null) payload.put(name, parameter);
-        Logger.error("$$$$$ GET PARAMETER RESPONSE: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject());
     }
 
@@ -104,7 +97,6 @@ public class LGCastCommand {
     public boolean sendSetParameterResponse(String name, JSONObject parameter) {
         JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_SET_PARAMETER_RESPONSE);
         if (name != null && parameter != null) payload.put(name, parameter);
-        Logger.error("$$$$$ SET PARAMETER RESPONSE: " + payload.toString());//*/
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -124,8 +116,8 @@ public class LGCastCommand {
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
-    public boolean sendTeardown() {
-        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN);
+    public boolean sendTeardown(String featureName) {
+        JSONObjectEx payload = new JSONObjectEx().put(KEY_CMD, VAL_TEARDOWN).put(KEY_SERVICE, featureName);
         return sendServiceCommand(payload.toJSONObject()) != null;
     }
 
@@ -155,7 +147,7 @@ public class LGCastCommand {
     private JSONObject sendServiceCommand(JSONObject payload) {
         if (ThreadUtil.isMainThread() == true) throw new IllegalStateException("Invalid state");
         if (payload == null) return null;
-        ThreadWait<JSONObject> threadWait = new ThreadWait();
+        ThreadWait<JSONObject> threadWait = new ThreadWait<>();
 
         ResponseListener<Object> listener = new ResponseListener<Object>() {
             @Override

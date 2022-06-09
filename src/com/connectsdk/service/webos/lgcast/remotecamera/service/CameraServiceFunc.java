@@ -16,7 +16,7 @@ import com.connectsdk.R;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerConfig;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerData;
 import com.connectsdk.service.webos.lgcast.remotecamera.RemoteCameraConfig;
-import com.lge.lib.security.iface.MasterKey;
+import com.lge.lib.lgcast.iface.MasterKey;
 import java.util.ArrayList;
 
 public class CameraServiceFunc {

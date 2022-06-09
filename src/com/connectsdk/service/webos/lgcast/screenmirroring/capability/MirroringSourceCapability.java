@@ -5,7 +5,7 @@
 package com.connectsdk.service.webos.lgcast.screenmirroring.capability;
 
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
-import com.lge.lib.security.iface.MasterKey;
+import com.lge.lib.lgcast.iface.MasterKey;
 import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;

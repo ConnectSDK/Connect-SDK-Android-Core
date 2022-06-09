@@ -13,7 +13,7 @@ import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerConfig;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerData;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import com.connectsdk.service.webos.lgcast.common.utils.ThreadUtil;
-import com.lge.lib.mediacapture.iface.MediaData;
+import com.lge.lib.lgcast.iface.MediaData;
 import java.util.concurrent.CountDownLatch;
 
 public class RTPStreaming {
