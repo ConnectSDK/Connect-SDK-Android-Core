@@ -22,12 +22,14 @@ import android.app.Presentation;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.display.DisplayManager;
+import android.os.Build;
 import android.view.Display;
 import com.connectsdk.service.capability.ScreenMirroringControl;
 import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringError;
 import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringErrorListener;
 import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringStartListener;
 import com.connectsdk.service.capability.ScreenMirroringControl.ScreenMirroringStopListener;
+import com.connectsdk.service.webos.lgcast.common.utils.DeviceUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.LocalBroadcastEx;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig;
@@ -58,6 +60,7 @@ public class ScreenMirroringApi {
             if (context == null || projectionData == null || deviceIpAddress == null) throw new Exception("Invalid arguments");
             if (ScreenMirroringControl.isCompatibleOsVersion() == false) throw new Exception("Incompatible OS version");
             if (ScreenMirroringControl.isRunning(context) == true) throw new Exception("Screen Mirroring is ALREADY running");
+            if (DeviceUtil.getProcessorBits() != 64) throw new Exception("Invalid Application Binary Interface");
 
             mLocalBroadcastEx.registerOnce(context, MirroringServiceIF.ACTION_NOTIFY_PAIRING, intent -> {
                 if (startListener != null) startListener.onPairing();
@@ -76,6 +79,7 @@ public class ScreenMirroringApi {
             Logger.debug("Request start");
             MirroringServiceIF.requestStart(context, projectionData, deviceIpAddress, secondScreenClass != null);
         } catch (Exception e) {
+            Logger.error(e);
             if (startListener != null) startListener.onStart(false, null);
         }
     }
@@ -102,6 +106,7 @@ public class ScreenMirroringApi {
             Logger.debug("Request stop");
             MirroringServiceIF.requestStop(context);
         } catch (Exception e) {
+            Logger.error(e);
             if (stopListener != null) stopListener.onStop(false);
         }
     }
