@@ -21,6 +21,7 @@ import com.connectsdk.service.webos.lgcast.common.connection.ConnectionManagerLi
 import com.connectsdk.service.webos.lgcast.common.connection.MobileDescription;
 import com.connectsdk.service.webos.lgcast.common.streaming.RTPStreaming;
 import com.connectsdk.service.webos.lgcast.common.utils.AppUtil;
+import com.connectsdk.service.webos.lgcast.common.utils.DeviceUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.HandlerThreadEx;
 import com.connectsdk.service.webos.lgcast.common.utils.IOUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
@@ -33,8 +34,8 @@ import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringS
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
 import com.lge.lib.lgcast.iface.AudioCaptureIF;
 import com.lge.lib.lgcast.iface.CaptureStatus;
-import com.lge.lib.lgcast.iface.VideoCaptureIF;
 import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
+import com.lge.lib.lgcast.iface.VideoCaptureIF;
 import org.json.JSONObject;
 
 public class MirroringService extends Service {
@@ -327,11 +328,21 @@ public class MirroringService extends Service {
         Logger.print("startCaptureAndStreaming");
 
         try {
+            Point captureSizeInLandscape = MirroringServiceFunc.getCaptureSizeInLandscape(this);
+            int width = captureSizeInLandscape.x;
+            int height = captureSizeInLandscape.y;
+            int bitrate = ScreenMirroringConfig.Video.BITRATE_6MB;
+
+            float totalMemoryGB = DeviceUtil.getTotalMemorySpace(this) / 1024F / 1024F / 1024F;
+            if (totalMemoryGB <= 3.0) bitrate = ScreenMirroringConfig.Video.BITRATE_1MB;
+            else if (totalMemoryGB <= 4.0) bitrate = ScreenMirroringConfig.Video.BITRATE_4MB;
+            Logger.error("### width=%d, height=%d, totalMemory=%f, bitrate=%d ###", width, height, totalMemoryGB, bitrate);
+
             mMediaProjection = MirroringServiceFunc.getMediaProjection(this, intent);
             if (mMediaProjection == null) throw new Exception("Invalid projection");
 
             mRTPStreaming = new RTPStreaming();
-            mRTPStreaming.setStreamingConfig(MirroringServiceFunc.createRtpVideoConfig(ScreenMirroringConfig.Video.BITRATE), MirroringServiceFunc.createRtpAudioConfig(), MirroringServiceFunc.createRtpSecurityConfig(mMirroringSourceCapability.masterKeys));
+            mRTPStreaming.setStreamingConfig(MirroringServiceFunc.createRtpVideoConfig(bitrate), MirroringServiceFunc.createRtpAudioConfig(), MirroringServiceFunc.createRtpSecurityConfig(mMirroringSourceCapability.masterKeys));
             mRTPStreaming.open(this, ScreenMirroringConfig.RTP.SSRC, mMirroringSinkCapability.ipAddress, mMirroringSinkCapability.videoUdpPort, mMirroringSinkCapability.audioUdpPort);
 
             if (ScreenMirroringConfig.Test.testMkiUpdate == true) {
@@ -345,19 +356,16 @@ public class MirroringService extends Service {
             mAudioCapture.setErrorListener(this::stop);
             mAudioCapture.startCapture(mMediaProjection, mRTPStreaming.getAudioStreamHandler());
 
-            Point captureSizeInLandscape = MirroringServiceFunc.getCaptureSizeInLandscape(this);
-            Logger.debug("captureSizeInLandscape.x=%d, captureSizeInLandscape.y=%d", captureSizeInLandscape.x, captureSizeInLandscape.y);
-
             mLandscapeVideoCapture = new VideoCaptureIF("land");
             mLandscapeVideoCapture.setErrorListener(this::stop);
-            mLandscapeVideoCapture.prepare(captureSizeInLandscape.x, captureSizeInLandscape.y, ScreenMirroringConfig.Video.BITRATE, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+            mLandscapeVideoCapture.prepare(width, height, bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
 
             mPortraitVideoCapture = new VideoCaptureIF("port");
             mPortraitVideoCapture.setErrorListener(this::stop);
 
             if (MirroringServiceFunc.isDualScreen(intent) == false) {
                 Logger.debug("Prepare portrait capture");
-                mPortraitVideoCapture.prepare(captureSizeInLandscape.y, captureSizeInLandscape.x, ScreenMirroringConfig.Video.BITRATE, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+                mPortraitVideoCapture.prepare(height, width, bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
             }
 
             if (mMirroringSinkCapability.isDisplayPortrait() == true) mPortraitVideoCapture.start();

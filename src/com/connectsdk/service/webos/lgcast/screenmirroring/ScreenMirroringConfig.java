@@ -9,7 +9,9 @@ public class ScreenMirroringConfig {
         public static final String CODEC = "H264";
         public static final int CLOCK_RATE = 90000;
         public static final int FRAMERATE = 60;
-        public static final int BITRATE = 6 * 1024 * 1024;
+        public static final int BITRATE_1MB = 1500000; // 1.5 * 1024 * 1024 (1,572,864)
+        public static final int BITRATE_4MB = 4000000; // 4.0 * 1024 * 1024 (4,194,304)
+        public static final int BITRATE_6MB = 6000000; // 6.0 * 1024 * 1024 (6,291,456)
 
         public static final int DEFAULT_WIDTH = 1920;
         public static final int DEFAULT_HEIGHT = 1080;
