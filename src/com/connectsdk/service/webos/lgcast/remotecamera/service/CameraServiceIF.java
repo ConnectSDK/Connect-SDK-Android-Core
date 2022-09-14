@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.camera2.CameraCharacteristics;
+import android.os.Build;
 import android.view.Surface;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.connectsdk.service.capability.RemoteCameraControl.RemoteCameraProperty;
@@ -41,7 +42,6 @@ public class CameraServiceIF {
     public static final int LENS_FACING_FRONT = CameraCharacteristics.LENS_FACING_FRONT;
     public static final int LENS_FACING_BACK = CameraCharacteristics.LENS_FACING_BACK;
 
-    @SuppressLint("NewApi")
     public static void requestStart(Context context, Surface previewSurface, String deviceIpAddress, boolean micMute, int lensFacing) {
         Intent intent = new Intent(context, CameraService.class);
         intent.setAction(ACTION_START_REQUEST);
@@ -49,7 +49,12 @@ public class CameraServiceIF {
         intent.putExtra(EXTRA_DEVICE_IP_ADDRESS, deviceIpAddress);
         intent.putExtra(EXTRA_MIC_MUTE, micMute);
         intent.putExtra(EXTRA_LENS_FACING, lensFacing);
-        context.startForegroundService(intent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     public static void respondStart(Context context, boolean isSuccess) {
@@ -60,7 +65,11 @@ public class CameraServiceIF {
     public static void requestStop(Context context) {
         Intent intent = new Intent(context, CameraService.class);
         intent.setAction(ACTION_STOP_REQUEST);
-        context.startService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     public static void respondStop(Context context, boolean isSuccess) {
@@ -68,20 +77,26 @@ public class CameraServiceIF {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
-    @SuppressLint("NewApi")
     public static void setMicMute(Context context, boolean micMute) {
         Intent intent = new Intent(context, CameraService.class);
         intent.setAction(ACTION_SET_MIC_MUTE);
         intent.putExtra(EXTRA_MIC_MUTE, micMute);
-        context.startForegroundService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
-    @SuppressLint("NewApi")
     public static void setLensFacing(Context context, int lensFacing) {
         Intent intent = new Intent(context, CameraService.class);
         intent.setAction(ACTION_SET_LENS_FACING);
         intent.putExtra(EXTRA_LENS_FACING, lensFacing);
-        context.startForegroundService(intent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(intent);
+        } else {
+            context.startService(intent);
+        }
     }
 
     public static void notifyPairing(Context context) {

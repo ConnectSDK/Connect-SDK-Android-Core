@@ -11,6 +11,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import com.connectsdk.R;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerConfig;
@@ -23,10 +24,11 @@ public class CameraServiceFunc {
     private static final String NOTI_CHANNEL_ID = "LG_CAST_REMOTE_CAMERA";
     private static final String NOTI_CHANNEL_NAME = "LG Cast Remote Camera";
 
-    @SuppressLint("NewApi")
     public static Notification createNotification(Context context) {
-        NotificationChannel notiChannel = new NotificationChannel(NOTI_CHANNEL_ID, NOTI_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
-        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(notiChannel);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notiChannel = new NotificationChannel(NOTI_CHANNEL_ID, NOTI_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+            ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(notiChannel);
+        }
 
         Intent stopIntent = new Intent(context, CameraService.class).setAction(CameraServiceIF.ACTION_STOP_BY_NOTIFICATION);
         PendingIntent stopPendingIntent = PendingIntent.getService(context, 0, stopIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);

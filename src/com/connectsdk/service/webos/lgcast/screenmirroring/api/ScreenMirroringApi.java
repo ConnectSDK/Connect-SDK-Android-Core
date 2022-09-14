@@ -60,7 +60,6 @@ public class ScreenMirroringApi {
             if (context == null || projectionData == null || deviceIpAddress == null) throw new Exception("Invalid arguments");
             if (ScreenMirroringControl.isCompatibleOsVersion() == false) throw new Exception("Incompatible OS version");
             if (ScreenMirroringControl.isRunning(context) == true) throw new Exception("Screen Mirroring is ALREADY running");
-            if (DeviceUtil.getProcessorBits() != 64) throw new Exception("Invalid Application Binary Interface");
 
             mLocalBroadcastEx.registerOnce(context, MirroringServiceIF.ACTION_NOTIFY_PAIRING, intent -> {
                 if (startListener != null) startListener.onPairing();
