@@ -56,7 +56,7 @@ public class CameraService extends Service {
     private MicCapture mMicCapture;
 
     private CameraProperty mCameraProperty;
-    private AtomicBoolean mIsPlaying;
+    private AtomicBoolean mIsPlaying = new AtomicBoolean();
 
     @Override
     public void onCreate() {
@@ -339,7 +339,7 @@ public class CameraService extends Service {
             mCameraProperty.audio = !micMute;
             mCameraProperty.debug();
 
-            mIsPlaying = new AtomicBoolean();
+            /*mIsPlaying = new AtomicBoolean();*/
             mIsPlaying.set(false);
 
             initializeService(intent);
