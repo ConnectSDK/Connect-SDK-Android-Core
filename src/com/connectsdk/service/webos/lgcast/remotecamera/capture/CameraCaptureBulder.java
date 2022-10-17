@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.ColorSpaceTransform;
 import android.hardware.camera2.params.RggbChannelVector;
 import android.view.Surface;
 import com.connectsdk.service.webos.lgcast.remotecamera.service.CameraUtility;
@@ -40,6 +41,11 @@ public class CameraCaptureBulder {
 
         mCameraRequestBuilder.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF);
         mCameraRequestBuilder.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX);
+        mCameraRequestBuilder.set(CaptureRequest.COLOR_CORRECTION_TRANSFORM, new ColorSpaceTransform(new int[]{
+                1, 1, 0, 1, 0, 1,
+                0, 1, 1, 1, 0, 1,
+                0, 1, 0, 1, 1, 1
+        }));
         mCameraRequestBuilder.set(CaptureRequest.COLOR_CORRECTION_GAINS, rggb);
         return true;
     }
