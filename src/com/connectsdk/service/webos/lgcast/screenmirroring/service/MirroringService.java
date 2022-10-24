@@ -52,7 +52,7 @@ public class MirroringService extends Service {
     private RTPStreaming mRTPStreaming;
     private AudioCaptureIF mAudioCapture;
     private VideoCaptureIF mLandscapeVideoCapture;
-    private VideoCaptureIF mPortraitVideoCapture;
+    //private VideoCaptureIF mPortraitVideoCapture;
 
     private int mCurrentOrientation;
     private int mCurrentScreenWidth;
@@ -197,7 +197,7 @@ public class MirroringService extends Service {
                 Logger.debug("onDisplayRotated (displayOrientation=%s, phoneOrientation=%s)", displayOrientation, AppUtil.getOrientation(getBaseContext()));
                 mMirroringSinkCapability.displayOrientation = displayOrientation;
 
-                if (mMirroringSinkCapability.isDisplayLandscape() == true && mLandscapeVideoCapture.getStatus() == CaptureStatus.STARTED) {
+/*                if (mMirroringSinkCapability.isDisplayLandscape() == true && mLandscapeVideoCapture.getStatus() == CaptureStatus.STARTED) {
                     Logger.error("Phone is already LANDSCAPE");
                     return;
                 }
@@ -213,7 +213,8 @@ public class MirroringService extends Service {
                 } else {
                     mLandscapeVideoCapture.pause();
                     mPortraitVideoCapture.start();
-                }
+                }*/
+                mLandscapeVideoCapture.start();
 
                 // Do not send SET_PARAMETER_RESPONSE but SET_PARAMETER
                 JSONObject sizeInfo = MirroringServiceFunc.createVideoSizeInfo(getBaseContext(), mMirroringSinkCapability);
@@ -360,7 +361,7 @@ public class MirroringService extends Service {
             mLandscapeVideoCapture.setErrorListener(this::stop);
             mLandscapeVideoCapture.prepare(width, height, bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
 
-            mPortraitVideoCapture = new VideoCaptureIF("port");
+ /*           mPortraitVideoCapture = new VideoCaptureIF("port");
             mPortraitVideoCapture.setErrorListener(this::stop);
 
             if (MirroringServiceFunc.isDualScreen(intent) == false) {
@@ -369,7 +370,9 @@ public class MirroringService extends Service {
             }
 
             if (mMirroringSinkCapability.isDisplayPortrait() == true) mPortraitVideoCapture.start();
-            else mLandscapeVideoCapture.start();
+            else mLandscapeVideoCapture.start();*/
+
+            mLandscapeVideoCapture.start();
             return true;
         } catch (Exception e) {
             Logger.error(e);
@@ -380,8 +383,8 @@ public class MirroringService extends Service {
     private void stopCaptureAndStreaming() {
         Logger.print("stopCaptureAndStreaming");
 
-        if (mPortraitVideoCapture != null) mPortraitVideoCapture.stop();
-        mPortraitVideoCapture = null;
+        /*if (mPortraitVideoCapture != null) mPortraitVideoCapture.stop();
+        mPortraitVideoCapture = null;*/
 
         if (mLandscapeVideoCapture != null) mLandscapeVideoCapture.stop();
         mLandscapeVideoCapture = null;
