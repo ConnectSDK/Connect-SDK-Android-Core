@@ -4,17 +4,22 @@
  */
 package com.connectsdk.service.webos.lgcast.screenmirroring;
 
+import android.util.Size;
+
 public class ScreenMirroringConfig {
     public static class Video {
         public static final String CODEC = "H264";
         public static final int CLOCK_RATE = 90000;
         public static final int FRAMERATE = 60;
-        public static final int BITRATE_1MB = 1500000; // 1.5 * 1024 * 1024 (1,572,864)
-        public static final int BITRATE_4MB = 4000000; // 4.0 * 1024 * 1024 (4,194,304)
-        public static final int BITRATE_6MB = 6000000; // 6.0 * 1024 * 1024 (6,291,456)
+        public static final int BITRATE_1_5MB = (int)(1.5 * 1024 * 1024);
+        public static final int BITRATE_3_0MB = 3 * 1024 * 1024;
+        public static final int BITRATE_6_0MB = 6 * 1024 * 1024;
 
         public static final int DEFAULT_WIDTH = 1920;
         public static final int DEFAULT_HEIGHT = 1080;
+
+        public static final Size CAPTURE_SIZE_720P = new Size(1280, 720);
+        public static final Size CAPTURE_SIZE_1080P = new Size(1920, 1080);
 
         public static final String DISPLAY_NAME = "LGCastVirtualDisplay";
     }
@@ -48,7 +53,6 @@ public class ScreenMirroringConfig {
         public static final int pcAudioUdpPort = 5002;
 
         public static final boolean testMkiUpdate = false; // false in release version
-        public static final boolean showDebugLog = false; // false in release version
         public static final String displayOrientation = null; // null in release version. values are null, portrait or landscape
         public static final boolean captureByDisplaySize = false; // false in release version
     }

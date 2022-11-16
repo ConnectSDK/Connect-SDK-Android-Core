@@ -46,8 +46,4 @@ public class RemoteCameraConfig {
     public static class Notification {
         public static final int ID = 0x2000;
     }
-
-    public static class Test {
-        public static final boolean showDebugLog = false; // false in release version
-    }
 }

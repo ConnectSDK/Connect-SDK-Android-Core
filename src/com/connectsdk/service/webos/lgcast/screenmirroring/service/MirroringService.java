@@ -9,9 +9,9 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
-import android.graphics.Point;
 import android.media.projection.MediaProjection;
 import android.os.IBinder;
+import android.util.Size;
 import com.connectsdk.R;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -33,7 +33,6 @@ import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringS
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSourceCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
 import com.lge.lib.lgcast.iface.AudioCaptureIF;
-import com.lge.lib.lgcast.iface.CaptureStatus;
 import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
 import com.lge.lib.lgcast.iface.VideoCaptureIF;
 import org.json.JSONObject;
@@ -60,7 +59,7 @@ public class MirroringService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger.showDebug(ScreenMirroringConfig.Test.showDebugLog);
+        Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
         mServiceHandler = new HandlerThreadEx("MirroringService Handler");
         mServiceHandler.start();
 
@@ -329,15 +328,24 @@ public class MirroringService extends Service {
         Logger.print("startCaptureAndStreaming");
 
         try {
-            Point captureSizeInLandscape = MirroringServiceFunc.getCaptureSizeInLandscape(this);
-            int width = captureSizeInLandscape.x;
-            int height = captureSizeInLandscape.y;
-            int bitrate = ScreenMirroringConfig.Video.BITRATE_6MB;
+            int bitrate;
+            Size captureSize;
+            double ramSizeByGB = DeviceUtil.getTotalMemorySpace(this) / 1024.0 / 1024.0 / 1024.0;
 
-            float totalMemoryGB = DeviceUtil.getTotalMemorySpace(this) / 1024F / 1024F / 1024F;
-            if (totalMemoryGB <= 3.0) bitrate = ScreenMirroringConfig.Video.BITRATE_1MB;
-            else if (totalMemoryGB <= 4.0) bitrate = ScreenMirroringConfig.Video.BITRATE_4MB;
-            Logger.error("### width=%d, height=%d, totalMemory=%f, bitrate=%d ###", width, height, totalMemoryGB, bitrate);
+            if (ramSizeByGB <= 3.0) {
+                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_720P;
+                bitrate = ScreenMirroringConfig.Video.BITRATE_1_5MB;
+            } else if (ramSizeByGB <= 4.0) {
+                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P;
+                bitrate = ScreenMirroringConfig.Video.BITRATE_3_0MB;
+            } else {
+                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P;
+                bitrate = ScreenMirroringConfig.Video.BITRATE_6_0MB;
+            }
+
+            Logger.error("### RAM=" + ramSizeByGB);
+            Logger.error("### Capture=" + captureSize.getWidth() + "x" + captureSize.getHeight());
+            Logger.error("### Bitrate=" + (bitrate / 1024 / 1024));
 
             mMediaProjection = MirroringServiceFunc.getMediaProjection(this, intent);
             if (mMediaProjection == null) throw new Exception("Invalid projection");
@@ -359,7 +367,7 @@ public class MirroringService extends Service {
 
             mLandscapeVideoCapture = new VideoCaptureIF("land");
             mLandscapeVideoCapture.setErrorListener(this::stop);
-            mLandscapeVideoCapture.prepare(width, height, bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+            mLandscapeVideoCapture.prepare(captureSize.getWidth(), captureSize.getHeight(), bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
 
  /*           mPortraitVideoCapture = new VideoCaptureIF("port");
             mPortraitVideoCapture.setErrorListener(this::stop);
