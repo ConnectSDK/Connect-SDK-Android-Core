@@ -61,7 +61,7 @@ public class CameraService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger.showDebug(RemoteCameraConfig.Test.showDebugLog);
+        Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
         mServiceHandler = new HandlerThreadEx("CameraService Handler");
         mServiceHandler.start();
     }

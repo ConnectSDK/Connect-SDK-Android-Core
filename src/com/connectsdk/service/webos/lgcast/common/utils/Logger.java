@@ -4,8 +4,6 @@
  */
 package com.connectsdk.service.webos.lgcast.common.utils;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -14,7 +12,7 @@ public class Logger {
     private static final String TAG = "LGCAST";
     private static ScrollView mScrollView = null;
     private static TextView mTextView = null;
-    private static boolean mShowDebug = com.connectsdk.BuildConfig.DEBUG;
+    private static boolean mShowDebug = true;
 
     public static void setView(ScrollView scrollView, TextView textView) {
         mScrollView = scrollView;
@@ -47,9 +45,7 @@ public class Logger {
     }
 
     public static void clear() {
-        new Handler(Looper.getMainLooper()).post(() -> {
-            if (mTextView != null) mTextView.setText("");
-        });
+        if (mTextView != null) mTextView.post(() -> mTextView.setText(""));
     }
 
     private static void out(final int type, final String message) {
