@@ -15,6 +15,7 @@ public class MirroringSourceCapability {
     public String videoCodec;
     public int videoClockRate;
     public int videoFramerate;
+    public int videoBitrate;
     public int videoWidth;
     public int videoHeight;
     public int videoActiveWidth;
@@ -38,6 +39,7 @@ public class MirroringSourceCapability {
             videoObj.put("codec", videoCodec);
             videoObj.put("clockRate", videoClockRate);
             videoObj.put("framerate", videoFramerate);
+            videoObj.put("bitrate", videoBitrate);
             videoObj.put("width", videoWidth);
             videoObj.put("height", videoHeight);
             videoObj.put("activeWidth", videoActiveWidth);
@@ -76,9 +78,10 @@ public class MirroringSourceCapability {
     }
 
     public void debug() {
-        Logger.debug("videoCodec=" + videoCodec);
+        /*Logger.debug("videoCodec=" + videoCodec);
         Logger.debug("videoClockRate=" + videoClockRate);
         Logger.debug("videoFramerate=" + videoFramerate);
+        Logger.debug("videoBitrate=" + videoBitrate);
         Logger.debug("videoWidth=" + videoWidth);
         Logger.debug("videoHeight=" + videoHeight);
         Logger.debug("videoActiveWidth=" + videoActiveWidth);
@@ -91,6 +94,17 @@ public class MirroringSourceCapability {
         Logger.debug("audioChannels=" + audioChannels);
         Logger.debug("uibcEnabled=" + uibcEnabled);
         Logger.debug("screenOrientation=" + screenOrientation);
-        Logger.debug("");
+        Logger.debug("");//*/
+
+        Logger.error("##### MIRRORING SOURCE CAPABILITY #####");
+        Logger.error("videoBitrate=" + videoBitrate);
+        Logger.error("videoWidth=" + videoWidth);
+        Logger.error("videoHeight=" + videoHeight);
+        Logger.error("videoActiveWidth=" + videoActiveWidth);
+        Logger.error("videoActiveHeight=" + videoActiveHeight);
+        Logger.error("videoOrientation=" + videoOrientation);
+        Logger.error("uibcEnabled=" + uibcEnabled);
+        Logger.error("screenOrientation=" + screenOrientation);
+        Logger.error("");
     }
 }
