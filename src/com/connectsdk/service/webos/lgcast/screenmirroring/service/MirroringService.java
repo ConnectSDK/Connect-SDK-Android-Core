@@ -11,7 +11,6 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.media.projection.MediaProjection;
 import android.os.IBinder;
-import android.util.Size;
 import com.connectsdk.R;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -21,7 +20,6 @@ import com.connectsdk.service.webos.lgcast.common.connection.ConnectionManagerLi
 import com.connectsdk.service.webos.lgcast.common.connection.MobileDescription;
 import com.connectsdk.service.webos.lgcast.common.streaming.RTPStreaming;
 import com.connectsdk.service.webos.lgcast.common.utils.AppUtil;
-import com.connectsdk.service.webos.lgcast.common.utils.DeviceUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.HandlerThreadEx;
 import com.connectsdk.service.webos.lgcast.common.utils.IOUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
@@ -29,11 +27,12 @@ import com.connectsdk.service.webos.lgcast.common.utils.StringUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.ThreadUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.TimerUtil;
 import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig;
+import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConst;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSinkCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSourceCapability;
+import com.connectsdk.service.webos.lgcast.screenmirroring.capability.VideoSizeInfo;
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
 import com.lge.lib.lgcast.iface.AudioCaptureIF;
-import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
 import com.lge.lib.lgcast.iface.VideoCaptureIF;
 import org.json.JSONObject;
 
@@ -50,8 +49,7 @@ public class MirroringService extends Service {
 
     private RTPStreaming mRTPStreaming;
     private AudioCaptureIF mAudioCapture;
-    private VideoCaptureIF mLandscapeVideoCapture;
-    //private VideoCaptureIF mPortraitVideoCapture;
+    private VideoCaptureIF mVideoCapture;
 
     private int mCurrentOrientation;
     private int mCurrentScreenWidth;
@@ -96,28 +94,18 @@ public class MirroringService extends Service {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (mConnectionManager == null || mMirroringSourceCapability == null) return; // Device is not connected
+        if (mConnectionManager == null || mMirroringSinkCapability == null || mMirroringSourceCapability == null) return; // Device is not connected
 
         if (mCurrentOrientation != newConfig.orientation) {
             Logger.debug("Orientation changed: old=%d, new=%d", mCurrentOrientation, newConfig.orientation);
             mCurrentOrientation = newConfig.orientation;
-
-            //if (MirroringServiceFunc.isDualScreen(intent))
-            if ("landscape|portrait".equals(mMirroringSourceCapability.screenOrientation)) {
-                JSONObject jobj = MirroringServiceFunc.createVideoSizeInfo(getBaseContext(), mMirroringSinkCapability);
-                mConnectionManager.updateSourceDeviceCapability(jobj);
-            }
+            updateVideoSizeInfo((mCurrentOrientation == Configuration.ORIENTATION_LANDSCAPE) ? ScreenMirroringConst.LANDSCAPE : ScreenMirroringConst.PORTRAIT);
         }
 
         if (mCurrentScreenWidth != newConfig.smallestScreenWidthDp) {
             Logger.debug("Screen width changed: old=%d, new=%d", mCurrentScreenWidth, newConfig.smallestScreenWidthDp);
             mCurrentScreenWidth = newConfig.smallestScreenWidthDp;
-
-            //if (MirroringServiceFunc.isDualScreen(intent))
-            if ("landscape|portrait".equals(mMirroringSourceCapability.screenOrientation)) {
-                JSONObject jobj = MirroringServiceFunc.createVideoSizeInfo(getBaseContext(), mMirroringSinkCapability);
-                mConnectionManager.updateSourceDeviceCapability(jobj);
-            }
+            updateVideoSizeInfo((mCurrentOrientation == Configuration.ORIENTATION_LANDSCAPE) ? ScreenMirroringConst.LANDSCAPE : ScreenMirroringConst.PORTRAIT);
         }
     }
 
@@ -150,7 +138,7 @@ public class MirroringService extends Service {
                 mMirroringSinkCapability.displayOrientation = (ScreenMirroringConfig.Test.displayOrientation != null) ? ScreenMirroringConfig.Test.displayOrientation : mMirroringSinkCapability.displayOrientation;
                 mMirroringSinkCapability.debug();
 
-                mMirroringSourceCapability = MirroringServiceFunc.createMirroringSourceCapa(getBaseContext(), intent, mMirroringSinkCapability);
+                mMirroringSourceCapability = MirroringServiceFunc.createMirroringSourceCapa(getBaseContext(), mMirroringSinkCapability);
                 mMirroringSourceCapability.debug();
 
                 MobileDescription mobileDescription = new MobileDescription(getBaseContext());
@@ -185,39 +173,15 @@ public class MirroringService extends Service {
                 String displayOrientation = (mirroringObj != null) ? mirroringObj.optString("displayOrientation") : null;
                 if (displayOrientation == null) return;
 
-                Logger.debug("Display rotated");
+                Logger.debug("onDisplayRotated (displayOrientation=%s, phoneOrientation=%s)", displayOrientation, AppUtil.getOrientation(getBaseContext()));
                 UibcAccessibilityService.onDisplayRotated(displayOrientation); // TODO: Check it!!
 
-                if (mMirroringSinkCapability == null || mMirroringSinkCapability.isSupportPortraitMode() == false) { // when TV is V1
-                    Logger.error("TV does not support PORTRAIT mode");
-                    return;
-                }
-
-                Logger.debug("onDisplayRotated (displayOrientation=%s, phoneOrientation=%s)", displayOrientation, AppUtil.getOrientation(getBaseContext()));
-                mMirroringSinkCapability.displayOrientation = displayOrientation;
-
-/*                if (mMirroringSinkCapability.isDisplayLandscape() == true && mLandscapeVideoCapture.getStatus() == CaptureStatus.STARTED) {
-                    Logger.error("Phone is already LANDSCAPE");
-                    return;
-                }
-
-                if (mMirroringSinkCapability.isDisplayPortrait() == true && mPortraitVideoCapture.getStatus() == CaptureStatus.STARTED) {
-                    Logger.error("Phone is already PORTRAIT");
-                    return;
-                }
-
-                if (mMirroringSinkCapability.isDisplayLandscape() == true) {
-                    mPortraitVideoCapture.pause();
-                    mLandscapeVideoCapture.start();
+                if (mMirroringSinkCapability != null && mMirroringSinkCapability.isSupportPortraitMode() == true) {
+                    updateVideoSizeInfo(displayOrientation);
+                    mVideoCapture.resizeCapture(mMirroringSourceCapability.videoWidth, mMirroringSourceCapability.videoHeight, mMirroringSourceCapability.videoBitrate);
                 } else {
-                    mLandscapeVideoCapture.pause();
-                    mPortraitVideoCapture.start();
-                }*/
-                mLandscapeVideoCapture.start();
-
-                // Do not send SET_PARAMETER_RESPONSE but SET_PARAMETER
-                JSONObject sizeInfo = MirroringServiceFunc.createVideoSizeInfo(getBaseContext(), mMirroringSinkCapability);
-                if (mConnectionManager != null) mConnectionManager.updateSourceDeviceCapability(sizeInfo);
+                    Logger.error("TV does not support PORTRAIT mode");
+                }
             }
 
             @Override
@@ -275,6 +239,7 @@ public class MirroringService extends Service {
         mMirroringServiceEvent.startScreenOnOffReceiver(turnOn -> {
             if (mConnectionManager != null) mConnectionManager.notifyScreenOnOff(turnOn);
         });
+
         mMirroringServiceEvent.startAccessibilitySettingObserver(uibcEnabled -> {
             JSONObject uibcInfo = MirroringServiceFunc.createUibcInfo(getBaseContext());
             if (mConnectionManager != null) mConnectionManager.updateSourceDeviceCapability(uibcInfo);
@@ -307,8 +272,7 @@ public class MirroringService extends Service {
 
         if (ScreenMirroringConfig.Test.usePcPlayer == true) {
             mMirroringSinkCapability = MirroringServiceFunc.createPcMirroringSinkCapa();
-            mMirroringSourceCapability = new MirroringSourceCapability();
-            mMirroringSourceCapability.masterKeys = new MasterKeyFactoryIF().createFixedKeys(ScreenMirroringConfig.RTP.FIXED_KEY);
+            mMirroringSourceCapability = MirroringServiceFunc.createPcMirroringSourceCapa();
             if (connectionListener != null) connectionListener.onReceivePlayCommand(null);
         } else {
             String deviceIpAddress = MirroringServiceFunc.getDeviceIpAddress(intent);
@@ -328,59 +292,46 @@ public class MirroringService extends Service {
         Logger.print("startCaptureAndStreaming");
 
         try {
-            int bitrate;
-            Size captureSize;
-            double ramSizeByGB = DeviceUtil.getTotalMemorySpace(this) / 1024.0 / 1024.0 / 1024.0;
-
-            if (ramSizeByGB <= 3.0) {
-                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_720P;
-                bitrate = ScreenMirroringConfig.Video.BITRATE_1_5MB;
-            } else if (ramSizeByGB <= 4.0) {
-                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P;
-                bitrate = ScreenMirroringConfig.Video.BITRATE_3_0MB;
-            } else {
-                captureSize = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P;
-                bitrate = ScreenMirroringConfig.Video.BITRATE_6_0MB;
-            }
-
-            Logger.error("### RAM=" + ramSizeByGB);
-            Logger.error("### Capture=" + captureSize.getWidth() + "x" + captureSize.getHeight());
-            Logger.error("### Bitrate=" + (bitrate / 1024 / 1024));
-
             mMediaProjection = MirroringServiceFunc.getMediaProjection(this, intent);
             if (mMediaProjection == null) throw new Exception("Invalid projection");
 
             mRTPStreaming = new RTPStreaming();
-            mRTPStreaming.setStreamingConfig(MirroringServiceFunc.createRtpVideoConfig(bitrate), MirroringServiceFunc.createRtpAudioConfig(), MirroringServiceFunc.createRtpSecurityConfig(mMirroringSourceCapability.masterKeys));
+            mRTPStreaming.setStreamingConfig(MirroringServiceFunc.createRtpVideoConfig(mMirroringSourceCapability.videoBitrate), MirroringServiceFunc.createRtpAudioConfig(), MirroringServiceFunc.createRtpSecurityConfig(mMirroringSourceCapability.masterKeys));
             mRTPStreaming.open(this, ScreenMirroringConfig.RTP.SSRC, mMirroringSinkCapability.ipAddress, mMirroringSinkCapability.videoUdpPort, mMirroringSinkCapability.audioUdpPort);
 
             if (ScreenMirroringConfig.Test.testMkiUpdate == true) {
                 TimerUtil.schedule(() -> {
-                    Logger.debug("Test master key update");
+                    Logger.error("### TEST MASTER KEY UPDATE ###");
                     if (mRTPStreaming != null) mRTPStreaming.updateMasterKey();
                 }, 30 * 1000);
             }
 
-            mAudioCapture = new AudioCaptureIF(ScreenMirroringConfig.Audio.SAMPLING_RATE, ScreenMirroringConfig.Audio.CHANNEL_COUNT);
-            mAudioCapture.setErrorListener(this::stop);
-            mAudioCapture.startCapture(mMediaProjection, mRTPStreaming.getAudioStreamHandler());
+            if (ScreenMirroringConfig.Test.testOrientationChange == true) {
+                TimerUtil.schedule(() -> {
+                    Logger.error("### TEST ORIENTATION CHANGE ###");
 
-            mLandscapeVideoCapture = new VideoCaptureIF("land");
-            mLandscapeVideoCapture.setErrorListener(this::stop);
-            mLandscapeVideoCapture.prepare(captureSize.getWidth(), captureSize.getHeight(), bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+                    if (mMirroringSourceCapability.videoWidth == 1920 && mMirroringSourceCapability.videoHeight == 1080) {
+                        Logger.error("Change to PORTRAIT mode");
+                        mMirroringSourceCapability.videoWidth = 1080;
+                        mMirroringSourceCapability.videoHeight = 1920;
+                    } else {
+                        Logger.error("Change to LANDSCAPE mode");
+                        mMirroringSourceCapability.videoWidth = 1920;
+                        mMirroringSourceCapability.videoHeight = 1080;
+                    }
 
- /*           mPortraitVideoCapture = new VideoCaptureIF("port");
-            mPortraitVideoCapture.setErrorListener(this::stop);
-
-            if (MirroringServiceFunc.isDualScreen(intent) == false) {
-                Logger.debug("Prepare portrait capture");
-                mPortraitVideoCapture.prepare(height, width, bitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+                    mVideoCapture.stopCapture();
+                    mVideoCapture.startCapture(mMirroringSourceCapability.videoWidth, mMirroringSourceCapability.videoHeight, mMirroringSourceCapability.videoBitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
+                }, 10000, 5000);
             }
 
-            if (mMirroringSinkCapability.isDisplayPortrait() == true) mPortraitVideoCapture.start();
-            else mLandscapeVideoCapture.start();*/
+            mAudioCapture = new AudioCaptureIF();
+            mAudioCapture.setErrorListener(this::stop);
+            mAudioCapture.startCapture(ScreenMirroringConfig.Audio.SAMPLING_RATE, ScreenMirroringConfig.Audio.CHANNEL_COUNT, mMediaProjection, mRTPStreaming.getAudioStreamHandler());
 
-            mLandscapeVideoCapture.start();
+            mVideoCapture = new VideoCaptureIF();
+            mVideoCapture.setErrorListener(this::stop);
+            mVideoCapture.startCapture(mMirroringSourceCapability.videoWidth, mMirroringSourceCapability.videoHeight, mMirroringSourceCapability.videoBitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
             return true;
         } catch (Exception e) {
             Logger.error(e);
@@ -390,12 +341,8 @@ public class MirroringService extends Service {
 
     private void stopCaptureAndStreaming() {
         Logger.print("stopCaptureAndStreaming");
-
-        /*if (mPortraitVideoCapture != null) mPortraitVideoCapture.stop();
-        mPortraitVideoCapture = null;*/
-
-        if (mLandscapeVideoCapture != null) mLandscapeVideoCapture.stop();
-        mLandscapeVideoCapture = null;
+        if (mVideoCapture != null) mVideoCapture.stopCapture();
+        mVideoCapture = null;
 
         if (mAudioCapture != null) mAudioCapture.stopCapture();
         mAudioCapture = null;
@@ -405,5 +352,20 @@ public class MirroringService extends Service {
 
         if (mMediaProjection != null) mMediaProjection.stop();
         mMediaProjection = null;
+    }
+
+    private void updateVideoSizeInfo(String displayOrientation) {
+        VideoSizeInfo videoSizeInfo = MirroringServiceFunc.createVideoSizeInfo(this, ScreenMirroringConst.LANDSCAPE.equals(displayOrientation));
+        videoSizeInfo.debug();
+
+        mMirroringSourceCapability.videoWidth = videoSizeInfo.videoWidth;
+        mMirroringSourceCapability.videoHeight = videoSizeInfo.videoHeight;
+        mMirroringSourceCapability.videoActiveWidth = videoSizeInfo.videoActiveWidth;
+        mMirroringSourceCapability.videoActiveHeight = videoSizeInfo.videoActiveHeight;
+        mMirroringSourceCapability.videoOrientation = videoSizeInfo.videoOrientation;
+        mMirroringSinkCapability.displayOrientation = displayOrientation;
+
+        JSONObject capabilityJson = videoSizeInfo.toJSONObject(this);
+        if (mConnectionManager != null) mConnectionManager.updateSourceDeviceCapability(capabilityJson);
     }
 }

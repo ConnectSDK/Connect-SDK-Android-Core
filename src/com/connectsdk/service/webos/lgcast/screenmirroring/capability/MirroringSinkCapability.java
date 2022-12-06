@@ -153,7 +153,7 @@ public class MirroringSinkCapability {
     }
 
     public void debug() {
-        Logger.debug("ipAddress=" + ipAddress);
+        /*Logger.debug("ipAddress=" + ipAddress);
         Logger.debug("keepAliveTimeout=" + keepAliveTimeout);
         Logger.debug("deviceType=" + deviceType);
         Logger.debug("deviceVersion=" + deviceVersion);
@@ -169,6 +169,16 @@ public class MirroringSinkCapability {
         Logger.debug("audioUdpPort=" + audioUdpPort);
         Logger.debug("supportedOrientation=" + supportedOrientation);
         Logger.debug("displayOrientation=" + displayOrientation);
-        Logger.debug("");
+        Logger.debug("");//*/
+
+        Logger.error("##### MIRRORING SINK CAPABILITY #####");
+        Logger.error("ipAddress=" + ipAddress);
+        Logger.error("videoPortraitMaxWidth=" + videoPortraitMaxWidth);
+        Logger.error("videoPortraitMaxHeight=" + videoPortraitMaxHeight);
+        Logger.error("videoLandscapeMaxWidth=" + videoLandscapeMaxWidth);
+        Logger.error("videoLandscapeMaxHeight=" + videoLandscapeMaxHeight);
+        Logger.error("supportedOrientation=" + supportedOrientation);
+        Logger.error("displayOrientation=" + displayOrientation);
+        Logger.error("");
     }
 }

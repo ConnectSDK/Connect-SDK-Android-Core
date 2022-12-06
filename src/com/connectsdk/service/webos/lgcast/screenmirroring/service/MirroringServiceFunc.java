@@ -23,10 +23,11 @@ import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerData;
 import com.connectsdk.service.webos.lgcast.common.utils.AppUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.DeviceUtil;
 import com.connectsdk.service.webos.lgcast.common.utils.JSONObjectEx;
-import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConfig;
+import com.connectsdk.service.webos.lgcast.screenmirroring.ScreenMirroringConst;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSinkCapability;
 import com.connectsdk.service.webos.lgcast.screenmirroring.capability.MirroringSourceCapability;
+import com.connectsdk.service.webos.lgcast.screenmirroring.capability.VideoSizeInfo;
 import com.connectsdk.service.webos.lgcast.screenmirroring.uibc.UibcAccessibilityService;
 import com.lge.lib.lgcast.iface.MasterKey;
 import com.lge.lib.lgcast.iface.MasterKeyFactoryIF;
@@ -34,30 +35,15 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 
 public class MirroringServiceFunc {
-    private static final String WIDTH = "width";
-    private static final String HEIGHT = "height";
-    private static final String ACTIVE_WIDTH = "activeWidth";
-    private static final String ACTIVE_HEIGHT = "activeHeight";
-    private static final String ORIENTATION = "orientation";
-    private static final String VIDEO = "video";
-
-    private static final String LANDSCAPE = "landscape";
-    private static final String PORTRAIT = "portrait";
-    private static final String LANDSCAPE_OR_PORTRAIT = "landscape|portrait";
-    private static final String UIBC_ENABLED = "uibcEnabled";
-
-    private static final String NOTI_CHANNEL_ID = "LG_CAST_SCREEN_MIRRORING";
-    private static final String NOTI_CHANNEL_NAME = "LG Cast Screen Mirroring";
-
     @SuppressLint("NewApi")
     public static Notification createNotification(Context context) {
-        NotificationChannel notiChannel = new NotificationChannel(NOTI_CHANNEL_ID, NOTI_CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel notiChannel = new NotificationChannel(ScreenMirroringConfig.Notification.CHANNEL_ID, ScreenMirroringConfig.Notification.CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW);
         ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(notiChannel);
 
         Intent stopIntent = new Intent(context, MirroringService.class).setAction(MirroringServiceIF.ACTION_STOP_BY_NOTIFICATION);
         PendingIntent stopPendingIntent = PendingIntent.getService(context, 0, stopIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(context, NOTI_CHANNEL_ID);
+        NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(context, ScreenMirroringConfig.Notification.CHANNEL_ID);
         notiBuilder.setSmallIcon(R.drawable.lgcast_noti_icon);
         notiBuilder.setContentTitle(context.getString(R.string.notification_screen_sharing_title));
         notiBuilder.setContentText(context.getString(R.string.notification_screen_sharing_desc));
@@ -84,56 +70,43 @@ public class MirroringServiceFunc {
     }
 
     // Mirroring Capability -----------------------------------------------------------------------
-    public static boolean isCaptureByDisplaySize(Context context) {
-        if (ScreenMirroringConfig.Test.captureByDisplaySize == true) return true;
-        return DeviceUtil.getTotalMemorySpace(context) <= 3L * 1024L * 1024L * 1024L; // We are assuming that a device which has 3GB RAM is low spec.
-    }
-
-    public static Point getCaptureSizeInLandscape(Context context) {
-        return (MirroringServiceFunc.isCaptureByDisplaySize(context) == true) ?
-                AppUtil.getDisplaySizeInLandscape(context) :
-                new Point(ScreenMirroringConfig.Video.DEFAULT_WIDTH, ScreenMirroringConfig.Video.DEFAULT_HEIGHT);
-    }
-
     public static MirroringSinkCapability createPcMirroringSinkCapa() {
         MirroringSinkCapability mirroringSinkCapability = new MirroringSinkCapability();
         mirroringSinkCapability.ipAddress = ScreenMirroringConfig.Test.pcIpAddress;
         mirroringSinkCapability.videoUdpPort = ScreenMirroringConfig.Test.pcVideoUdpPort;
         mirroringSinkCapability.audioUdpPort = ScreenMirroringConfig.Test.pcAudioUdpPort;
-        mirroringSinkCapability.videoLandscapeMaxWidth = ScreenMirroringConfig.Video.DEFAULT_WIDTH;
-        mirroringSinkCapability.videoLandscapeMaxHeight = ScreenMirroringConfig.Video.DEFAULT_HEIGHT;
-        mirroringSinkCapability.videoPortraitMaxWidth = ScreenMirroringConfig.Video.DEFAULT_HEIGHT;
-        mirroringSinkCapability.videoPortraitMaxHeight = ScreenMirroringConfig.Video.DEFAULT_WIDTH;
+        mirroringSinkCapability.videoLandscapeMaxWidth = 1920;
+        mirroringSinkCapability.videoLandscapeMaxHeight = 1080;
+        mirroringSinkCapability.videoPortraitMaxWidth = 1080;
+        mirroringSinkCapability.videoPortraitMaxHeight = 1920;
         return mirroringSinkCapability;
     }
 
-    public static MirroringSourceCapability createMirroringSourceCapa(Context context, Intent intent, MirroringSinkCapability mirroringSinkCapability) {
-        boolean captureByDisplaySize = isCaptureByDisplaySize(context);
-        boolean isDisplayLandscape = mirroringSinkCapability.isDisplayLandscape();
-        Logger.debug("captureByDisplaySize=%s, isDisplayLandscape=%s", captureByDisplaySize, isDisplayLandscape);
+    public static MirroringSourceCapability createPcMirroringSourceCapa() {
+        MirroringSourceCapability mirroringSourceCapability = new MirroringSourceCapability();
+        mirroringSourceCapability.videoBitrate = 6 * 1024 * 1024;
+        mirroringSourceCapability.videoWidth = 1920;
+        mirroringSourceCapability.videoHeight = 1080;
+        mirroringSourceCapability.masterKeys = new MasterKeyFactoryIF().createFixedKeys(ScreenMirroringConfig.RTP.FIXED_KEY);
+        return mirroringSourceCapability;
+    }
 
-        Point captureSize = calculateVideoCaptureSize(context, mirroringSinkCapability);
+    public static MirroringSourceCapability createMirroringSourceCapa(Context context, MirroringSinkCapability mirroringSinkCapability) {
+        int bitrate = calculateVideoBitrate(context);
+        Point captureSize = calculateVideoCaptureSize(context, mirroringSinkCapability.isDisplayLandscape());
         Point activeSize = calculateVideoActiveSize(context, captureSize);
-
-        Logger.error("##### MIRRORING SOURCE CAPABILITY (onConnectionPrepared) #####");
-        Logger.error("display orientation=" + mirroringSinkCapability.displayOrientation);
-        Logger.error("phone orientation=" + ((AppUtil.isLandscape(context) == true) ? LANDSCAPE : PORTRAIT));
-        Logger.error("capture width=" + captureSize.x);
-        Logger.error("capture height=" + captureSize.y);
-        Logger.error("active width=" + activeSize.x);
-        Logger.error("active height=" + activeSize.y);
-        Logger.error("--------------------------------------------------------------");
 
         // Video spec
         MirroringSourceCapability mirroringSourceCapability = new MirroringSourceCapability();
         mirroringSourceCapability.videoCodec = ScreenMirroringConfig.Video.CODEC;
         mirroringSourceCapability.videoClockRate = ScreenMirroringConfig.Video.CLOCK_RATE;
         mirroringSourceCapability.videoFramerate = ScreenMirroringConfig.Video.FRAMERATE;
+        mirroringSourceCapability.videoBitrate = bitrate;
         mirroringSourceCapability.videoWidth = captureSize.x;
         mirroringSourceCapability.videoHeight = captureSize.y;
         mirroringSourceCapability.videoActiveWidth = activeSize.x;
         mirroringSourceCapability.videoActiveHeight = activeSize.y;
-        mirroringSourceCapability.videoOrientation = (AppUtil.isLandscape(context) == true) ? LANDSCAPE : PORTRAIT;
+        mirroringSourceCapability.videoOrientation = (AppUtil.isLandscape(context) == true) ? ScreenMirroringConst.LANDSCAPE : ScreenMirroringConst.PORTRAIT;
 
         // Audio spec
         mirroringSourceCapability.audioCodec = ScreenMirroringConfig.Audio.CODEC;
@@ -142,9 +115,10 @@ public class MirroringServiceFunc {
         mirroringSourceCapability.audioStreamMuxConfig = ScreenMirroringConfig.Audio.STREAM_MUX_CONFIG;
         mirroringSourceCapability.audioChannels = ScreenMirroringConfig.Audio.CHANNEL_COUNT;
 
+        // etc
         mirroringSourceCapability.masterKeys = new MasterKeyFactoryIF().createKeys(mirroringSinkCapability.publicKey);
         mirroringSourceCapability.uibcEnabled = isUibcEnabled(context); // TODO -------------------------------
-        mirroringSourceCapability.screenOrientation = LANDSCAPE_OR_PORTRAIT;
+        mirroringSourceCapability.screenOrientation = ScreenMirroringConst.LANDSCAPE_OR_PORTRAIT;
 
         // TODO --------------------------------------------------------------------------
         //if (isDualScreen(intent) == true) {
@@ -158,33 +132,17 @@ public class MirroringServiceFunc {
         return mirroringSourceCapability;
     }
 
-    public static JSONObject createVideoSizeInfo(Context context, MirroringSinkCapability mirroringSinkCapability) {
-        boolean captureByDisplaySize = isCaptureByDisplaySize(context);
-        boolean isDisplayLandscape = mirroringSinkCapability.isDisplayLandscape();
-        Logger.debug("captureByDisplaySize=%s, isDisplayLandscape=%s", captureByDisplaySize, isDisplayLandscape);
-
-        Point captureSize = calculateVideoCaptureSize(context, mirroringSinkCapability);
+    public static VideoSizeInfo createVideoSizeInfo(Context context, boolean isDisplayLandscape) {
+        Point captureSize = calculateVideoCaptureSize(context, isDisplayLandscape);
         Point activeSize = calculateVideoActiveSize(context, captureSize);
 
-        Logger.error("##### MIRRORING SOURCE CAPABILITY (onDisplayRotated) #####");
-        Logger.error("display orientation=" + mirroringSinkCapability.displayOrientation);
-        Logger.error("phone orientation=" + ((AppUtil.isLandscape(context) == true) ? LANDSCAPE : PORTRAIT));
-        Logger.error("capture width=" + captureSize.x);
-        Logger.error("capture height=" + captureSize.y);
-        Logger.error("active width=" + activeSize.x);
-        Logger.error("active height=" + activeSize.y);
-        Logger.error("--------------------------------------------------------------");
-
-        JSONObjectEx videoObj = new JSONObjectEx();
-        videoObj.put(WIDTH, captureSize.x);
-        videoObj.put(HEIGHT, captureSize.y);
-        videoObj.put(ACTIVE_WIDTH, activeSize.x);
-        videoObj.put(ACTIVE_HEIGHT, activeSize.y);
-        videoObj.put(ORIENTATION, (AppUtil.isLandscape(context) == true) ? LANDSCAPE : PORTRAIT);
-
-        JSONObjectEx mirroringObj = new JSONObjectEx();
-        mirroringObj.put(VIDEO, videoObj);
-        return mirroringObj.toJSONObject();
+        VideoSizeInfo videoSizeInfo = new VideoSizeInfo();
+        videoSizeInfo.videoWidth = captureSize.x;
+        videoSizeInfo.videoHeight = captureSize.y;
+        videoSizeInfo.videoActiveWidth = activeSize.x;
+        videoSizeInfo.videoActiveHeight = activeSize.y;
+        videoSizeInfo.videoOrientation = (AppUtil.isLandscape(context) == true) ? ScreenMirroringConst.LANDSCAPE : ScreenMirroringConst.PORTRAIT;
+        return videoSizeInfo;
     }
 
     // RTP ----------------------------------------------------------------------------------------
@@ -228,7 +186,7 @@ public class MirroringServiceFunc {
     // UIBC ---------------------------------------------------------------------------------------
     public static JSONObject createUibcInfo(Context context) {
         boolean uibcEnabled = MirroringServiceFunc.isUibcEnabled(context);
-        JSONObjectEx uibcInfo = new JSONObjectEx().put(UIBC_ENABLED, uibcEnabled);
+        JSONObjectEx uibcInfo = new JSONObjectEx().put(ScreenMirroringConst.UIBC_ENABLED, uibcEnabled);
         return uibcInfo.toJSONObject();
     }
 
@@ -238,15 +196,29 @@ public class MirroringServiceFunc {
     }
 
     // Privates -----------------------------------------------------------------------------------
-    private static Point calculateVideoCaptureSize(Context context, MirroringSinkCapability mirroringSinkCapability) {
-        boolean captureByDisplaySize = isCaptureByDisplaySize(context);
-        boolean isDisplayLandscape = mirroringSinkCapability.isDisplayLandscape();
-        Point displaySizeInLandscape = AppUtil.getDisplaySizeInLandscape(context);
-        Logger.debug("captureByDisplaySize=%s, isDisplayLandscape=%s", captureByDisplaySize, isDisplayLandscape);
+    private static int calculateVideoBitrate(Context context) {
+        double ramSizeByGB = DeviceUtil.getTotalMemorySpace(context) / 1024.0 / 1024.0 / 1024.0;
 
-        // In case of low spec device, it will capture screen by display size, otherwise by FHD
-        int w = (captureByDisplaySize == true) ? displaySizeInLandscape.x : ScreenMirroringConfig.Video.DEFAULT_WIDTH;
-        int h = (captureByDisplaySize == true) ? displaySizeInLandscape.y : ScreenMirroringConfig.Video.DEFAULT_HEIGHT;
+        if (ramSizeByGB <= 3.0) return ScreenMirroringConfig.Video.BITRATE_1_5MB;
+        else if (ramSizeByGB <= 4.0) return ScreenMirroringConfig.Video.BITRATE_3_0MB;
+        else return ScreenMirroringConfig.Video.BITRATE_6_0MB;
+    }
+
+    private static Point calculateVideoCaptureSize(Context context, boolean isDisplayLandscape) {
+        double ramSizeInGB = DeviceUtil.getTotalMemorySpace(context) / 1024.0 / 1024.0 / 1024.0;
+        int w, h;
+
+        if (ramSizeInGB <= 3.0) {
+            w = ScreenMirroringConfig.Video.CAPTURE_SIZE_720P.x;
+            h = ScreenMirroringConfig.Video.CAPTURE_SIZE_720P.y;
+        } else if (ramSizeInGB <= 4.0) {
+            w = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P.x;
+            h = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P.y;
+        } else {
+            w = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P.x;
+            h = ScreenMirroringConfig.Video.CAPTURE_SIZE_1080P.y;
+        }
+
         return (isDisplayLandscape == true) ? new Point(w, h) : new Point(h, w);
     }
 
