@@ -47,6 +47,7 @@ public class MirroringServiceFunc {
         notiBuilder.setSmallIcon(R.drawable.lgcast_noti_icon);
         notiBuilder.setContentTitle(context.getString(R.string.notification_screen_sharing_title));
         notiBuilder.setContentText(context.getString(R.string.notification_screen_sharing_desc));
+        notiBuilder.setOngoing(true);//Android 13 changes for notification
         notiBuilder.addAction(R.drawable.lgcast_noti_icon_thinq, context.getString(R.string.notification_disconnect_action), stopPendingIntent);
         return notiBuilder.build();
     }
