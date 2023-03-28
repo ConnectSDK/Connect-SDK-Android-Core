@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import com.connectsdk.service.webos.lgcast.common.utils.Logger;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.lang.IllegalArgumentException;
 
 public class MirroringVolume {
     private final String VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
@@ -58,7 +59,12 @@ public class MirroringVolume {
         Logger.print("stopMute");
         mStarted.set(false);
         setStreamVolume(mPrevVolume);
-        if (mBroadcastReceiver != null) mContext.unregisterReceiver(mBroadcastReceiver);
+        try {
+            if (mBroadcastReceiver != null) mContext.unregisterReceiver(mBroadcastReceiver);
+        }
+        catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
     }
 
     private int getStreamVolume() {
