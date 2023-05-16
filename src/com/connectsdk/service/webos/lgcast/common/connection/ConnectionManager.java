@@ -296,7 +296,11 @@ public class ConnectionManager implements ConnectableDeviceListener {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     private void callOnPairingRequested() {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onPairingRequested());
+        //null check
+        if (mConnectionHandler != null)
+        {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onPairingRequested());
+        }
     }
 
     private void callOnPairingRejected() {
