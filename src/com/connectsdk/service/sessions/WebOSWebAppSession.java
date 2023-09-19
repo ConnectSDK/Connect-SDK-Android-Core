@@ -423,11 +423,15 @@ public class WebOSWebAppSession extends WebAppSession {
             appToAppSubscription = null;
         }
 
-        if (socket != null) {
-            socket.setListener(null);
-            socket.clearRequests();
-            socket.disconnect();
-            socket = null;
+        try {
+            if (socket != null) {
+                socket.setListener(null);
+                socket.clearRequests();
+                socket.disconnect();
+                socket = null;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
     }
 
