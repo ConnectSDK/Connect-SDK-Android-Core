@@ -53,6 +53,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.net.ssl.SSLContext;
 
@@ -94,8 +96,7 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     // Queue of commands that should be sent once register is complete
     LinkedHashSet<ServiceCommand<ResponseListener<Object>>> commandQueue = new LinkedHashSet<ServiceCommand<ResponseListener<Object>>>();
 
-    public SparseArray<ServiceCommand<? extends Object>> requests = new SparseArray<ServiceCommand<? extends Object>>();
-
+    public Map<Integer, ServiceCommand<? extends Object>> requests = new HashMap<Integer, ServiceCommand<? extends Object>>();
     boolean mConnectSucceeded = false;
     Boolean mConnected;
 
@@ -211,8 +212,10 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     }
 
     public void clearRequests() {
-        if (requests != null) {
-            requests.clear();
+        synchronized (requests) {
+            if (requests != null) {
+                requests.clear();
+            }
         }
     }
 
@@ -336,7 +339,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
 
                 if (!(request instanceof URLServiceSubscription)) {
                     if (!(payload instanceof JSONObject && ((JSONObject) payload).has("pairingType")))
-                        requests.remove(id);
+                        synchronized (requests) {
+                            requests.remove(id);
+                        }
                 }
             } else {
                 System.err.println("no matching request id: " + strId + ", payload: " + payload.toString());
@@ -360,7 +365,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                     handleRegistered();
 
                     if (id != null)
-                        requests.remove(id);
+                        synchronized (requests) {
+                            requests.remove(id);
+                        }
                 } else {
                     Log.d(Util.T, "Certification Verification Failed");
                     mListener.onRegistrationFailed(new ServiceCommandError(0, "Certificate Registration failed", null));
@@ -393,7 +400,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                     Util.postError(request.getResponseListener(), new ServiceCommandError(errorCode, errorDesc, payload));
 
                     if (!(request instanceof URLServiceSubscription))
-                        requests.remove(id);
+                        synchronized (requests) {
+                            requests.remove(id);
+                        }
 
                 }
             }
@@ -565,8 +574,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
                 if (public_key_value == 1 && valid_value == 1) {
                     verification_status = true;
                 }
-
-                requests.put(dataId, command);
+                synchronized (requests) {
+                    requests.put(dataId, command);
+                }
                 sendMessage(headers, payload);
 
             } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchProviderException e) {
@@ -638,8 +648,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        requests.put(dataId, command);
+        synchronized (requests) {
+            requests.put(dataId, command);
+        }
 
         sendMessage(headers, payload);
     }
@@ -678,8 +689,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        requests.put(dataId, command);
+        synchronized (requests) {
+            requests.put(dataId, command);
+        }
 
         sendMessage(headers, payload);
     }
@@ -722,8 +734,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
         else {
             requestId = command.getRequestId();
         }
-
-        requests.put(requestId, command);
+        synchronized (requests) {
+            requests.put(requestId, command);
+        }
 
         if (state == State.REGISTERED) {
             this.sendCommandImmediately(command);
@@ -753,7 +766,9 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
             }
 
             sendMessage(headers, null);
-            requests.remove(requestId);
+            synchronized (requests) {
+                requests.remove(requestId);
+            }
         }
     }
 
@@ -874,18 +889,17 @@ public class WebOSTVServiceSocketClient extends WebSocketClient implements Servi
     @SuppressWarnings("unchecked")
     private void handleConnectionLost(boolean cleanDisconnect, Exception ex) {
         ServiceCommandError error = null;
-
         if (ex != null || !cleanDisconnect)
             error = new ServiceCommandError(0, "conneciton error", ex);
 
         if (mListener != null)
             mListener.onCloseWithError(error);
-
-        for (int i = 0; i < requests.size(); i++) {
-            ServiceCommand<ResponseListener<Object>> request = (ServiceCommand<ResponseListener<Object>>) requests.get(requests.keyAt(i));
-
-            if (request != null)
-                Util.postError(request.getResponseListener(), new ServiceCommandError(0, "connection lost", null));
+        synchronized (requests) {
+            for (Map.Entry<Integer, ServiceCommand<? extends Object>> entry : requests.entrySet()) {
+                ServiceCommand<ResponseListener<Object>> request = (ServiceCommand<ResponseListener<Object>>) entry.getValue();
+                if (request != null)
+                    Util.postError(request.getResponseListener(), new ServiceCommandError(0, "connection lost", null));
+            }
         }
 
         clearRequests();

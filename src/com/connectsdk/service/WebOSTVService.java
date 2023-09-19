@@ -232,11 +232,16 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     @Override
     public boolean isConnected() {
         if (this.socket == null) return false;
-        if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
-            return this.socket.isConnected() && this.socket.getClientKey() != "";
-        } else {
-            return this.socket.isConnected();
+        try {
+            if (DiscoveryManager.getInstance().getPairingLevel().compareTo(PairingLevel.PROTECTED) >= 0) {
+                return this.socket.isConnected() && this.socket.getClientKey() != "";
+            } else {
+                return this.socket.isConnected();
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     @Override
@@ -263,11 +268,14 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
                     listener.onDisconnect(WebOSTVService.this, null);
             }
         });
-
-        if (socket != null) {
-            socket.setListener(null);
-            socket.disconnect();
-            socket = null;
+        try {
+            if (socket != null) {
+                socket.setListener(null);
+                socket.disconnect();
+                socket = null;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
 
         if (mAppToAppIdMappings != null)
@@ -287,8 +295,12 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public void cancelPairing() {
-        if (this.socket != null) {
-            this.socket.disconnect();
+        try {
+            if (this.socket != null) {
+                this.socket.disconnect();
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -340,9 +352,13 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
         @Override
         public void onFailWithError(final ServiceCommandError error) {
-            socket.setListener(null);
-            socket.disconnect();
-            socket = null;
+            try {
+                socket.setListener(null);
+                socket.disconnect();
+                socket = null;
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
 
             Util.runOnUI(new Runnable() {
 
@@ -361,9 +377,13 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
         @Override
         public void onCloseWithError(final ServiceCommandError error) {
-            socket.setListener(null);
-            socket.disconnect();
-            socket = null;
+            try {
+                socket.setListener(null);
+                socket.disconnect();
+                socket = null;
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
 
             Util.runOnUI(new Runnable() {
 
@@ -1456,9 +1476,12 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     public void disconnectMouse() {
         if (mouseSocket == null)
             return;
-
-        mouseSocket.disconnect();
-        mouseSocket = null;
+        try {
+            mouseSocket.disconnect();
+            mouseSocket = null;
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
     }
 
     private void connectMouse(final WebOSTVMouseSocketConnection.WebOSTVMouseSocketListener successHandler) {
