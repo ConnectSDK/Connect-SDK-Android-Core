@@ -73,6 +73,8 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     boolean isRunning = false;
 
+    private final Object lock = new Object();
+
     public SSDPDiscoveryProvider(Context context) {
         this.context = context;
 
@@ -105,27 +107,29 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void start() {
-        if (isRunning)
-            return;
+        synchronized (lock) {
+            if (isRunning)
+                return;
 
-        isRunning = true;
+            isRunning = true;
 
-        openSocket();
+            openSocket();
 
-        scanTimer = new Timer();
-        scanTimer.schedule(new TimerTask() {
+            scanTimer = new Timer();
+            scanTimer.schedule(new TimerTask() {
 
-            @Override
-            public void run() {
-                sendSearch();
-            }
-        }, 100, RESCAN_INTERVAL);
+                @Override
+                public void run() {
+                    sendSearch();
+                }
+            }, 100, RESCAN_INTERVAL);
 
-        responseThread = new Thread(mResponseHandler);
-        notifyThread = new Thread(mRespNotifyHandler);
+            responseThread = new Thread(mResponseHandler);
+            notifyThread = new Thread(mRespNotifyHandler);
 
-        responseThread.start();
-        notifyThread.start();
+            responseThread.start();
+            notifyThread.start();
+        }
     }
 
     public void sendSearch() {
@@ -156,26 +160,28 @@ public class SSDPDiscoveryProvider implements DiscoveryProvider {
 
     @Override
     public void stop() {
-        isRunning = false;
+        synchronized (lock) {
+            isRunning = false;
 
-        if (scanTimer != null) {
-            scanTimer.cancel();
-            scanTimer = null;
-        }
+            if (scanTimer != null) {
+                scanTimer.cancel();
+                scanTimer = null;
+            }
 
-        if (responseThread != null) {
-            responseThread.interrupt();
-            responseThread = null;
-        }
+            if (responseThread != null) {
+                responseThread.interrupt();
+                responseThread = null;
+            }
 
-        if (notifyThread != null) {
-            notifyThread.interrupt();
-            notifyThread = null;
-        }
+            if (notifyThread != null) {
+                notifyThread.interrupt();
+                notifyThread = null;
+            }
 
-        if (ssdpClient != null) {
-            ssdpClient.close();
-            ssdpClient = null;
+            if (ssdpClient != null) {
+                ssdpClient.close();
+                ssdpClient = null;
+            }
         }
     }
 
