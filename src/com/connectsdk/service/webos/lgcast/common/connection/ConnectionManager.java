@@ -171,7 +171,9 @@ public class ConnectionManager implements ConnectableDeviceListener {
     @Override
     public void onDeviceReady(ConnectableDevice device) {
         Logger.print("onDeviceReady");
-        mConnectionHandler.post(this::subscribe);
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(this::subscribe);
+        }
     }
 
     @Override
@@ -304,38 +306,54 @@ public class ConnectionManager implements ConnectableDeviceListener {
     }
 
     private void callOnPairingRejected() {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onPairingRejected());
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onPairingRejected());
+        }
         mCurrentState = ConnectionState.NONE;
     }
 
     private void callOnConnectionFailed(@NonNull String message) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onConnectionFailed(message));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onConnectionFailed(message));
+        }
         mCurrentState = ConnectionState.NONE;
     }
 
     private void callOnConnectionCompleted(@NonNull JSONObject jsonResult) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onConnectionCompleted(jsonResult));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onConnectionCompleted(jsonResult));
+        }
         mCurrentState = ConnectionState.CONNECTED;
     }
 
     private void callOnReceivePlayCommand(@NonNull JSONObject jsonObj) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onReceivePlayCommand(jsonObj));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onReceivePlayCommand(jsonObj));
+        }
     }
 
     private void callOnReceiveStopCommand(@NonNull JSONObject jsonObj) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveStopCommand(jsonObj));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveStopCommand(jsonObj));
+        }
     }
 
     private void callOnReceiveGetParameter(@NonNull JSONObject jsonObj) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveGetParameter(jsonObj));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveGetParameter(jsonObj));
+        }
     }
 
     private void callOnReceiveSetParameter(@NonNull JSONObject jsonObj) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveSetParameter(jsonObj));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onReceiveSetParameter(jsonObj));
+        }
     }
 
     private void callOnError(@NonNull ConnectionManagerError connectionError, @NonNull String message) {
-        mConnectionHandler.post(() -> mConnectionManagerListener.onError(connectionError, message));
+        if (mConnectionHandler != null) {
+            mConnectionHandler.post(() -> mConnectionManagerListener.onError(connectionError, message));
+        }
         mCurrentState = ConnectionState.NONE;
     }
 }
