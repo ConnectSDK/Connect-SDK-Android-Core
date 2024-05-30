@@ -1,10 +1,10 @@
 /*
  * DIALService
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 24 Jan 2014
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -89,7 +89,7 @@ public class DIALService extends DeviceService implements Launcher {
     public void setServiceDescription(ServiceDescription serviceDescription) {
         super.setServiceDescription(serviceDescription);
 
-        Map<String, List<String>> responseHeaders = this.getServiceDescription().getResponseHeaders(); 
+        Map<String, List<String>> responseHeaders = this.getServiceDescription().getResponseHeaders();
 
         if (responseHeaders != null) {
             String commandPath;
@@ -142,22 +142,22 @@ public class DIALService extends DeviceService implements Launcher {
         ServiceCommand<ResponseListener<Object>> command =
                 new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
                         requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
-            @Override
-            public void onError(ServiceCommandError error) {
-                Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
-            }
+                    @Override
+                    public void onError(ServiceCommandError error) {
+                        Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
+                    }
 
-            @Override
-            public void onSuccess(Object object) {
-                LaunchSession launchSession = LaunchSession.launchSessionForAppId(appInfo.getId());
-                launchSession.setAppName(appInfo.getName());
-                launchSession.setSessionId((String)object);
-                launchSession.setService(DIALService.this);
-                launchSession.setSessionType(LaunchSessionType.App);
+                    @Override
+                    public void onSuccess(Object object) {
+                        LaunchSession launchSession = LaunchSession.launchSessionForAppId(appInfo.getId());
+                        launchSession.setAppName(appInfo.getName());
+                        launchSession.setSessionId((String)object);
+                        launchSession.setService(DIALService.this);
+                        launchSession.setSessionType(LaunchSessionType.App);
 
-                Util.postSuccess(listener, launchSession);
-            }
-        });
+                        Util.postSuccess(listener, launchSession);
+                    }
+                });
 
         command.send();
     }
@@ -308,6 +308,11 @@ public class DIALService extends DeviceService implements Launcher {
     @Override
     public void getRunningApp(AppInfoListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void getLaunchPoints(LaunchPointsListener listener) {
+        //TODO implement method
     }
 
     @Override

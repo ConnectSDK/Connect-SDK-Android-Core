@@ -704,7 +704,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /******************
-    TOAST CONTROL
+     TOAST CONTROL
      *****************/
     @Override
     public ToastControl getToastControl() {
@@ -804,7 +804,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /******************
-    VOLUME CONTROL
+     VOLUME CONTROL
      *****************/
     @Override
     public VolumeControl getVolumeControl() {
@@ -908,7 +908,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /******************
-    MEDIA PLAYER
+     MEDIA PLAYER
      *****************/
     @Override
     public MediaPlayer getMediaPlayer() {
@@ -1142,7 +1142,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     }
 
 
-        @Override
+    @Override
     public void closeMedia(LaunchSession launchSession, ResponseListener<Object> listener) {
         JSONObject payload = new JSONObject();
 
@@ -1160,7 +1160,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         request.send();
     }
 
-     /* ***************
+    /* ***************
      * TV CONTROL
      * ***************
      */
@@ -1362,7 +1362,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /**************
-    EXTERNAL INPUT
+     EXTERNAL INPUT
      **************/
     @Override
     public ExternalInputControl getExternalInput() {
@@ -1450,7 +1450,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /**************
-    MOUSE CONTROL
+     MOUSE CONTROL
      **************/
     @Override
     public MouseControl getMouseControl() {
@@ -1570,7 +1570,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /**************
-    KEYBOARD CONTROL
+     KEYBOARD CONTROL
      **************/
     @Override
     public TextInputControl getTextInputControl() {
@@ -1615,6 +1615,9 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
                 break;
             case ENTER:
                 sendSpecialKey("ENTER", listener);
+                break;
+            case MENU:
+                sendSpecialKey("MENU", listener);
                 break;
             default:
                 Util.postError(listener, new ServiceCommandError(0, "The keycode is not available", null));
@@ -1716,7 +1719,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /**************
-    Web App Launcher
+     Web App Launcher
      **************/
 
     @Override
@@ -2243,7 +2246,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
 
     /**************
-    SYSTEM CONTROL
+     SYSTEM CONTROL
      **************/
     public void getServiceInfo(final ServiceInfoListener listener) {
         String uri = "ssap://api/getServiceList";
@@ -2349,7 +2352,7 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         request.send();
     }
 
-    public void getLaunchPoints(final LaunchPointsListener listener) {
+    public void getLaunchPoints(final Launcher.LaunchPointsListener listener) {
         String uri = "ssap://com.webos.applicationManager/listLaunchPoints";
 
         ResponseListener<Object> responseListener = new ResponseListener<Object>() {

@@ -1,10 +1,10 @@
 /*
  * KeyControl
  * Connect SDK
- * 
+ *
  * Copyright (c) 2014 LG Electronics.
  * Created by Hyun Kook Khang on 19 Jan 2014
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,12 +48,13 @@ public interface KeyControl extends CapabilityMethods {
         NUM_9 (9),
 
         DASH (10),
-        ENTER (11);
+        ENTER (11),
+        MENU(12);
 
-        private final int code; 
+        private final int code;
 
         private static final KeyCode[] codes = {
-            NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9, DASH, ENTER
+                NUM_0, NUM_1, NUM_2, NUM_3, NUM_4, NUM_5, NUM_6, NUM_7, NUM_8, NUM_9, DASH, ENTER, MENU
         };
 
         KeyCode(int code) {
@@ -73,14 +74,14 @@ public interface KeyControl extends CapabilityMethods {
     }
 
     public final static String[] Capabilities = {
-        Up,
-        Down,
-        Left,
-        Right,
-        OK,
-        Back,
-        Home,
-        KeyCode,
+            Up,
+            Down,
+            Left,
+            Right,
+            OK,
+            Back,
+            Home,
+            KeyCode,
     };
 
     public KeyControl getKeyControl();

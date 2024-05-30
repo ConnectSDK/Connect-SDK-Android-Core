@@ -359,7 +359,7 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
 
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-            LaunchListener listener) {
+                          LaunchListener listener) {
         String mediaUrl = null;
         SubtitleInfo subtitle = null;
         String mimeType = null;
@@ -498,17 +498,17 @@ public class DLNAService extends DeviceService implements PlaylistControl, Media
         String mode;
 
         switch (playMode) {
-        case RepeatAll:
-            mode = "REPEAT_ALL";
-            break;
-        case RepeatOne:
-            mode = "REPEAT_ONE";
-            break;
-        case Shuffle:
-            mode = "SHUFFLE";
-            break;
-        default:
-            mode = "NORMAL";
+            case RepeatAll:
+                mode = "REPEAT_ALL";
+                break;
+            case RepeatOne:
+                mode = "REPEAT_ONE";
+                break;
+            case Shuffle:
+                mode = "SHUFFLE";
+                break;
+            default:
+                mode = "NORMAL";
         }
 
         Map<String, String> parameters = new LinkedHashMap<String, String>();

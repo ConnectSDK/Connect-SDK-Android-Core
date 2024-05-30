@@ -88,7 +88,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     public RokuService(ServiceDescription serviceDescription,
-            ServiceConfig serviceConfig) {
+                       ServiceConfig serviceConfig) {
         super(serviceDescription, serviceConfig);
     }
 
@@ -160,13 +160,13 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchAppWithInfo(AppInfo appInfo,
-            Launcher.AppLaunchListener listener) {
+                                  Launcher.AppLaunchListener listener) {
         launchAppWithInfo(appInfo, null, listener);
     }
 
     @Override
     public void launchAppWithInfo(final AppInfo appInfo, Object params,
-            final Launcher.AppLaunchListener listener) {
+                                  final Launcher.AppLaunchListener listener) {
         if (appInfo == null || appInfo.getId() == null) {
             Util.postError(listener, new ServiceCommandError(-1,
                     "Cannot launch app without valid AppInfo object",
@@ -249,7 +249,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void closeApp(LaunchSession launchSession,
-            ResponseListener<Object> listener) {
+                         ResponseListener<Object> listener) {
         home(listener);
     }
 
@@ -308,6 +308,11 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     @Override
+    public void getLaunchPoints(LaunchPointsListener listener) {
+        //TODO implement method
+    }
+
+    @Override
     public ServiceSubscription<AppInfoListener> subscribeRunningApp(
             AppInfoListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
@@ -317,7 +322,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void getAppState(LaunchSession launchSession,
-            AppStateListener listener) {
+                            AppStateListener listener) {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
@@ -336,13 +341,13 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchYouTube(String contentId,
-            Launcher.AppLaunchListener listener) {
+                              Launcher.AppLaunchListener listener) {
         launchYouTube(contentId, (float) 0.0, listener);
     }
 
     @Override
     public void launchYouTube(String contentId, float startTime,
-            AppLaunchListener listener) {
+                              AppLaunchListener listener) {
         if (getDIALService() != null) {
             getDIALService().getLauncher().launchYouTube(contentId, startTime,
                     listener);
@@ -356,7 +361,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchNetflix(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+                              final Launcher.AppLaunchListener listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -387,7 +392,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void launchHulu(final String contentId,
-            final Launcher.AppLaunchListener listener) {
+                           final Launcher.AppLaunchListener listener) {
         getAppList(new AppListListener() {
 
             @Override
@@ -645,8 +650,8 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
     }
 
     private void displayMedia(String url, String mimeType, String title,
-            String description, String iconSrc,
-            final MediaPlayer.LaunchListener listener) {
+                              String description, String iconSrc,
+                              final MediaPlayer.LaunchListener listener) {
         ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
             @Override
@@ -678,7 +683,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
                     "15985?t=v&u=%s&k=(null)&videoName=%s&videoFormat=%s",
                     HttpMessage.encode(url),
                     TextUtils.isEmpty(title) ? "(null)" : HttpMessage.encode(title),
-                            HttpMessage.encode(mediaFormat));
+                    HttpMessage.encode(mediaFormat));
         } else { // if (mimeType.contains("audio")) {
             param = String
                     .format("15985?t=a&u=%s&k=(null)&songname=%s&artistname=%s&songformat=%s&albumarturl=%s",
@@ -698,14 +703,14 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void displayImage(String url, String mimeType, String title,
-            String description, String iconSrc,
-            MediaPlayer.LaunchListener listener) {
+                             String description, String iconSrc,
+                             MediaPlayer.LaunchListener listener) {
         displayMedia(url, mimeType, title, description, iconSrc, listener);
     }
 
     @Override
     public void displayImage(MediaInfo mediaInfo,
-            MediaPlayer.LaunchListener listener) {
+                             MediaPlayer.LaunchListener listener) {
         String mediaUrl = null;
         String mimeType = null;
         String title = null;
@@ -729,14 +734,14 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void playMedia(String url, String mimeType, String title,
-            String description, String iconSrc, boolean shouldLoop,
-            MediaPlayer.LaunchListener listener) {
+                          String description, String iconSrc, boolean shouldLoop,
+                          MediaPlayer.LaunchListener listener) {
         displayMedia(url, mimeType, title, description, iconSrc, listener);
     }
 
     @Override
     public void playMedia(MediaInfo mediaInfo, boolean shouldLoop,
-            MediaPlayer.LaunchListener listener) {
+                          MediaPlayer.LaunchListener listener) {
         String mediaUrl = null;
         String mimeType = null;
         String title = null;
@@ -760,7 +765,7 @@ public class RokuService extends DeviceService implements Launcher, MediaPlayer,
 
     @Override
     public void closeMedia(LaunchSession launchSession,
-            ResponseListener<Object> listener) {
+                           ResponseListener<Object> listener) {
         home(listener);
     }
 
