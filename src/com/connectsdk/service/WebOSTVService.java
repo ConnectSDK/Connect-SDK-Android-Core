@@ -32,6 +32,7 @@ import com.connectsdk.core.ChannelInfo;
 import com.connectsdk.core.ExternalInputInfo;
 import com.connectsdk.core.ImageInfo;
 import com.connectsdk.core.MediaInfo;
+import com.connectsdk.core.TextInputStatusInfo;
 import com.connectsdk.core.Util;
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -1590,9 +1591,21 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public void sendText(String input) {
-        if (keyboardInput != null) {
-            keyboardInput.addToQueue(input);
+        if (keyboardInput == null) {
+            subscribeTextInputStatus(new TextInputStatusListener() {
+                @Override
+                public void onSuccess(TextInputStatusInfo object) {
+                    Log.d("LG", "TextInputStatusListener launched success");
+                }
+
+                @Override
+                public void onError(ServiceCommandError error) {
+                    Log.d("LG", "TextInputStatusListener failed: $error");
+                }
+            });
         }
+
+        keyboardInput.addToQueue(input);
     }
 
     @Override
