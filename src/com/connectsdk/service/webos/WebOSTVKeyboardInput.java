@@ -68,13 +68,9 @@ public class WebOSTVKeyboardInput {
     }
 
     public void sendDel() {
-        if (toSend.isEmpty() || toSend.getLast().equals(DELETE)) {
-            toSend.add(DELETE);
-            if (!waiting) {
-                sendData();
-            }
-        } else {
-            toSend.removeLast();
+        toSend.add(DELETE);
+        if (!waiting) {
+            sendData();
         }
     }
 
