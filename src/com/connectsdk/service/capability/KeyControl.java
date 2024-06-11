@@ -49,7 +49,12 @@ public interface KeyControl extends CapabilityMethods {
 
         DASH (10),
         ENTER (11),
-        MENU(12);
+        MENU(12),
+        EXIT(13),
+        BLUE (14),
+        GREEN (15),
+        RED (16),
+        YELLOW (17);
 
         private final int code;
 
