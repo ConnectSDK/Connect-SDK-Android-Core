@@ -124,7 +124,6 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
     WebOSTVMouseSocketConnection mouseSocket;
 
     WebOSTVKeyboardInput keyboardInput;
-    ServiceSubscription<TextInputControl.TextInputStatusListener> textInputStatusSubscription;
 
     ConcurrentHashMap<String, String> mAppToAppIdMappings;
 
@@ -1592,23 +1591,9 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
 
     @Override
     public void sendText(String input) {
-        if (textInputStatusSubscription != null) {
-            textInputStatusSubscription.unsubscribe();
+        if (keyboardInput != null) {
+            keyboardInput.addToQueue(input);
         }
-
-        textInputStatusSubscription = subscribeTextInputStatus(new TextInputStatusListener() {
-            @Override
-            public void onSuccess(TextInputStatusInfo object) {
-                Log.d("LG", "TextInputStatusListener launched success");
-            }
-
-            @Override
-            public void onError(ServiceCommandError error) {
-                Log.d("LG", "TextInputStatusListener failed: $error");
-            }
-        });
-
-        keyboardInput.addToQueue(input);
     }
 
     @Override
