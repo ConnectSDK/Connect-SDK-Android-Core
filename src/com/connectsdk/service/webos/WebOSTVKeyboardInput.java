@@ -20,8 +20,7 @@
 
 package com.connectsdk.service.webos;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +38,7 @@ public class WebOSTVKeyboardInput {
 
     WebOSTVService service;
     boolean waiting;
-    List<String> toSend;
+    LinkedList<String> toSend;
 
     static String KEYBOARD_INPUT = "ssap://com.webos.service.ime/registerRemoteKeyboard";
     static String ENTER = "ENTER";
@@ -51,7 +50,7 @@ public class WebOSTVKeyboardInput {
         this.service = service;
         waiting = false;
 
-        toSend = new ArrayList<String>();
+        toSend = new LinkedList<String>();
     }
 
     public void addToQueue(String input) {
@@ -69,14 +68,9 @@ public class WebOSTVKeyboardInput {
     }
 
     public void sendDel() {
-        if (toSend.size() == 0) {
-            toSend.add(DELETE);
-            if (!waiting) {
-                sendData();
-            }
-        }
-        else {
-            toSend.remove(toSend.size()-1);
+        toSend.add(DELETE);
+        if (!waiting) {
+            sendData();
         }
     }
 
@@ -84,20 +78,20 @@ public class WebOSTVKeyboardInput {
         waiting = true;
 
         String uri;
-        String typeTest = toSend.get(0);
+        String typeTest = toSend.getFirst();
 
         JSONObject payload = new JSONObject();
 
         if (typeTest.equals(ENTER)) {
-            toSend.remove(0);
+            toSend.removeFirst();
             uri = "ssap://com.webos.service.ime/sendEnterKey";
         }
         else if (typeTest.equals(DELETE)) {
             uri = "ssap://com.webos.service.ime/deleteCharacters";
 
             int count = 0;
-            while (toSend.size() > 0 && toSend.get(0).equals(DELETE)) {
-                toSend.remove(0);
+            while (!toSend.isEmpty() && toSend.getFirst().equals(DELETE)) {
+                toSend.removeFirst();
                 count++;
             }
 
@@ -111,10 +105,10 @@ public class WebOSTVKeyboardInput {
             uri = "ssap://com.webos.service.ime/insertText";
             StringBuilder sb = new StringBuilder();
 
-            while (toSend.size() > 0 && !(toSend.get(0).equals(DELETE) || toSend.get(0).equals(ENTER))) {
-                String text = toSend.get(0);
+            while (!toSend.isEmpty() && !(toSend.getFirst().equals(DELETE) || toSend.getFirst().equals(ENTER))) {
+                String text = toSend.getFirst();
                 sb.append(text);
-                toSend.remove(0);
+                toSend.removeFirst();
             }
 
             try {
@@ -130,14 +124,14 @@ public class WebOSTVKeyboardInput {
             @Override
             public void onSuccess(Object response) {
                 waiting = false;
-                if (toSend.size() > 0) 
+                if (!toSend.isEmpty())
                     sendData();
             }
 
             @Override
             public void onError(ServiceCommandError error) {
                 waiting = false;
-                if (toSend.size() > 0) 
+                if (!toSend.isEmpty())
                     sendData();
             }
         };
