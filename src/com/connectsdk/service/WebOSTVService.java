@@ -1620,6 +1620,21 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
             case MENU:
                 sendSpecialKey("MENU", listener);
                 break;
+            case EXIT:
+                sendSpecialKey("EXIT", listener);
+                break;
+            case YELLOW:
+                sendSpecialKey("YELLOW", listener);
+                break;
+            case RED:
+                sendSpecialKey("RED", listener);
+                break;
+            case GREEN:
+                sendSpecialKey("GREEN", listener);
+                break;
+            case BLUE:
+                sendSpecialKey("BLUE", listener);
+                break;
             default:
                 Util.postError(listener, new ServiceCommandError(0, "The keycode is not available", null));
         }
