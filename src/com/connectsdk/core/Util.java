@@ -20,6 +20,7 @@
 
 package com.connectsdk.core;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -132,7 +133,11 @@ public final class Util {
     }
 
     public static boolean isIPv4Address(String ipAddress) {
-        return InetAddressUtils.isIPv4Address(ipAddress);
+        try {
+            return InetAddress.getByName(ipAddress) instanceof Inet4Address; //InetAddressUtils.isIPv4Address(ipAddress);
+        } catch (Throwable e) {
+            return false;
+        }
     }
 
     public static boolean isIPv6Address(String ipAddress) {
