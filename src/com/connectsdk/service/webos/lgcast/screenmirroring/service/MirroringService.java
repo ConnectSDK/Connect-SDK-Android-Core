@@ -294,6 +294,13 @@ public class MirroringService extends Service {
         try {
             mMediaProjection = MirroringServiceFunc.getMediaProjection(this, intent);
             if (mMediaProjection == null) throw new Exception("Invalid projection");
+            mMediaProjection.registerCallback(new MediaProjection.Callback() {
+                @Override
+                public void onStop() {
+                    super.onStop();
+                    stopCaptureAndStreaming();
+                }
+            }, null);
 
             mRTPStreaming = new RTPStreaming();
             mRTPStreaming.setStreamingConfig(MirroringServiceFunc.createRtpVideoConfig(mMirroringSourceCapability.videoBitrate), MirroringServiceFunc.createRtpAudioConfig(), MirroringServiceFunc.createRtpSecurityConfig(mMirroringSourceCapability.masterKeys));
