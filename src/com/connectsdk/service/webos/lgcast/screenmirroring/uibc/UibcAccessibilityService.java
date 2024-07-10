@@ -7,6 +7,7 @@ package com.connectsdk.service.webos.lgcast.screenmirroring.uibc;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.graphics.Path;
 import android.view.ViewConfiguration;
@@ -88,7 +89,7 @@ public class UibcAccessibilityService extends AccessibilityService {
 
     private void startService() {
         Logger.print("start TvInputService");
-        startForeground(ScreenMirroringConfig.Notification.ID, MirroringServiceFunc.createNotification(this));
+        startForeground(ScreenMirroringConfig.Notification.ID, MirroringServiceFunc.createNotification(this), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
 
         mServiceHandler = new HandlerThreadEx("UibcAccessibilityService Handler");
         mServiceHandler.start(msg -> handleUibcInfo((JSONObject) msg.obj));
