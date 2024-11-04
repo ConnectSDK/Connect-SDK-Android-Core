@@ -2376,6 +2376,33 @@ public class WebOSTVService extends WebOSTVDeviceService implements Launcher, Me
         request.send();
     }
 
+    public void getLaunchPoints(final LaunchPointsListener listener, boolean isSupportedHidingAppList) {
+        String uri = isSupportedHidingAppList ? "ssap://com.webos.service.homelaunchpoints/listLaunchPoints" : "ssap://com.webos.applicationManager/listLaunchPoints";
+
+        ResponseListener<Object> responseListener = new ResponseListener<Object>() {
+
+            @Override
+            public void onSuccess(Object response) {
+
+                try {
+                    JSONObject jsonObj = (JSONObject) response;
+                    JSONArray launchPoints = (JSONArray) jsonObj.get("launchPoints");
+                    Util.postSuccess(listener, launchPoints);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onError(ServiceCommandError error) {
+                Util.postError(listener, error);
+            }
+        };
+
+        ServiceCommand<ResponseListener<Object>> request = new ServiceCommand<ResponseListener<Object>>(this, uri, null, true, responseListener);
+        request.send();
+    }
+
     /******************
      PLAYLIST CONTROL
      *****************/
