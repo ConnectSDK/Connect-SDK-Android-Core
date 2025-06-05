@@ -13,6 +13,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+
 import com.connectsdk.R;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerConfig;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerData;
@@ -35,6 +37,7 @@ public class CameraServiceFunc {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, NOTI_CHANNEL_ID);
         builder.setSmallIcon(R.drawable.lgcast_noti_icon);
+        builder.setColor(ContextCompat.getColor(context, R.color.notification_icon_color));
         builder.setContentTitle(context.getString(R.string.notification_remote_camera_title)); // TODO - string translation
         builder.setContentText(context.getString(R.string.notification_remote_camera_desc)); // TODO - string translation
         builder.addAction(R.drawable.lgcast_noti_icon, context.getString(R.string.notification_disconnect_action), stopPendingIntent);

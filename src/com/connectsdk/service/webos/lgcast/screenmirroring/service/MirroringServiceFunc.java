@@ -17,6 +17,8 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.provider.Settings;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+
 import com.connectsdk.R;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerConfig;
 import com.connectsdk.service.webos.lgcast.common.transfer.RTPStreamerData;
@@ -45,10 +47,11 @@ public class MirroringServiceFunc {
 
         NotificationCompat.Builder notiBuilder = new NotificationCompat.Builder(context, ScreenMirroringConfig.Notification.CHANNEL_ID);
         notiBuilder.setSmallIcon(R.drawable.lgcast_noti_icon);
+        notiBuilder.setColor(ContextCompat.getColor(context, R.color.notification_icon_color));
         notiBuilder.setContentTitle(context.getString(R.string.notification_screen_sharing_title));
         notiBuilder.setContentText(context.getString(R.string.notification_screen_sharing_desc));
         notiBuilder.setOngoing(true);//Android 13 changes for notification
-        notiBuilder.addAction(R.drawable.lgcast_noti_icon_thinq, context.getString(R.string.notification_disconnect_action), stopPendingIntent);
+        notiBuilder.addAction(R.drawable.ic_notification_thinq, context.getString(R.string.notification_disconnect_action), stopPendingIntent);
         return notiBuilder.build();
     }
 

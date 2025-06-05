@@ -10,7 +10,10 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
 import android.media.projection.MediaProjection;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+
 import com.connectsdk.R;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.discovery.DiscoveryManager;
@@ -81,14 +84,17 @@ public class MirroringService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Logger.print("onStartCommand: " + StringUtil.toString(intent));
         String action = (intent != null) ? intent.getAction() : null;
-
+        if (intent == null || intent.getAction() == null) {
+            Logger.print("Null intent; prevent zombie restart");
+            return START_NOT_STICKY;
+        }
         mServiceHandler.post(() -> {
             if (MirroringServiceIF.ACTION_START_REQUEST.equals(action) == true) executeStart(intent);
             else if (MirroringServiceIF.ACTION_STOP_REQUEST.equals(action) == true) executeStop();
             else if (MirroringServiceIF.ACTION_STOP_BY_NOTIFICATION.equals(action) == true) executeStopByNotification();
         });
 
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -298,7 +304,10 @@ public class MirroringService extends Service {
                 @Override
                 public void onStop() {
                     super.onStop();
-                    stopCaptureAndStreaming();
+                    Logger.print("stop");
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        executeStopByNotification();
+                    }, 300);
                 }
             }, null);
 
