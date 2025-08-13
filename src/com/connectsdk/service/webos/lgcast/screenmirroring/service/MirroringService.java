@@ -305,9 +305,9 @@ public class MirroringService extends Service {
                 public void onStop() {
                     super.onStop();
                     Logger.print("stop");
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        executeStopByNotification();
-                    }, 300);
+                    if (mServiceHandler != null) {
+                        mServiceHandler.post(() -> executeStopByNotification(), 300);
+                    }
                 }
             }, null);
 
@@ -342,11 +342,17 @@ public class MirroringService extends Service {
             }
 
             mAudioCapture = new AudioCaptureIF();
-            mAudioCapture.setErrorListener(this::stop);
+            mAudioCapture.setErrorListener(() -> {
+                MirroringServiceIF.respondStart(getBaseContext(), false, false);
+                stop();
+            });
             mAudioCapture.startCapture(ScreenMirroringConfig.Audio.SAMPLING_RATE, ScreenMirroringConfig.Audio.CHANNEL_COUNT, mMediaProjection, mRTPStreaming.getAudioStreamHandler());
 
             mVideoCapture = new VideoCaptureIF();
-            mVideoCapture.setErrorListener(this::stop);
+            mVideoCapture.setErrorListener(() -> {
+                MirroringServiceIF.respondStart(getBaseContext(), false, false);
+                stop();
+            });
             mVideoCapture.startCapture(mMirroringSourceCapability.videoWidth, mMirroringSourceCapability.videoHeight, mMirroringSourceCapability.videoBitrate, mMediaProjection, mRTPStreaming.getVideoStreamHandler());
             return true;
         } catch (Exception e) {
