@@ -12,8 +12,8 @@ import com.connectsdk.service.capability.Launcher;
 import com.connectsdk.service.capability.MediaPlayer;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
-
-import junit.framework.Assert;
+import androidx.test.core.app.ApplicationProvider;
+import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class ConnectableDeviceTest {
 
     @Before
     public void setUp() {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(ApplicationProvider.getApplicationContext());
         device = new ConnectableDevice();
     }
 

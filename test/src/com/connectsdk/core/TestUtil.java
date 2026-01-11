@@ -1,6 +1,5 @@
 package com.connectsdk.core;
 
-import org.apache.tools.ant.filters.StringInputStream;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -21,7 +20,7 @@ public final class TestUtil {
 
     public static URL getMockUrl(final String content, String applicationUrl) throws IOException {
         final URLConnection mockConnection = Mockito.mock(URLConnection.class);
-        Mockito.when(mockConnection.getInputStream()).thenReturn(new StringInputStream(content));
+        Mockito.when(mockConnection.getInputStream()).thenReturn(new java.io.ByteArrayInputStream(content.getBytes("UTF-8")));
         Mockito.when(mockConnection.getHeaderField("Application-URL")).thenReturn(applicationUrl);
 
         final URLStreamHandler handler = new URLStreamHandler() {

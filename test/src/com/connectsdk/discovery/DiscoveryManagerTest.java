@@ -1,11 +1,13 @@
 package com.connectsdk.discovery;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.connectsdk.discovery.provider.SSDPDiscoveryProvider;
 import com.connectsdk.discovery.provider.ZeroconfDiscoveryProvider;
 import com.connectsdk.service.DIALService;
 import com.connectsdk.service.DLNAService;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +30,7 @@ public class DiscoveryManagerTest {
     
     @Before
     public void setUp() {
-        discovery = new DiscoveryManager(Robolectric.application);
+        discovery = new DiscoveryManager(ApplicationProvider.getApplicationContext());
     }
     
     @Test
@@ -48,7 +50,7 @@ public class DiscoveryManagerTest {
 
     @Test
     public void testUnregisterDeviceServiceWithWrongProvider() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(ApplicationProvider.getApplicationContext()));
         discovery.deviceClasses.put(DIALService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());
@@ -60,7 +62,7 @@ public class DiscoveryManagerTest {
 
     @Test
     public void testUnregisterDeviceServiceWithWrongServiceID() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(ApplicationProvider.getApplicationContext()));
         discovery.deviceClasses.put(DLNAService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());
@@ -72,7 +74,7 @@ public class DiscoveryManagerTest {
     
     @Test
     public void testUnregisterDeviceService() {
-        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(Robolectric.application));
+        discovery.discoveryProviders.add(new SSDPDiscoveryProvider(ApplicationProvider.getApplicationContext()));
         discovery.deviceClasses.put(DIALService.ID, DIALService.class);
         Assert.assertEquals(1, discovery.discoveryProviders.size());
         Assert.assertEquals(1, discovery.deviceClasses.size());

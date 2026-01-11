@@ -1,31 +1,20 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.1'
-    }
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'maven-publish'
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-apply plugin: 'com.android.library'
+group = 'com.github.Astro-bosss'
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion '30.0.3'
+    namespace 'com.connectsdk'
+    compileSdk 34
 
-    packagingOptions {
-        exclude 'LICENSE.txt'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE'
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 34
     }
 
     sourceSets {
@@ -33,41 +22,94 @@ android {
             manifest.srcFile 'AndroidManifest.xml'
             java.srcDirs = [
                     'src',
-                    'core/src',
-                    'modules/google_cast/src'
+                    '../modules/google_cast/src',
+                    '../modules/firetv/src'
             ]
-            resources.srcDirs = ['src']
-            aidl.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
             res.srcDirs = ['res']
+            jniLibs.srcDirs = ['jniLibs']
             assets.srcDirs = ['assets']
         }
-        androidTest {
-            java.srcDirs = [
-                    'core/test/src',
-                    'modules/google_cast/test/src'
-            ]
-        }
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-    defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 31
     }
 
-    useLibrary 'org.apache.http.legacy'
+    buildFeatures {
+        buildConfig true
+    }
+
+    packagingOptions {
+        resources.excludes += '/META-INF/{AL2.0,LGPL2.1}'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
+    }
 }
 
 dependencies {
-    implementation 'org.java-websocket:Java-WebSocket:1.3.9'
-    implementation 'javax.jmdns:jmdns:3.4.1'
-    implementation 'androidx.preference:preference:1.1.1'
-    implementation 'com.google.android.gms:play-services-cast:19.0.0'
-    implementation 'com.googlecode.plist:dd-plist:1.23'
-    implementation 'com.nimbusds:srp6a:2.1.0'
-    implementation 'net.i2p.crypto:eddsa:0.3.0'
+    // Projenin diğer tüm bağımlılıkları
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "androidx.localbroadcastmanager:localbroadcastmanager:1.1.0"
+    implementation "org.java-websocket:Java-WebSocket:1.5.7"
+    implementation "org.jmdns:jmdns:3.5.9"
+    implementation "androidx.preference:preference:1.2.1"
+    implementation "com.google.android.gms:play-services-cast-framework:21.4.0"
+    implementation "com.googlecode.plist:dd-plist:1.28"
+    implementation "com.nimbusds:srp6a:2.1.0"
+    implementation "net.i2p.crypto:eddsa:0.3.0"
+    implementation 'androidx.mediarouter:mediarouter:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+
+    implementation fileTree(dir: '../modules/firetv/libs', include: ['*.jar'])
+}
+
+// Manuel 'task sourcesJar' görevine artık ihtiyacımız yok, çünkü yukarıdaki
+// 'android.publishing' bloğu bu işi otomatik ve hatasız yapıyor.
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                // 'from components.release' komutu, AGP'nin 'publishing' bloğunda
+                // hazırladığı hem .aar hem de -sources.jar dosyalarını otomatik olarak alır.
+                from components.release
+
+                // 'group' yukarıda tanımlandığı için buradan okunacak
+                artifactId = "Connect-SDK-Android"
+                version = project.findProperty("version") ?: "1.0.0-SNAPSHOT"
+
+                // 'artifact(sourcesJar)' satırına artık gerek yok.
+
+                // Otomatik olarak oluşturulacak pom.xml dosyasının içeriği
+                pom {
+                    name = "Connect SDK Android"
+                    description = "Modernized fork of Connect SDK for Android to support AndroidX and modern Gradle."
+                    url = "https://github.com/Astro-bosss/Connect-SDK-Android"
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'Astro-bosss'
+                            name = 'Baris Salih Babacan'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:github.com/Astro-bosss/Connect-SDK-Android.git'
+                        developerConnection = 'scm:git:ssh://github.com/Astro-bosss/Connect-SDK-Android.git'
+                        url = 'https://github.com/Astro-bosss/Connect-SDK-Android/tree/master'
+                    }
+                }
+            }
+        }
+    }
 }

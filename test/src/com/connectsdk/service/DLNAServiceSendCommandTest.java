@@ -29,7 +29,7 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.io.IOException;
 
@@ -104,7 +105,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.idleMainLooper();
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));
@@ -121,7 +122,7 @@ public class DLNAServiceSendCommandTest {
 
         service.sendCommand(command);
         TestUtil.runUtilBackgroundTasks();
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.idleMainLooper();
 
         Mockito.verify(httpConnection, Mockito.times(0)).execute();
         Mockito.verify(listener).onError(Mockito.any(ServiceCommandError.class));

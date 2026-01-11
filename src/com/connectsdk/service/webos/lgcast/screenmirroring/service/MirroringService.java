@@ -60,7 +60,7 @@ public class MirroringService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
+        //Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
         mServiceHandler = new HandlerThreadEx("MirroringService Handler");
         mServiceHandler.start();
 
@@ -200,7 +200,7 @@ public class MirroringService extends Service {
 
         Logger.print("executeStart");
         start(intent, connectionListener);
-        if (com.connectsdk.BuildConfig.DEBUG == true) AppUtil.showToastLong(this, "########## DEBUG version ##########");
+        //if (com.connectsdk.BuildConfig.DEBUG == true) AppUtil.showToastLong(this, "########## DEBUG version ##########");
     }
 
     private void executeStop() {

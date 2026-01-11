@@ -47,7 +47,7 @@ import com.connectsdk.service.config.ServiceDescription;
 public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     private static final String HOSTNAME = "connectsdk";
 
-    JmDNS jmdns;
+    JmDNS jmdns; /// Cannot resolve symbol 'JmDNS'
     InetAddress srcAddress;
 
     private Timer scanTimer;
@@ -59,19 +59,19 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
 
     boolean isRunning = false;
 
-    ServiceListener jmdnsListener = new ServiceListener() {
+    ServiceListener jmdnsListener = new ServiceListener() { /// Cannot resolve symbol 'ServiceListener'
 
         @Override
-        public void serviceResolved(ServiceEvent ev) {
+        public void serviceResolved(ServiceEvent ev) { /// Cannot resolve symbol 'ServiceEvent'
             @SuppressWarnings("deprecation")
-            String ipAddress = ev.getInfo().getHostAddress();
+            String ipAddress = ev.getInfo().getHostAddress(); /// Cannot resolve method 'getInfo()'
             if (!Util.isIPv4Address(ipAddress)) {
                 // Currently, we only support ipv4
                 return;
             }
 
-            String friendlyName = ev.getInfo().getName();
-            int port = ev.getInfo().getPort();
+            String friendlyName = ev.getInfo().getName(); /// Cannot resolve method 'getInfo()'
+            int port = ev.getInfo().getPort(); /// Cannot resolve method 'getInfo()'
 
             ServiceDescription foundService = foundServices.get(ipAddress);
 
@@ -81,9 +81,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (isNew) {
                 foundService = new ServiceDescription();
                 foundService.setUUID(ipAddress);
-                foundService.setServiceFilter(ev.getInfo().getType());
+                foundService.setServiceFilter(ev.getInfo().getType()); /// Cannot resolve method 'getInfo()'
                 foundService.setIpAddress(ipAddress);
-                foundService.setServiceID(serviceIdForFilter(ev.getInfo().getType()));
+                foundService.setServiceID(serviceIdForFilter(ev.getInfo().getType())); /// Cannot resolve method 'getInfo()'
                 foundService.setPort(port);
                 foundService.setFriendlyName(friendlyName);
 
@@ -109,9 +109,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         }
 
         @Override
-        public void serviceRemoved(ServiceEvent ev) {
+        public void serviceRemoved(ServiceEvent ev) { /// Cannot resolve symbol 'ServiceEvent'
             @SuppressWarnings("deprecation")
-            String uuid = ev.getInfo().getHostAddress();
+            String uuid = ev.getInfo().getHostAddress(); /// Cannot resolve method 'getInfo()'
             final ServiceDescription service = foundServices.get(uuid);
 
             if (service != null) {
@@ -128,10 +128,10 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         }
 
         @Override
-        public void serviceAdded(ServiceEvent event) {
+        public void serviceAdded(ServiceEvent event) { /// Cannot resolve symbol 'ServiceEvent'
             // Required to force serviceResolved to be called again
             // (after the first search)
-            jmdns.requestServiceInfo(event.getType(), event.getName(), 1);
+            jmdns.requestServiceInfo(event.getType(), event.getName(), 1); /// Cannot resolve method 'requestServiceInfo(String, String, int)' and Cannot resolve method 'getType()' and Cannot resolve method 'getName()'
         }
     };
 
@@ -159,9 +159,9 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         scanTimer.schedule(new MDNSSearchTask(), 100, RESCAN_INTERVAL);
     }
 
-    protected JmDNS createJmDNS() throws IOException {
+    protected JmDNS createJmDNS() throws IOException { /// Cannot resolve symbol 'JmDNS'
         if (srcAddress != null)
-            return JmDNS.create(srcAddress, HOSTNAME);
+            return JmDNS.create(srcAddress, HOSTNAME); /// Cannot resolve symbol 'JmDNS'
         else
             return null;
     }
@@ -216,7 +216,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
         if (jmdns != null) {
             for (DiscoveryFilter searchTarget : serviceFilters) {
                 String filter = searchTarget.getServiceFilter();
-                jmdns.removeServiceListener(filter, jmdnsListener);
+                jmdns.removeServiceListener(filter, jmdnsListener); /// Cannot resolve method 'removeServiceListener(String, ServiceListener)'
             }
         }
     }
@@ -237,7 +237,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
     public void rescan() {
         try {
             if (jmdns != null) {
-                jmdns.close();
+                jmdns.close(); /// Cannot resolve method 'close()'
                 jmdns = null;
             }
             jmdns = createJmDNS();
@@ -245,7 +245,7 @@ public class ZeroconfDiscoveryProvider implements DiscoveryProvider {
             if (jmdns != null) {
                 for (DiscoveryFilter searchTarget : serviceFilters) {
                     String filter = searchTarget.getServiceFilter();
-                    jmdns.addServiceListener(filter, jmdnsListener);
+                    jmdns.addServiceListener(filter, jmdnsListener); /// Cannot resolve method 'addServiceListener(String, ServiceListener)'
                 }
             }
         } catch (IOException e) {

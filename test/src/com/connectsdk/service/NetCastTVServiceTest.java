@@ -1,5 +1,7 @@
 package com.connectsdk.service;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.service.capability.CapabilityMethods;
 import com.connectsdk.service.capability.MediaControl;
@@ -11,7 +13,7 @@ import com.connectsdk.service.command.ServiceCommandError;
 import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -135,7 +137,7 @@ public class NetCastTVServiceTest {
     }
 
     private void setPairingLevel(DiscoveryManager.PairingLevel level) {
-        DiscoveryManager.init(Robolectric.application);
+        DiscoveryManager.init(ApplicationProvider.getApplicationContext());
         DiscoveryManager.getInstance().setPairingLevel(level);
     }
 

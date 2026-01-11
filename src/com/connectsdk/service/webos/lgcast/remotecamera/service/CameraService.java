@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Size;
 import android.view.Surface;
@@ -62,7 +63,7 @@ public class CameraService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
+        //Logger.showDebug(com.connectsdk.BuildConfig.DEBUG);
         mServiceHandler = new HandlerThreadEx("CameraService Handler");
         mServiceHandler.start();
     }
@@ -276,7 +277,7 @@ public class CameraService extends Service {
 
         Logger.print("executeStart");
         start(intent, connectionListener);
-        if (com.connectsdk.BuildConfig.DEBUG == true) AppUtil.showToastLong(this, "########## DEBUG version ##########");
+        //if (com.connectsdk.BuildConfig.DEBUG == true) AppUtil.showToastLong(this, "########## DEBUG version ##########");
     }
 
     private void executeStop() {
@@ -365,7 +366,9 @@ public class CameraService extends Service {
 
     private void initializeService(@NonNull Intent intent) {
         Logger.print("initializeService (SDK version=%s)", IOUtil.readRawResourceText(this, R.raw.lgcast_version));
-        startForeground(RemoteCameraConfig.Notification.ID, CameraServiceFunc.createNotification(this), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(RemoteCameraConfig.Notification.ID, CameraServiceFunc.createNotification(this), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        }
     }
 
     private void terminateService() {

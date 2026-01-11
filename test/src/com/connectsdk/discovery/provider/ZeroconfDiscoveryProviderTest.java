@@ -1,6 +1,6 @@
 package com.connectsdk.discovery.provider;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -28,6 +28,8 @@ import org.robolectric.annotation.Config;
 
 import android.content.Context;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.connectsdk.discovery.DiscoveryFilter;
 import com.connectsdk.discovery.DiscoveryManager;
 import com.connectsdk.discovery.DiscoveryProvider;
@@ -35,9 +37,12 @@ import com.connectsdk.discovery.DiscoveryProviderListener;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.shadow.WifiInfoShadow;
 
+import org.robolectric.shadows.ShadowLooper;
+import android.os.Looper;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, shadows = { WifiInfoShadow.class })
-public class ZeroConfDiscoveryPrividerTest {
+public class ZeroconfDiscoveryProviderTest {
 
     private ZeroconfDiscoveryProvider dp;
     private JmDNS mDNS;
@@ -78,7 +83,7 @@ public class ZeroConfDiscoveryPrividerTest {
 
     @Before
     public void setUp() {
-        dp = new StubZeroConfDiscoveryProvider(Robolectric.application);
+        dp = new StubZeroConfDiscoveryProvider(ApplicationProvider.getApplicationContext());
         mDNS = mock(StubJmDNS.class);
         eventMock = mock(StubServiceEvent.class);
 
@@ -261,7 +266,7 @@ public class ZeroConfDiscoveryPrividerTest {
         dp.jmdnsListener.serviceResolved(event);
 
         // then
-        verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+        verify(listener).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class)); /// Cannot resolve symbol 'any'
     }
 
     @Test
@@ -280,7 +285,7 @@ public class ZeroConfDiscoveryPrividerTest {
         dp.jmdnsListener.serviceResolved(event);
 
         // then
-        verify(listener, never()).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class));
+        verify(listener, never()).onServiceAdded(any(DiscoveryProvider.class), any(ServiceDescription.class)); /// Cannot resolve symbol 'any'
     }
 
     @Test
@@ -297,7 +302,7 @@ public class ZeroConfDiscoveryPrividerTest {
 
         // when
         dp.jmdnsListener.serviceRemoved(event);
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.idleMainLooper();
 
         // then
         verify(listener).onServiceRemoved(any(DiscoveryProvider.class), any(ServiceDescription.class));

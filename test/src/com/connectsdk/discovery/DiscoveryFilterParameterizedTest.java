@@ -1,6 +1,6 @@
 package com.connectsdk.discovery;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

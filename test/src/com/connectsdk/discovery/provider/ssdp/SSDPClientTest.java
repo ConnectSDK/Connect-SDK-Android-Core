@@ -1,5 +1,7 @@
 package com.connectsdk.discovery.provider.ssdp;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.connectsdk.core.Util;
 import com.connectsdk.shadow.WifiInfoShadow;
 
@@ -38,7 +40,7 @@ public class SSDPClientTest {
 
     @Before
     public void setUp() throws IOException {
-        localAddress = Util.getIpAddress(Robolectric.application);
+        localAddress = Util.getIpAddress(ApplicationProvider.getApplicationContext());
         ssdpClient = new SSDPClient(localAddress, mLocalSocket, wildSocket);
     }
 

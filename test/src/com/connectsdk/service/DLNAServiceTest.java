@@ -1,5 +1,7 @@
 package com.connectsdk.service;
 
+import androidx.test.core.app.ApplicationProvider;
+
 import com.connectsdk.core.SubtitleInfo;
 import com.connectsdk.core.TestUtil;
 import com.connectsdk.discovery.provider.ssdp.Service;
@@ -7,10 +9,10 @@ import com.connectsdk.service.config.ServiceConfig;
 import com.connectsdk.service.config.ServiceDescription;
 import com.connectsdk.service.upnp.DLNAHttpServer;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.XMLUnit;
+import org.custommonkey.xmlunit.DetailedDiff; /// Cannot resolve symbol 'custommonkey'
+import org.custommonkey.xmlunit.XMLUnit; /// Cannot resolve symbol 'custommonkey'
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +44,7 @@ public class DLNAServiceTest {
     public void setUp() {
         dlnaServer = Mockito.mock(DLNAHttpServer.class);
         service = new DLNAService(Mockito.mock(ServiceDescription.class),
-                Mockito.mock(ServiceConfig.class), Robolectric.application, dlnaServer);
+                Mockito.mock(ServiceConfig.class), ApplicationProvider.getApplicationContext(), dlnaServer); /// Cannot resolve symbol 'application'
     }
 
     @Test
@@ -446,15 +448,15 @@ public class DLNAServiceTest {
 
         ServiceDescription description = Mockito.mock(ServiceDescription.class);
         Mockito.when(description.getServiceList()).thenReturn(services);
-        return new DLNAService(description, Mockito.mock(ServiceConfig.class), Robolectric.application, null);
+        return new DLNAService(description, Mockito.mock(ServiceConfig.class), ApplicationProvider.getApplicationContext(), null); /// Cannot resolve symbol 'application'
     }
 
     private void assertXMLEquals(String expectedXML, String actualXML) throws SAXException, IOException {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setNormalize(true);
-        DetailedDiff diff = new DetailedDiff(XMLUnit.compareXML(expectedXML, actualXML));
-        List<?> allDifferences = diff.getAllDifferences();
-        Assert.assertEquals("XML differences found: " + diff.toString(), 0, allDifferences.size());
+        XMLUnit.setIgnoreWhitespace(true); /// Cannot resolve symbol 'XMLUnit'
+        XMLUnit.setIgnoreAttributeOrder(true); /// Cannot resolve symbol 'XMLUnit'
+        XMLUnit.setNormalize(true); /// Cannot resolve symbol 'XMLUnit'
+        DetailedDiff diff = new DetailedDiff(XMLUnit.compareXML(expectedXML, actualXML)); /// Cannot resolve symbol 'DetailedDiff' and Cannot resolve symbol 'XMLUnit'
+        List<?> allDifferences = diff.getAllDifferences(); /// Cannot resolve method 'getAllDifferences()'
+        Assert.assertEquals("XML differences found: " + diff.toString(), 0, allDifferences.size()); /// Cannot resolve method 'toString()'
     }
 }

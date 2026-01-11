@@ -30,6 +30,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import androidx.test.core.app.ApplicationProvider;
+
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest=Config.NONE,shadows={WifiInfoShadow.class})
 public class SSDPDiscoveryProviderTest{
@@ -57,7 +59,7 @@ public class SSDPDiscoveryProviderTest{
         byte[] data = new byte[1];
         when(ssdpClient.responseReceive()).thenReturn(new DatagramPacket(data, 1));
         when(ssdpClient.multicastReceive()).thenReturn(new DatagramPacket(data, 1));
-        dp = new StubSSDPDiscoveryProvider(Robolectric.application);
+        dp = new StubSSDPDiscoveryProvider(ApplicationProvider.getApplicationContext());
         assertNotNull(dp);
     }
     @After

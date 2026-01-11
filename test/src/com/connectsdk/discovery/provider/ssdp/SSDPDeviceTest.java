@@ -2,7 +2,7 @@ package com.connectsdk.discovery.provider.ssdp;
 
 import com.connectsdk.core.TestUtil;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 import org.xml.sax.SAXException;

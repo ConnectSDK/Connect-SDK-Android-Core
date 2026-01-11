@@ -2,7 +2,7 @@ package com.connectsdk.discovery.provider;
 
 import com.connectsdk.discovery.DiscoveryFilter;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.junit.Test;
 

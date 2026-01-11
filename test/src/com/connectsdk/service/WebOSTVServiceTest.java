@@ -37,7 +37,7 @@ import com.connectsdk.service.sessions.LaunchSession;
 import com.connectsdk.service.sessions.WebOSWebAppSession;
 import com.connectsdk.service.webos.WebOSTVServiceSocketClient;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,6 +50,7 @@ import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -452,7 +453,7 @@ public class WebOSTVServiceTest {
         // run join success
         ResponseListener webAppListener = argListener.getValue();
         webAppListener.onSuccess(null);
-        Robolectric.runUiThreadTasksIncludingDelayedTasks();
+        ShadowLooper.idleMainLooper();
 
         // should delegate playing media to the WebAppSession
         ArgumentCaptor<MediaInfo> argMediaInfo = ArgumentCaptor.forClass(MediaInfo.class);

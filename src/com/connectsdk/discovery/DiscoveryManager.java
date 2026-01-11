@@ -43,7 +43,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.util.Log;
 
-import com.connectsdk.DefaultPlatform;
+//import com.connectsdk.DefaultPlatform;
 import com.connectsdk.core.Util;
 import com.connectsdk.device.ConnectableDevice;
 import com.connectsdk.device.ConnectableDeviceListener;
@@ -399,19 +399,19 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
      *   + AirPlayService
      */
     @SuppressWarnings("unchecked")
-    public void registerDefaultDeviceTypes() {
-        final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
-
-        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            try { 
-                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    public void registerDefaultDeviceTypes() {
+//        final HashMap<String, String> devicesList = DefaultPlatform.getDeviceServiceMap();
+//
+//        for (HashMap.Entry<String, String> entry : devicesList.entrySet()) {
+//            String key = entry.getKey();
+//            String value = entry.getValue();
+//            try {
+//                registerDeviceService((Class<DeviceService>) Class.forName(key), (Class<DiscoveryProvider>)Class.forName(value));
+//            } catch (ClassNotFoundException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     /**
      * Registers a DeviceService with DiscoveryManager and tells it which DiscoveryProvider to use to find it. Each DeviceService has a JSONObject of discovery parameters that its DiscoveryProvider will use to find it.
@@ -549,7 +549,7 @@ public class DiscoveryManager implements ConnectableDeviceListener, DiscoveryPro
             @Override
             public void run() {
                 if (discoveryProviders.size() == 0) {
-                    registerDefaultDeviceTypes();
+                    //registerDefaultDeviceTypes();
                 }
 
                 ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
