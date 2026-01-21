@@ -29,8 +29,10 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 
 public class HttpMessage {
+    public final static String CONTENT_LENGTH_HEADER = "Content-Length";
     public final static String CONTENT_TYPE_HEADER = "Content-Type";
-    public final static String CONTENT_TYPE_TEXT_XML = "text/xml; charset=utf-8";
+    public final static String CONTENT_TYPE_TEXT_XML = "text/xml; charset=\"utf-8\"";
+    public final static String CONTENT_TYPE_TEXT_PLAIN = "text/plain; charset=\"utf-8\"";
     public final static String CONTENT_TYPE_APPLICATION_PLIST = "application/x-apple-binary-plist";
     public final static String UDAP_USER_AGENT = "UDAP/2.0";
     public final static String LG_ELECTRONICS = "LG Electronics";
@@ -43,7 +45,7 @@ public class HttpMessage {
         HttpPost post = null;
         try {
             post = new HttpPost(uri);
-            post.setHeader("Content-Type", CONTENT_TYPE_TEXT_XML);
+            post.setHeader(CONTENT_TYPE_HEADER, CONTENT_TYPE_TEXT_XML);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -53,7 +55,7 @@ public class HttpMessage {
 
     public static HttpPost getUDAPHttpPost(String uri) {
         HttpPost post = getHttpPost(uri);
-        post.setHeader("User-Agent", UDAP_USER_AGENT);
+        post.setHeader(USER_AGENT, UDAP_USER_AGENT);
 
         return post;
     }
@@ -76,18 +78,18 @@ public class HttpMessage {
         return post;
     }
 
-    public static HttpGet getHttpGet(String url) { 
+    public static HttpGet getHttpGet(String url) {
         return new HttpGet(url);
     }
 
-    public static HttpGet getUDAPHttpGet(String uri) { 
+    public static HttpGet getUDAPHttpGet(String uri) {
         HttpGet get = getHttpGet(uri);
-        get.setHeader("User-Agent", UDAP_USER_AGENT);
+        get.setHeader(USER_AGENT, UDAP_USER_AGENT);
 
         return get;
     }
 
-    public static HttpDelete getHttpDelete(String url) { 
+    public static HttpDelete getHttpDelete(String url) {
         return new HttpDelete(url);
     }
 

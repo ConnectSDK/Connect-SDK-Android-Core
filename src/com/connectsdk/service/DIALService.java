@@ -89,7 +89,7 @@ public class DIALService extends DeviceService implements Launcher {
     public void setServiceDescription(ServiceDescription serviceDescription) {
         super.setServiceDescription(serviceDescription);
 
-        Map<String, List<String>> responseHeaders = this.getServiceDescription().getResponseHeaders(); 
+        Map<String, List<String>> responseHeaders = this.getServiceDescription().getResponseHeaders();
 
         if (responseHeaders != null) {
             String commandPath;
@@ -138,28 +138,40 @@ public class DIALService extends DeviceService implements Launcher {
     }
 
     @Override
-    public void launchAppWithInfo(final AppInfo appInfo, Object params, final AppLaunchListener listener) {
-        ServiceCommand<ResponseListener<Object>> command =
-                new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
-                        requestURL(appInfo.getName()), params, new ResponseListener<Object>() {
+    public void launchAppWithInfo(final AppInfo appInfo, final Object params, final AppLaunchListener listener) {
+        LaunchSession launchSession = new LaunchSession();
+        launchSession.setAppId(appInfo.getId());
+        getAppState(launchSession, new AppStateListener() {
+            @Override
+            public void onSuccess(Launcher.AppState object) {
+                ServiceCommand <ResponseListener <Object>> command =
+                        new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(),
+                                requestURL(appInfo.getId()), params, new ResponseListener<Object>() {
+                            @Override
+                            public void onError(ServiceCommandError error) {
+                                Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
+                            }
+
+                            @Override
+                            public void onSuccess(Object object) {
+                                LaunchSession launchSession = LaunchSession.launchSessionForAppId(appInfo.getId());
+                                launchSession.setAppName(appInfo.getName());
+                                launchSession.setSessionId((String) object);
+                                launchSession.setService(DIALService.this);
+                                launchSession.setSessionType(LaunchSessionType.App);
+
+                                Util.postSuccess(listener, launchSession);
+                            }
+                        });
+
+                command.send();
+            }
+
             @Override
             public void onError(ServiceCommandError error) {
-                Util.postError(listener, new ServiceCommandError(0, "Problem Launching app", null));
-            }
-
-            @Override
-            public void onSuccess(Object object) {
-                LaunchSession launchSession = LaunchSession.launchSessionForAppId(appInfo.getId());
-                launchSession.setAppName(appInfo.getName());
-                launchSession.setSessionId((String)object);
-                launchSession.setService(DIALService.this);
-                launchSession.setSessionType(LaunchSessionType.App);
-
-                Util.postSuccess(listener, launchSession);
+                Util.postError(listener, error);
             }
         });
-
-        command.send();
     }
 
     @Override
@@ -169,11 +181,11 @@ public class DIALService extends DeviceService implements Launcher {
 
     @Override
     public void closeApp(final LaunchSession launchSession, final ResponseListener<Object> listener) {
-        getAppState(launchSession.getAppName(), new AppStateListener() {
+        getAppState(launchSession, new AppStateListener() {
 
             @Override
             public void onSuccess(AppState state) {
-                String uri = requestURL(launchSession.getAppName());
+                String uri;
 
                 if (launchSession.getSessionId().contains("http://")
                         || launchSession.getSessionId().contains("https://"))
@@ -255,7 +267,25 @@ public class DIALService extends DeviceService implements Launcher {
         Util.postError(listener, ServiceCommandError.notSupported());
     }
 
-    private void getAppState(String appName, final AppStateListener listener) {
+    @Override
+    public void getAppList(AppListListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public void getRunningApp(AppInfoListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+    }
+
+    @Override
+    public ServiceSubscription<AppInfoListener> subscribeRunningApp(AppInfoListener listener) {
+        Util.postError(listener, ServiceCommandError.notSupported());
+
+        return new NotSupportedServiceSubscription<AppInfoListener>();
+    }
+
+    @Override
+    public void getAppState(LaunchSession launchSession, final AppStateListener listener) {
         ResponseListener<Object> responseListener = new ResponseListener<Object>() {
 
             @Override
@@ -277,7 +307,7 @@ public class DIALService extends DeviceService implements Launcher {
 
                     Util.postSuccess(listener, appState);
                     // TODO: This isn't actually reporting anything.
-//                    if (listener != null) 
+//                    if (listener != null)
 //                        listener.onAppStateSuccess(state);
                 } else {
                     Util.postError(listener, new ServiceCommandError(0, "Malformed response for app state", null));
@@ -290,7 +320,7 @@ public class DIALService extends DeviceService implements Launcher {
             }
         };
 
-        String uri = requestURL(appName);
+        String uri = requestURL(launchSession.getAppId());
 
         ServiceCommand<ResponseListener<Object>> request =
                 new ServiceCommand<ResponseListener<Object>>(getCommandProcessor(), uri, null,
@@ -298,29 +328,6 @@ public class DIALService extends DeviceService implements Launcher {
         request.setHttpMethod(ServiceCommand.TYPE_GET);
 
         request.send();
-    }
-
-    @Override
-    public void getAppList(AppListListener listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-    }
-
-    @Override
-    public void getRunningApp(AppInfoListener listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-    }
-
-    @Override
-    public ServiceSubscription<AppInfoListener> subscribeRunningApp(AppInfoListener listener) {
-        Util.postError(listener, ServiceCommandError.notSupported());
-
-        return new NotSupportedServiceSubscription<AppInfoListener>();
-    }
-
-    @Override
-    public void getAppState(LaunchSession launchSession, AppStateListener listener) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -402,10 +409,15 @@ public class DIALService extends DeviceService implements Launcher {
                     HttpConnection connection = createHttpConnection(mCommand.getTarget());
                     if (payload != null || command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_POST)) {
                         connection.setMethod(HttpConnection.Method.POST);
+                        // Always set Content-Type to bypass Android bug: https://code.google.com/p/android/issues/detail?id=205273
+                        connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; " +
+                                "charset=\"utf-8\"");
                         if (payload != null) {
-                            connection.setHeader(HttpMessage.CONTENT_TYPE_HEADER, "text/plain; " +
-                                    "charset=\"utf-8\"");
-                            connection.setPayload(payload.toString());
+                            String payloadData = payload.toString();
+                            connection.setHeader(HttpMessage.CONTENT_LENGTH_HEADER, String.valueOf(payloadData.length()));
+                            connection.setPayload(payloadData);
+                        } else {
+                            connection.setHeader(HttpMessage.CONTENT_LENGTH_HEADER, "0");
                         }
                     } else if (command.getHttpMethod().equalsIgnoreCase(ServiceCommand.TYPE_DEL)) {
                         connection.setMethod(HttpConnection.Method.DELETE);
@@ -416,6 +428,10 @@ public class DIALService extends DeviceService implements Launcher {
                         Util.postSuccess(command.getResponseListener(), connection.getResponseString());
                     } else if (code == 201) {
                         Util.postSuccess(command.getResponseListener(), connection.getResponseHeader("Location"));
+                    } else if (code == 404) {
+                        Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Could not find requested application", null));
+                    } else if (code == 501) {
+                        Util.postError(command.getResponseListener(), new ServiceCommandError(0, "Was unable to perform the requested action, not supported", null));
                     } else {
                         Util.postError(command.getResponseListener(), ServiceCommandError.getError(code));
                     }
