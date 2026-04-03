@@ -3,7 +3,7 @@
     android:versionCode="8"
     android:versionName="1.4.2" >
 
-    <application android:usesCleartextTraffic="true">
+    <application android:usesCleartextTraffic="false">
         <receiver android:name=".ScreenOnOffReceiver"
             android:exported="false">
             <intent-filter>
